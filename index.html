@@ -31,7 +31,7 @@ if(location.protocol==='file:'){location.replace('https://wanpra.github.io/blood
   --blue:#2563EB;--blue-light:#EFF6FF;--blue-dark:#1E40AF;
   --amber:#D97706;--amber-light:#FFFBEB;--amber-dark:#92400E;--amber-mid:#FDE68A;
   --mono:'DM Mono',monospace;--sans:'Inter',ui-sans-serif,system-ui,sans-serif;--serif:'Source Serif 4',ui-serif,Georgia,serif;
-  --radius:24px;--radius-sm:16px;--radius-xs:12px;--radius-elevated:20px;--radius-pill:9999px;
+  --radius:24px;--radius-sm:16px;--radius-xs:12px;--radius-elevated:20px;--radius-pill:9999px;--spacing-section:64px;
   --shadow:0 0 0 1px rgba(4,23,43,0.05),0 20px 25px -5px rgba(0,0,0,0.1),0 8px 10px -6px rgba(0,0,0,0.1);
   --shadow-sm:0 1px 2px rgba(23,25,28,0.04);
   --shadow-lg:0 0 0 1px rgba(23,25,28,0.05),0 8px 40px rgba(0,0,0,0.1);
@@ -96,21 +96,17 @@ header{background:rgba(255,255,255,0.7);backdrop-filter:blur(12px);-webkit-backd
 .key-hint a{color:var(--blue);text-decoration:none;}
 .key-hint a:hover{text-decoration:underline;}
 .container{max-width:1300px;margin:0 auto;padding:2rem;}
-.grid-2{display:grid;grid-template-columns:420px 1fr;gap:1.5rem;align-items:start;}
-.view-toggle{display:inline-flex;gap:0;background:var(--rule-soft);border:none;border-radius:var(--radius-pill);padding:4px;margin-bottom:1.25rem;box-shadow:none;max-width:340px;}
+/* Sticky quick-jump nav — a scrollspy, not a mode switch: both sections always render in the
+   normal document flow below, this just highlights which one is in view and offers a shortcut. */
+.view-toggle{display:inline-flex;gap:0;background:var(--rule-soft);border:none;border-radius:var(--radius-pill);padding:4px;margin-bottom:1.25rem;box-shadow:none;max-width:340px;position:sticky;top:76px;z-index:150;}
 .vt-btn{flex:1;padding:9px 16px;border:none;background:transparent;border-radius:var(--radius-pill);font-family:var(--sans);font-size:13.5px;font-weight:450;color:var(--ink-2);cursor:pointer;transition:all 0.18s;}
 .vt-btn.active{background:var(--ink);color:var(--white);box-shadow:none;}
-/* When toggle is active (single-view mode), only show the selected column */
-.grid-2.single-view{grid-template-columns:1fr;}
-.slide-in-right{animation:slideInRight 0.38s cubic-bezier(.22,.61,.36,1);}
-.slide-in-left{animation:slideInLeft 0.38s cubic-bezier(.22,.61,.36,1);}
-@keyframes slideInRight{from{opacity:0;transform:translateX(36px);}to{opacity:1;transform:translateX(0);}}
-@keyframes slideInLeft{from{opacity:0;transform:translateX(-36px);}to{opacity:1;transform:translateX(0);}}
-@media(prefers-reduced-motion:reduce){.slide-in-right,.slide-in-left{animation:none;}}
-.grid-2.single-view #view-setup{display:none;}
-.grid-2.single-view #view-results{display:none;}
-.grid-2.single-view.show-setup #view-setup{display:block;}
-.grid-2.single-view.show-results #view-results{display:block;}
+#view-setup,#view-results{margin-bottom:var(--spacing-section,64px);scroll-margin-top:150px;}
+/* Scroll-triggered reveal: elements start slightly lower + transparent, and settle into place
+   the first time they cross into the viewport (IntersectionObserver adds .revealed below). */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity 0.5s ease,transform 0.5s ease;}
+.reveal.revealed{opacity:1;transform:translateY(0);}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}}
 /* Neutral Card: the default workhorse card — flat, soft, no shadow per the system's rule that
    only floating product artifacts (stat-box/car-card/map-section below) earn elevation. */
 .panel{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);margin-bottom:1rem;box-shadow:none;transition:border-color 0.2s;overflow:hidden;animation:fadeUp 0.3s ease both;}
@@ -124,8 +120,8 @@ input[type=text],input[type=password],select{width:100%;padding:9px 13px;border:
 input[type=text]:focus,input[type=password]:focus,select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(93,42,26,0.1);}
 input::placeholder{color:var(--ink-4);}
 /* ── Accessibility: visible keyboard focus on every interactive control ── */
-a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible,.hosp-item:focus-visible,.autocomplete-item:focus-visible,.map-car-tab:focus-visible,.map-phase-tab:focus-visible,.vt-btn:focus-visible,.ps-btn:focus-visible{outline:2.5px solid var(--red);outline-offset:2px;border-radius:6px;}
-button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,.gmaps-btn,.settings-btn,.modal-close{touch-action:manipulation;}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible,.hosp-item:focus-visible,.autocomplete-item:focus-visible,.map-car-tab:focus-visible,.map-phase-tab:focus-visible,.vt-btn:focus-visible{outline:2.5px solid var(--red);outline-offset:2px;border-radius:6px;}
+button,.btn,.vt-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,.gmaps-btn,.settings-btn,.modal-close{touch-action:manipulation;}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.001ms!important;animation-iteration-count:1!important;transition-duration:0.001ms!important;scroll-behavior:auto!important;}}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .form-group{margin-bottom:14px;}
@@ -167,8 +163,9 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
 .st-btn.active{background:var(--ink);color:var(--white);box-shadow:none;}
 .st-num{width:18px;height:18px;border-radius:50%;background:var(--rule);color:var(--ink-3);font-family:var(--mono);font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.18s;}
 .st-btn.active .st-num{background:rgba(255,255,255,0.25);color:#fff;}
-.setup-tab-content{display:none;}
-.setup-tab-content.active{display:block;animation:fadeUp 0.25s ease both;}
+/* All three setup steps are always visible and stacked — scrolled between, not tab-switched */
+.setup-tab-content{display:block;margin-bottom:40px;scroll-margin-top:160px;}
+.setup-tab-content:last-child{margin-bottom:0;}
 /* ── Guide page ── */
 #guide-page{position:fixed;inset:0;z-index:8000;background:var(--surface);display:none;flex-direction:column;}
 #guide-page.open{display:flex;}
@@ -215,9 +212,10 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
 .stop-badge{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:500;flex-shrink:0;margin-top:2px;}
 .route-flow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:12px;}
 .cc-head{padding:12px 16px;display:flex;align-items:center;gap:12px;}
-.phase-switch{display:flex;gap:0;background:var(--rule-soft);border:none;border-radius:var(--radius-pill);padding:3px;margin-bottom:12px;}
-.ps-btn{flex:1;padding:6px 10px;border:none;background:transparent;border-radius:var(--radius-pill);font-family:var(--sans);font-size:11.5px;font-weight:450;color:var(--ink-2);cursor:pointer;transition:all 0.18s;white-space:nowrap;}
-.ps-btn.active{background:var(--white);color:var(--ink);box-shadow:none;}
+/* Stacked Collect/Deliver panels within a car card, replacing the old click-to-swap toggle */
+.phase-block{margin-bottom:14px;}
+.phase-block+.phase-block{padding-top:14px;border-top:1px solid var(--rule-soft);}
+.phase-block-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-3);margin-bottom:8px;}
 .cc-flow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:10px;}
 .cc-metric{display:inline-block;font-family:var(--mono);font-size:12px;font-weight:500;padding:5px 11px;border-radius:20px;margin-bottom:2px;}
 .rf-badge{font-family:var(--mono);font-size:10px;font-weight:500;padding:3px 8px;border-radius:20px;border:1px solid var(--rule);color:var(--ink-2);background:var(--surface);white-space:nowrap;}
@@ -244,7 +242,7 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
 *::-webkit-scrollbar{width:5px;height:5px;}
 *::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-@media(max-width:940px){.grid-2{grid-template-columns:1fr;}.container{padding:1rem;}header{padding:0 1rem;}}
+@media(max-width:940px){.container{padding:1rem;}header{padding:0 1rem;}}
 /* MAP */
 .map-section{background:var(--white);border:none;border-radius:var(--radius-elevated);box-shadow:var(--shadow);overflow:hidden;margin-top:1.5rem;animation:fadeUp 0.4s ease both;}
 .map-header{padding:14px 18px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
@@ -650,9 +648,9 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
     <button class="vt-btn active" id="vt-setup" onclick="switchView('setup')" data-i18n="vt_setup">Setup</button>
     <button class="vt-btn" id="vt-results" onclick="switchView('results')" data-i18n="vt_results">Results</button>
   </div>
-  <div class="grid-2" id="main-grid">
+  <div id="main-grid">
     <div id="view-setup">
-      <div class="trcs-bar">
+      <div class="trcs-bar reveal">
         <span style="font-size:18px;">🩸</span>
         <span class="trcs-bar-text" id="trcs-bar-text" data-i18n="trcs_bar">Blood refill always at: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย, Henri Dunant Rd</span>
       </div>
@@ -663,7 +661,7 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
         <button class="st-btn" id="stab-btn-hosp" onclick="switchSetupTab('hosp')"><span class="st-num">3</span> <span data-i18n="stab_hosp">Hospitals</span></button>
       </div>
 
-      <div class="setup-tab-content active" id="stab-start">
+      <div class="setup-tab-content reveal" id="stab-start">
         <div class="panel allow-overflow" style="animation-delay:0.05s;z-index:120;">
           <div class="panel-header">
             <span class="panel-title" data-i18n="p_depot">Starting Depot</span>
@@ -692,7 +690,7 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
         </div>
       </div>
 
-      <div class="setup-tab-content" id="stab-refill">
+      <div class="setup-tab-content reveal" id="stab-refill">
         <div class="panel allow-overflow" style="animation-delay:0.05s;z-index:110;">
           <div class="panel-header">
             <span class="panel-title" data-i18n="p_refill">Refill Location</span>
@@ -715,7 +713,7 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
         </div>
       </div>
 
-      <div class="setup-tab-content" id="stab-hosp">
+      <div class="setup-tab-content reveal" id="stab-hosp">
         <div class="panel allow-overflow" style="animation-delay:0.05s;">
           <div class="panel-header">
             <span class="panel-title" data-i18n="p_add">Add Hospital</span>
@@ -756,7 +754,7 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
     </div>
 
     <div id="view-results">
-      <div class="stats-row">
+      <div class="stats-row reveal">
         <div class="stat-box" style="animation-delay:0.05s;">
           <div class="stat-val" id="s-hosp">0</div>
           <div class="stat-lbl" data-i18n="s_hosp">Hospitals today</div>
@@ -778,7 +776,7 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
       </div>
 
       <!-- MAP SECTION -->
-      <div id="map-section" style="display:none;margin-top:1.5rem;">
+      <div id="map-section" class="reveal" style="display:none;margin-top:1.5rem;">
         <div class="dual-map-grid">
 
           <!-- PHASE 1 MAP -->
@@ -1717,7 +1715,6 @@ async function runOptimize(){
 async function renderResults(routed,sp){
   window._lastRouted=routed;window._lastSp=sp;
   document.getElementById('s-cars').textContent=routed.length;
-  window._cardData={};
   const departStr=getDepartTime();
   const stopMin=getStopMin();
   // parse "HH:MM" → minutes since midnight
@@ -1766,52 +1763,44 @@ async function renderResults(routed,sp){
     const p2metric=r.useRoad&&r.totalMin2?`~${r.totalMin2} min · ${r.totalKm2} km`:t('c_straight');
     const depotShort=sp.name.length>14?sp.name.slice(0,12)+'…':sp.name;
     const refillName=carRefill.name;const refillShort='🩸 '+(refillName.length>12?refillName.slice(0,11)+'…':refillName);
-    window._cardData[ci]={stops1,stops2,p1metric,p2metric,depot:depotShort,refill:refillShort,light:pal.light,dark:pal.dark,bg:pal.bg};
     return `<div class="car-card" data-car="${ci}" ondragover="onCarDragOver(event,${ci})" ondragleave="onCarDragLeave(event,${ci})" ondrop="onCarDrop(event,${ci})">
       <div class="cc-head" style="background:${pal.light};">
         <div style="width:36px;height:36px;border-radius:10px;background:${pal.bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 2px 8px ${pal.bg}44;">🚗</div>
         <div style="flex:1;min-width:0;">
-          <div style="font-weight:600;font-size:14px;color:${pal.dark};">Car ${ci+1}</div>
+          <div style="font-weight:500;font-size:14px;color:${pal.dark};">Car ${ci+1}</div>
           <div style="font-size:11px;font-family:var(--mono);color:${pal.dark};opacity:0.75;margin-top:1px;">${r.hospitals.length} ${t('c_stops')}${tripStr?` · ${tripStr} ${t('c_total')}`:''}</div>
         </div>
       </div>
       <div style="padding:14px 16px 16px;">
-        <div class="phase-switch">
-          <button class="ps-btn active" data-ps="${ci}-1" onclick="switchCardPhase(${ci},1)">${t('ph1')}</button>
-          <button class="ps-btn" data-ps="${ci}-2" onclick="switchCardPhase(${ci},2)">${t('ph2')}</button>
+        <div class="phase-block">
+          <div class="phase-block-label">${t('ph1')}</div>
+          <div class="cc-flow">
+            <span class="rf-badge depot">${depotShort}</span>
+            <span class="rf-arrow">→</span><span class="rf-badge" style="background:${pal.light};color:${pal.dark};border-color:${pal.bg}44;">${t('c_collect')}</span>
+            <span class="rf-arrow">→</span><span class="rf-badge trcs">${refillShort}</span>
+          </div>
+          <div class="cc-metric" style="color:${pal.dark};background:${pal.light};">⏱ ${p1metric}</div>
+          <ul class="stop-list" style="margin-top:10px;">${stops1}</ul>
         </div>
-        <div class="cc-flow" id="cc-flow-${ci}">
-          <span class="rf-badge depot">${depotShort}</span>
-          <span class="rf-arrow">→</span><span class="rf-badge" style="background:${pal.light};color:${pal.dark};border-color:${pal.bg}44;">${t('c_collect')}</span>
-          <span class="rf-arrow">→</span><span class="rf-badge trcs">${refillShort}</span>
+        <div class="phase-block">
+          <div class="phase-block-label">${t('ph2')}</div>
+          <div class="cc-flow">
+            <span class="rf-badge trcs">${refillShort}</span>
+            <span class="rf-arrow">→</span><span class="rf-badge" style="background:${pal.light};color:${pal.dark};border-color:${pal.bg}44;">${t('c_deliver')}</span>
+            <span class="rf-arrow">→</span><span class="rf-badge depot">${depotShort}</span>
+          </div>
+          <div class="cc-metric" style="color:${pal.dark};background:${pal.light};">⏱ ${p2metric}</div>
+          <ul class="stop-list" style="margin-top:10px;">${stops2}</ul>
         </div>
-        <div class="cc-metric" id="cc-metric-${ci}" style="color:${pal.dark};background:${pal.light};">⏱ ${p1metric}</div>
-        <ul class="stop-list" id="cc-stops-${ci}" style="margin-top:10px;">${stops1}</ul>
         <a class="gmaps-btn" href="${gmapsUrl}" target="_blank" rel="noopener">${t('c_open_gmaps')}</a>
       </div>
     </div>`;
   }).join('');
   const cand=getRefillCandidates();
   const refillTag=cand.length>1?`🩸 ${t('res_refill_lbl')}: ${cand.length} ${t('refill_points_n')}`:`🩸 ${t('res_refill_lbl')}: ${cand[0].name}`;
-  document.getElementById('result-area').innerHTML=`<div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px;"><span class="info-tag" style="background:var(--ink);color:var(--white);border-color:var(--ink);">${t('res_depot')}: ${sp.name}</span><span class="info-tag" style="background:var(--red-light);color:var(--red-dark);border-color:var(--red-mid);">${refillTag}</span></div>${routed.length>1?`<div style="font-size:11.5px;color:var(--ink-4);font-family:var(--mono);margin-bottom:10px;">${t('drag_hint')}</div>`:''}<div class="car-grid">${cards}</div>`;
+  document.getElementById('result-area').innerHTML=`<div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px;"><span class="info-tag" style="background:var(--ink);color:var(--white);border-color:var(--ink);">${t('res_depot')}: ${sp.name}</span><span class="info-tag" style="background:var(--red-light);color:var(--red-dark);border-color:var(--red-mid);">${refillTag}</span></div>${routed.length>1?`<div style="font-size:11.5px;color:var(--ink-4);font-family:var(--mono);margin-bottom:10px;">${t('drag_hint')}</div>`:''}<div class="car-grid reveal">${cards}</div>`;
   await renderMap(routed,sp);
-}
-function switchCardPhase(ci,phase){
-  const d=window._cardData&&window._cardData[ci];if(!d)return;
-  // toggle button active state
-  document.querySelector(`[data-ps="${ci}-1"]`).classList.toggle('active',phase===1);
-  document.querySelector(`[data-ps="${ci}-2"]`).classList.toggle('active',phase===2);
-  // swap stops
-  document.getElementById('cc-stops-'+ci).innerHTML = phase===1?d.stops1:d.stops2;
-  // swap metric
-  document.getElementById('cc-metric-'+ci).innerHTML = '⏱ '+(phase===1?d.p1metric:d.p2metric);
-  // swap flow
-  const flow=document.getElementById('cc-flow-'+ci);
-  if(phase===1){
-    flow.innerHTML=`<span class="rf-badge depot">${d.depot}</span><span class="rf-arrow">→</span><span class="rf-badge" style="background:${d.light};color:${d.dark};border-color:${d.bg}44;">${t('c_collect')}</span><span class="rf-arrow">→</span><span class="rf-badge trcs">${d.refill}</span>`;
-  } else {
-    flow.innerHTML=`<span class="rf-badge trcs">${d.refill}</span><span class="rf-arrow">→</span><span class="rf-badge" style="background:${d.light};color:${d.dark};border-color:${d.bg}44;">${t('c_deliver')}</span><span class="rf-arrow">→</span><span class="rf-badge depot">${d.depot}</span>`;
-  }
+  observeReveals();
 }
 /* ── Drag-to-reassign hospitals between cars ── */
 let dragData=null;
@@ -1944,41 +1933,47 @@ refreshListDropdown();
 restorePinnedDepot();
 restoreRefills();
 
-/* ── Setup / Results view toggle ── */
+/* ── Setup / Results quick-jump: both sections always render below; this just scrolls ── */
 function switchView(view){
-  const grid=document.getElementById('main-grid');
-  const prev=grid.classList.contains('show-results')?'results':'setup';
-  grid.classList.add('single-view');
-  grid.classList.toggle('show-setup',view==='setup');
-  grid.classList.toggle('show-results',view==='results');
-  document.getElementById('vt-setup').classList.toggle('active',view==='setup');
-  document.getElementById('vt-results').classList.toggle('active',view==='results');
-  // directional slide: results is to the "right" of setup
-  if(prev!==view){
-    const pane=document.getElementById(view==='setup'?'view-setup':'view-results');
-    if(pane){
-      const dir=(view==='results')?'slide-in-right':'slide-in-left';
-      pane.classList.remove('slide-in-right','slide-in-left');
-      void pane.offsetWidth; // reflow to restart animation
-      pane.classList.add(dir);
-      setTimeout(()=>pane.classList.remove(dir),420);
-    }
-  }
-  // maps need a redraw when their container becomes visible
+  const pane=document.getElementById(view==='setup'?'view-setup':'view-results');
+  if(pane)pane.scrollIntoView({behavior:'smooth',block:'start'});
+  // maps need a redraw the first time their container is actually laid out/visible
   if(view==='results'){[1,2].forEach(p=>{if(phaseMaps[p]&&phaseMaps[p].map)setTimeout(()=>phaseMaps[p].map.invalidateSize(),60);});}
-  window.scrollTo({top:0,behavior:'smooth'});
 }
-/* ── Setup step tabs: Starting → Refill → Hospitals (kept simple so beginners aren't shown everything at once) ── */
+/* ── Setup step quick-jump: Starting → Refill → Hospitals — all three are always visible and
+   stacked; clicking just scrolls, and the scrollspy observer below keeps the active pill in sync
+   with whichever section is actually in view as the user scrolls naturally. ── */
 function switchSetupTab(tab){
-  ['start','refill','hosp'].forEach(k=>{
-    document.getElementById('stab-'+k).classList.toggle('active',k===tab);
-    document.getElementById('stab-btn-'+k).classList.toggle('active',k===tab);
-  });
-  document.querySelector('#view-setup').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('stab-'+tab).scrollIntoView({behavior:'smooth',block:'start'});
 }
-// Start in single-view Setup
-document.getElementById('main-grid').classList.add('single-view','show-setup');
-// Left/Right arrow keys switch between Setup and Results (ignored while typing or on overlay pages)
+/* ── Scrollspy: highlight whichever section is currently in view, for both the setup-step pills
+   and the setup/results pills, without requiring a click ── */
+const scrollspyObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(en=>{
+    if(!en.isIntersecting)return;
+    const id=en.target.id;
+    if(['stab-start','stab-refill','stab-hosp'].includes(id)){
+      const tab=id.replace('stab-','');
+      ['start','refill','hosp'].forEach(k=>document.getElementById('stab-btn-'+k).classList.toggle('active',k===tab));
+    } else if(id==='view-setup'||id==='view-results'){
+      document.getElementById('vt-setup').classList.toggle('active',id==='view-setup');
+      document.getElementById('vt-results').classList.toggle('active',id==='view-results');
+    }
+  });
+},{rootMargin:'-40% 0px -55% 0px'});
+['stab-start','stab-refill','stab-hosp','view-setup','view-results'].forEach(id=>{
+  const el=document.getElementById(id);if(el)scrollspyObserver.observe(el);
+});
+/* ── Scroll-triggered reveal: fades/slides .reveal elements in the first time they're scrolled
+   into view. Called again after dynamic content (car cards, map section) is inserted. ── */
+const revealObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(en=>{
+    if(en.isIntersecting){en.target.classList.add('revealed');revealObserver.unobserve(en.target);}
+  });
+},{rootMargin:'0px 0px -8% 0px'});
+function observeReveals(){document.querySelectorAll('.reveal:not(.revealed)').forEach(el=>revealObserver.observe(el));}
+observeReveals();
+// Left/Right arrow keys jump between Setup and Results (ignored while typing or on overlay pages)
 document.addEventListener('keydown',e=>{
   if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
   const t=e.target;
