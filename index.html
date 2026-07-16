@@ -121,7 +121,7 @@ input[type=text],input[type=password],select{width:100%;padding:9px 13px;border:
 input[type=text]:focus,input[type=password]:focus,select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(212,22,60,0.1);}
 input::placeholder{color:var(--ink-4);}
 /* ── Accessibility: visible keyboard focus on every interactive control ── */
-a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible,.hosp-item:focus-visible,.autocomplete-item:focus-visible,.map-car-tab:focus-visible,.map-phase-tab:focus-visible,.vt-btn:focus-visible,.ps-btn:focus-visible{outline:2.5px solid var(--red);outline-offset:2px;border-radius:6px;}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible,.hosp-item:focus-visible,.map-car-tab:focus-visible,.map-phase-tab:focus-visible,.vt-btn:focus-visible,.ps-btn:focus-visible{outline:2.5px solid var(--red);outline-offset:2px;border-radius:6px;}
 button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,.gmaps-btn,.settings-btn,.modal-close{touch-action:manipulation;}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.001ms!important;animation-iteration-count:1!important;transition-duration:0.001ms!important;scroll-behavior:auto!important;}}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -320,13 +320,6 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
 .map-phase-tab{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--rule);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.18s;font-family:var(--sans);background:var(--white);color:var(--ink-2);}
 .map-phase-tab.active{background:var(--ink);color:var(--white);border-color:var(--ink);}
 .map-phase-tab:not(.active){background:var(--surface);color:var(--ink-4);border-color:var(--rule);}
-.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:var(--white);border:1.5px solid var(--rule);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:9999;margin-top:4px;max-height:240px;overflow-y:auto;}
-.autocomplete-item{padding:9px 13px;cursor:pointer;border-bottom:1px solid var(--rule-soft);transition:background 0.12s;}
-.autocomplete-item:last-child{border-bottom:none;}
-.autocomplete-item:hover,.autocomplete-item.active{background:var(--red-light);}
-.ac-name{font-size:13px;font-weight:500;color:var(--ink);}
-.ac-sub{font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-top:1px;}
-.ac-loading{padding:10px 13px;font-size:12px;color:var(--ink-4);font-family:var(--mono);}
 .gmaps-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid var(--blue);background:var(--blue-light);color:var(--blue-dark);font-size:11px;font-weight:600;cursor:pointer;text-decoration:none;transition:all 0.15s;margin-top:8px;}
 .gmaps-btn:hover{background:var(--blue);color:#fff;}
 /* ── Toasts ── */
@@ -736,14 +729,8 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
         </div>
         <div class="step-card-body">
           <div class="form-group" style="margin-bottom:0;position:relative;">
-            <label for="depot-input" data-i18n="or_type_loc">Starting location</label>
-            <input type="text" id="depot-input" autocomplete="off" placeholder="Search for an address or place" data-i18n-ph="depot_ph" oninput="onDepotType()" onkeydown="if(event.key==='Enter')closeDepotAutocomplete()"/>
-            <div id="depot-autocomplete-list" class="autocomplete-list" style="display:none;"></div>
-            <div class="field-help" data-i18n="depot_hint">Choose a suggestion, or leave this blank to use the Thai Red Cross National Blood Centre.</div>
-            <div style="margin-top:10px;">
-              <button type="button" class="ghost-link-btn" id="depot-coord-toggle-btn" onclick="toggleDepotCoordInline()" data-i18n="pin_depot">Use latitude and longitude instead</button>
-            </div>
-            <div id="depot-coord-inline" class="coord-inline" style="display:none;">
+            <label style="margin-bottom:8px;" data-i18n="or_type_loc">Starting location</label>
+            <div id="depot-coord-inline" class="coord-inline" style="margin-top:0;">
               <div class="form-group">
                 <label for="depot-name-inline" data-i18n="l_name_opt">Name (optional)</label>
                 <input type="text" id="depot-name-inline" autocomplete="off" placeholder="e.g. Warehouse, Main depot..." data-i18n-ph="depot_name_ph"/>
@@ -758,10 +745,10 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
                   <input type="text" id="depot-lng-inline" inputmode="decimal" placeholder="100.5344" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
                 </div>
               </div>
+              <div class="field-help" data-i18n="depot_hint">Leave all fields blank to use the Thai Red Cross National Blood Centre as your starting point.</div>
               <div id="depot-coord-error" class="continue-reason" style="display:none;text-align:left;color:var(--red-dark);" role="alert"></div>
-              <div style="display:flex;gap:16px;align-items:center;margin-top:10px;">
+              <div style="margin-top:10px;">
                 <button type="button" class="btn btn-outline btn-sm" onclick="saveDepotCoordInline()" data-i18n="coord_set_location">Set location</button>
-                <button type="button" class="ghost-link-btn" onclick="toggleDepotCoordInline(true)" data-i18n="back_to_search">Back to search</button>
               </div>
             </div>
             <div id="pinned-depot-chip" class="confirm-card" style="display:none;">
@@ -799,11 +786,25 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
             <span id="refill-count" style="font-size:12px;color:var(--ink-3);"></span>
           </div>
           <div id="refill-list"></div>
-          <div class="form-group" style="margin-bottom:0;margin-top:14px;position:relative;">
-            <label for="refill-input" data-i18n="refill_add">Add a refill point</label>
-            <input type="text" id="refill-input" autocomplete="off" placeholder="e.g. Bangkok Hospital, blood bank..." data-i18n-ph="refill_ph" oninput="onRefillType()" onkeydown="if(event.key==='Enter')closeRefillAutocomplete()"/>
-            <div id="refill-autocomplete-list" class="autocomplete-list" style="display:none;"></div>
-            <button type="button" class="ghost-link-btn" onclick="openCoordBoxRefill()" style="margin-top:8px;" data-i18n="pin_refill">Use latitude and longitude instead</button>
+          <div class="coord-inline" style="margin-top:14px;">
+            <div class="form-group">
+              <label for="refill-name-inline" data-i18n="refill_add">Add a refill point</label>
+              <input type="text" id="refill-name-inline" autocomplete="off" placeholder="e.g. Bangkok Hospital, blood bank..." data-i18n-ph="refill_ph"/>
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="refill-lat-inline" data-i18n="coord_lat">Latitude</label>
+                <input type="text" id="refill-lat-inline" inputmode="decimal" placeholder="13.7367" oninput="onRefillCoordPairInput(this)" onkeydown="if(event.key==='Enter')addRefillManual()"/>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="refill-lng-inline" data-i18n="coord_lng">Longitude</label>
+                <input type="text" id="refill-lng-inline" inputmode="decimal" placeholder="100.5344" oninput="onRefillCoordPairInput(this)" onkeydown="if(event.key==='Enter')addRefillManual()"/>
+              </div>
+            </div>
+            <div id="refill-coord-error" class="continue-reason" style="display:none;text-align:left;color:var(--red-dark);" role="alert"></div>
+            <div style="margin-top:10px;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="addRefillManual()" data-i18n="refill_add_btn">Add refill point</button>
+            </div>
           </div>
         </div>
         <div class="step-card-footer">
@@ -963,7 +964,7 @@ const I18N={
     coord_set_location:'Set location', back_to_search:'Back to search',
     edit_location:'Edit', clear_location:'Clear',
     coord_invalid:'Enter a valid latitude (-90 to 90) and longitude (-180 to 180).',
-    depot_hint:'Choose a suggestion, or leave this blank to use the Thai Red Cross National Blood Centre.',
+    depot_hint:'Leave all fields blank to use the Thai Red Cross National Blood Centre as your starting point.',
     // add hospital
     p_add:'Add Hospital', load_defaults:'Load 20 defaults', clear_all:'Clear all',
     l_name:'Hospital name', l_dist:'District (optional)',
@@ -1039,7 +1040,7 @@ const I18N={
     refill_disabled_note:'Currently excluded from routes — click to re-include.',
     refill_point_one:'refill point',
     refill_intro:'Each car automatically refills at whichever point gives its fastest route.',
-    refill_add:'Add a refill point', refill_ph:'e.g. Bangkok Hospital, blood bank...',
+    refill_add:'Add a refill point', refill_ph:'e.g. Bangkok Hospital, blood bank...', refill_add_btn:'Add refill point',
     pin_refill:'Use latitude and longitude instead',
     refill_pin_label:'Custom refill point', refill_name_prompt:'Name this refill location:',
     refill_added:'Refill point added', refill_remove:'Remove this refill point',
@@ -1075,7 +1076,7 @@ const I18N={
     coord_set_location:'ตั้งค่าตำแหน่งนี้', back_to_search:'กลับไปค้นหา',
     edit_location:'แก้ไข', clear_location:'ล้าง',
     coord_invalid:'กรอกละติจูด (-90 ถึง 90) และลองจิจูด (-180 ถึง 180) ให้ถูกต้อง',
-    depot_hint:'เลือกจากรายการแนะนำ หรือระบบจะค้นหาพิกัดให้ — เว้นว่างไว้จะใช้ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทยเป็นค่าเริ่มต้น',
+    depot_hint:'เว้นว่างทุกช่องไว้เพื่อใช้ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทยเป็นจุดเริ่มต้น',
     p_add:'เพิ่มโรงพยาบาล', load_defaults:'โหลด 20 แห่ง', clear_all:'ล้างทั้งหมด',
     l_name:'ชื่อโรงพยาบาล', l_dist:'เขต/อำเภอ (ไม่บังคับ)',
     l_name_opt:'ชื่อ (ไม่บังคับ)', depot_name_ph:'เช่น คลังสินค้า, จุดเริ่มต้นหลัก...',
@@ -1144,7 +1145,7 @@ const I18N={
     refill_disabled_note:'ปิดใช้งานอยู่ — คลิกเพื่อเปิดใช้อีกครั้ง',
     refill_point_one:'จุดเติมเลือด',
     refill_intro:'รถแต่ละคันจะเติมเลือดที่จุดที่ทำให้เส้นทางเร็วที่สุดโดยอัตโนมัติ',
-    refill_add:'เพิ่มจุดเติมเลือด', refill_ph:'เช่น รพ.กรุงเทพ, ธนาคารเลือด...',
+    refill_add:'เพิ่มจุดเติมเลือด', refill_ph:'เช่น รพ.กรุงเทพ, ธนาคารเลือด...', refill_add_btn:'เพิ่มจุดเติมเลือด',
     pin_refill:'ใช้ละติจูดและลองจิจูดแทน',
     refill_pin_label:'จุดเติมเลือดที่กำหนดเอง', refill_name_prompt:'ตั้งชื่อจุดเติมเลือดนี้:',
     refill_added:'เพิ่มจุดเติมเลือดแล้ว', refill_remove:'ลบจุดเติมเลือดนี้',
@@ -1253,7 +1254,6 @@ async function fetchRetry(url,opts,tries=2){
     }
   }
 }
-function hasThai(s){return /[\u0E00-\u0E7F]/.test(s||'');}
 /* Parse coordinate text like "13.598, 100.614", "13.598°N 100.614°E", "13.598 100.614".
    Returns {lat,lng} if valid Thailand-range coords, else null. */
 function parseCoords(text){
@@ -1272,15 +1272,6 @@ function parseCoords(text){
   if(Math.abs(lat)>90||Math.abs(lng)>180)return null;
   return {lat,lng};
 }
-async function orsGeocode(query){const k=getORS();if(!k)return null;return orsThrottle(async()=>{try{
-  const th=hasThai(query);
-  // For Thai input, query as-is with lang=th; for English, append Thailand for disambiguation
-  const text=th?query:(query+' Thailand');
-  const langParam=th?'&lang=th':'';
-  const r=await fetchRetry(`https://api.openrouteservice.org/geocode/search?api_key=${k}&text=${encodeURIComponent(text)}&boundary.country=TH${langParam}&size=1`,{headers:{'Accept':'application/json'}});
-  if(!r.ok){handleOrsError(r.status);return null;}const d=await r.json();
-  if(d.features&&d.features.length){const f=d.features[0];const[lng,lat]=f.geometry.coordinates;const p=f.properties||{};return{lat,lng,label:p.label||query,confidence:p.confidence||0,region:[p.locality,p.localadmin,p.county,p.region].filter(Boolean).join(' ')};}
-}catch(e){console.error('geocode',e);toast(t('err_net_geo'),'error');}return null;});}
 async function orsMatrix(locations){const k=getORS();if(!k||locations.length<2)return null;return orsThrottle(async()=>{try{const body={locations:locations.map(l=>[l.lng,l.lat]),metrics:['distance','duration'],units:'km'};const r=await fetchRetry('https://api.openrouteservice.org/v2/matrix/driving-car',{method:'POST',headers:{'Authorization':k,'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok){handleOrsError(r.status);return null;}const d=await r.json();return(d.distances&&d.durations)?d:null;}catch(e){console.error('matrix',e);toast(t('err_net_dist'),'error');return null;}});}
 /* ── Toast notifications ── */
 let toastErrShown={};
@@ -1307,24 +1298,6 @@ function handleOrsError(status){
   else msg=t('err_failed')+' ('+status+')';
   if(!toastErrShown[status]){toastErrShown[status]=true;toast(msg,'error',6000);setTimeout(()=>{delete toastErrShown[status];},8000);}
 }
-async function orsAutocomplete(text){const k=getORS();if(!k)return[];return orsThrottle(async()=>{try{const langParam=hasThai(text)?'&lang=th':'';const r=await fetch(`https://api.openrouteservice.org/geocode/autocomplete?api_key=${k}&text=${encodeURIComponent(text)}&boundary.country=TH${langParam}&size=8`,{headers:{'Accept':'application/json'}});if(!r.ok){handleOrsError(r.status);return[];}const d=await r.json();return(d.features||[]).map(f=>({name:f.properties.name||f.properties.label,label:f.properties.label,region:[f.properties.locality,f.properties.region].filter(Boolean).join(', '),lat:f.geometry.coordinates[1],lng:f.geometry.coordinates[0]}));}catch(e){console.error('autocomplete',e);return[];}});}
-/* ── Depot autocomplete ── */
-let depotAcDebounce=null, depotAcResults=[];
-function closeDepotAutocomplete(){document.getElementById('depot-autocomplete-list').style.display='none';}
-function pickDepotAutocomplete(i){
-  const r=depotAcResults[i];if(!r)return;
-  const el=document.getElementById('depot-input');
-  el.value=r.name;
-  el.dataset.lat=r.lat; el.dataset.lng=r.lng;
-  pinnedDepot=null;
-  document.getElementById('s-depot').textContent=r.name;
-  showDepotConfirm(r.name,r.lat,r.lng,r.region||'');
-  closeDepotAutocomplete();
-}
-document.addEventListener('click',e=>{
-  if(!e.target.closest('#depot-input')&&!e.target.closest('#depot-autocomplete-list'))closeDepotAutocomplete();
-  if(!e.target.closest('#refill-input')&&!e.target.closest('#refill-autocomplete-list'))closeRefillAutocomplete();
-});
 function eDist(a,b){const dx=a.lat-b.lat,dy=a.lng-b.lng;return Math.sqrt(dx*dx+dy*dy);}
 function centroid(pts){return{lat:pts.reduce((s,p)=>s+p.lat,0)/pts.length,lng:pts.reduce((s,p)=>s+p.lng,0)/pts.length};}
 /* ── Selected-depot confirmation card: shown after any way of choosing a depot (search pick,
@@ -1346,34 +1319,23 @@ function editPinnedDepot(){
     document.getElementById('depot-name-inline').value=(pinnedDepot.name===t('depot_pin_label'))?'':pinnedDepot.name;
     document.getElementById('depot-lat-inline').value=pinnedDepot.lat;
     document.getElementById('depot-lng-inline').value=pinnedDepot.lng;
-    document.getElementById('depot-coord-inline').style.display='block';
-    hideDepotConfirm();
-  } else {
-    hideDepotConfirm();
-    document.getElementById('depot-input').focus();
   }
+  document.getElementById('depot-coord-inline').style.display='block';
+  hideDepotConfirm();
 }
 function clearPinnedDepot(){
   pinnedDepot=null;localStorage.removeItem('pinned_depot');
-  const el=document.getElementById('depot-input');el.value='';delete el.dataset.lat;delete el.dataset.lng;
   document.getElementById('depot-name-inline').value='';
   document.getElementById('depot-lat-inline').value='';
   document.getElementById('depot-lng-inline').value='';
   hideDepotConfirm();
-  document.getElementById('depot-coord-inline').style.display='none';
+  document.getElementById('depot-coord-inline').style.display='block';
   document.getElementById('s-depot').textContent=TRCS_REFILL.name;
 }
 function savePinnedDepot(){if(pinnedDepot)localStorage.setItem('pinned_depot',JSON.stringify(pinnedDepot));}
-function restorePinnedDepot(){try{const v=JSON.parse(localStorage.getItem('pinned_depot')||'null');if(v&&typeof v.lat==='number'){pinnedDepot=v;document.getElementById('s-depot').textContent=v.name;showPinnedDepotChip();}}catch(e){}}
-/* ── Inline latitude/longitude entry for the depot step (replaces the old modal for this one
-   entry point specifically) — the shared coord-modal is still used as-is for hospitals/refill. ── */
-function toggleDepotCoordInline(back){
-  const box=document.getElementById('depot-coord-inline');
-  const show=back?false:(box.style.display==='none');
-  box.style.display=show?'block':'none';
-  document.getElementById('depot-coord-error').style.display='none';
-  if(show)document.getElementById('depot-lat-inline').focus();
-}
+function restorePinnedDepot(){try{const v=JSON.parse(localStorage.getItem('pinned_depot')||'null');if(v&&typeof v.lat==='number'){pinnedDepot=v;document.getElementById('s-depot').textContent=v.name;showPinnedDepotChip();document.getElementById('depot-coord-inline').style.display='none';}}catch(e){}}
+/* ── Manual lat/lng entry for the depot — the only way to set a custom starting point now that
+   location search has been removed. Leaving both fields blank keeps the TRCS default. ── */
 function saveDepotCoordInline(){
   const latEl=document.getElementById('depot-lat-inline'),lngEl=document.getElementById('depot-lng-inline');
   let lat=parseFloat(latEl.value),lng=parseFloat(lngEl.value);
@@ -1384,14 +1346,11 @@ function saveDepotCoordInline(){
   const customName=document.getElementById('depot-name-inline').value.trim();
   pinnedDepot={name:customName||t('depot_pin_label'),lat,lng};
   savePinnedDepot();
-  const el=document.getElementById('depot-input');el.value='';delete el.dataset.lat;delete el.dataset.lng;
   document.getElementById('s-depot').textContent=pinnedDepot.name;
   showDepotConfirm(pinnedDepot.name,lat,lng,'');
   document.getElementById('depot-coord-inline').style.display='none';
-  reverseGeocode(lat,lng).then(a=>{if(a&&pinnedDepot&&pinnedDepot.lat===lat&&pinnedDepot.lng===lng){pinnedDepot.addr=a;savePinnedDepot();showDepotConfirm(pinnedDepot.name,lat,lng,a);}});
 }
 /* ── Custom refill locations (list; each car picks its fastest) ── */
-let refillAcDebounce=null, refillAcResults=[];
 /* English distinguishes "1 refill point" / "N refill points"; Thai uses one noun regardless of
    count, so only English needs the singular/plural branch. */
 function refillCountLabel(n){
@@ -1436,93 +1395,33 @@ function toggleTrcsDefault(){
 }
 function addRefill(name,lat,lng,addr){
   customRefills.push({name,lat,lng,addr:addr||''});saveRefills();renderRefillList();reRenderIfRouted();
-  if(!addr)reverseGeocode(lat,lng).then(a=>{const idx=customRefills.findIndex(r=>r.lat===lat&&r.lng===lng);if(a&&idx>=0){customRefills[idx].addr=a;saveRefills();renderRefillList();}});
   toast(`${t('refill_added')}: ${name}`,'success',2600);
 }
 function removeRefill(i){customRefills.splice(i,1);if(!useTrcsDefault&&!customRefills.length)useTrcsDefault=true;saveRefills();renderRefillList();reRenderIfRouted();}
 function reRenderIfRouted(){if(window._lastRouted&&window._lastSp)renderResults(window._lastRouted,window._lastSp);}
 function showRefillChip(){renderRefillList();}
-function onRefillType(){
-  const el=document.getElementById('refill-input');const v=el.value.trim();
-  const box=document.getElementById('refill-autocomplete-list');
-  const co=parseCoords(v);
-  if(co){box.style.display='block';box.innerHTML=`<div class="autocomplete-item" onmousedown="useCoordsForRefill(${co.lat},${co.lng})"><div class="ac-name">📍 ${t('use_coords')}</div><div class="ac-sub">${co.lat.toFixed(5)}, ${co.lng.toFixed(5)}</div></div>`;return;}
-  if(v.length<3){box.style.display='none';return;}
-  if(!getORS()){box.style.display='block';box.innerHTML='<div class="ac-loading">'+t('ac_setkey')+'</div>';return;}
-  box.style.display='block';box.innerHTML='<div class="ac-loading">'+t('ac_searching')+'</div>';
-  clearTimeout(refillAcDebounce);
-  refillAcDebounce=setTimeout(async()=>{
-    refillAcResults=await orsAutocomplete(v);
-    if(!refillAcResults.length){box.innerHTML='<div class="ac-loading">'+t('ac_nomatch')+'</div>';return;}
-    box.innerHTML=refillAcResults.map((r,i)=>`<div class="autocomplete-item" onmousedown="pickRefillAutocomplete(${i})"><div class="ac-name">${r.name}</div><div class="ac-sub">${r.region||r.label}</div></div>`).join('');
-  },350);
+/* Paste-a-full-pair auto-split for the refill step's manual lat/lng fields. */
+function onRefillCoordPairInput(el){
+  const co=parseCoords(el.value);
+  if(!co)return;
+  document.getElementById('refill-lat-inline').value=co.lat;
+  document.getElementById('refill-lng-inline').value=co.lng;
 }
-function pickRefillAutocomplete(i){
-  const r=refillAcResults[i];if(!r)return;
-  document.getElementById('refill-input').value='';
-  closeRefillAutocomplete();
-  addRefill(r.name,r.lat,r.lng,r.region||'');
-}
-function closeRefillAutocomplete(){const b=document.getElementById('refill-autocomplete-list');if(b)b.style.display='none';}
-function useCoordsForDepot(lat,lng){
-  const el=document.getElementById('depot-input');
-  el.dataset.lat=lat;el.dataset.lng=lng;
-  el.value=`📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-  document.getElementById('s-depot').textContent=el.value;
-  pinnedDepot=null;
-  showDepotConfirm(el.value,lat,lng,'');
-  closeDepotAutocomplete();
-}
-function useCoordsForRefill(lat,lng){
-  document.getElementById('refill-input').value='';
-  closeRefillAutocomplete();
-  addRefill(`📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`,lat,lng,'');
-}
-async function reverseGeocode(lat,lng){
-  const k=getORS();if(!k)return '';
-  return orsThrottle(async()=>{
-    try{
-      const r=await fetchRetry(`https://api.openrouteservice.org/geocode/reverse?api_key=${k}&point.lon=${lng}&point.lat=${lat}&size=1${getLang()==='th'?'&lang=th':''}`,{headers:{'Accept':'application/json'}});
-      if(!r.ok)return '';
-      const d=await r.json();
-      if(d.features&&d.features.length){
-        const p=d.features[0].properties||{};
-        // build a readable address: street, neighbourhood, sub-district, district
-        return [p.name,p.neighbourhood,p.localadmin,p.locality,p.county].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
-      }
-    }catch(e){console.error('reverse',e);}
-    return '';
-  });
-}
-function onDepotType(){
-  const el=document.getElementById('depot-input');const v=el.value.trim();
-  // Typing manually invalidates any previously picked coords or pinned depot
-  delete el.dataset.lat; delete el.dataset.lng;
-  if(v){pinnedDepot=null;document.getElementById('pinned-depot-chip').style.display='none';}
-  else{document.getElementById('s-depot').textContent=TRCS_REFILL.name;closeDepotAutocomplete();return;}
-  const box=document.getElementById('depot-autocomplete-list');
-  // Coordinate input
-  const co=parseCoords(v);
-  if(co){el.dataset.lat=co.lat;el.dataset.lng=co.lng;box.style.display='block';box.innerHTML=`<div class="autocomplete-item" onmousedown="useCoordsForDepot(${co.lat},${co.lng})"><div class="ac-name">📍 ${t('use_coords')}</div><div class="ac-sub">${co.lat.toFixed(5)}, ${co.lng.toFixed(5)}</div></div>`;document.getElementById('s-depot').textContent=`📍 ${co.lat.toFixed(4)}, ${co.lng.toFixed(4)}`;return;}
-  if(v.length<3){box.style.display='none';return;}
-  if(!getORS()){box.style.display='block';box.innerHTML='<div class="ac-loading">'+t('ac_setkey')+'</div>';return;}
-  box.style.display='block';box.innerHTML='<div class="ac-loading">'+t('ac_searching')+'</div>';
-  clearTimeout(depotAcDebounce);
-  depotAcDebounce=setTimeout(async()=>{
-    depotAcResults=await orsAutocomplete(v);
-    if(!depotAcResults.length){box.innerHTML='<div class="ac-loading">'+t('ac_nomatch')+'</div>';return;}
-    box.innerHTML=depotAcResults.map((r,i)=>`<div class="autocomplete-item" onmousedown="pickDepotAutocomplete(${i})"><div class="ac-name">${r.name}</div><div class="ac-sub">${r.region||r.label}</div></div>`).join('');
-  },350);
+/* Manual add-a-refill-point — the only way to add one now that location search is removed. */
+function addRefillManual(){
+  const nameEl=document.getElementById('refill-name-inline'),latEl=document.getElementById('refill-lat-inline'),lngEl=document.getElementById('refill-lng-inline');
+  let lat=parseFloat(latEl.value),lng=parseFloat(lngEl.value);
+  if(isNaN(lat)||isNaN(lng)){const co=parseCoords(latEl.value)||parseCoords(lngEl.value);if(co){lat=co.lat;lng=co.lng;}}
+  const errEl=document.getElementById('refill-coord-error');
+  if(isNaN(lat)||isNaN(lng)||Math.abs(lat)>90||Math.abs(lng)>180){errEl.textContent=t('coord_invalid');errEl.style.display='block';return;}
+  errEl.style.display='none';
+  const name=nameEl.value.trim()||t('refill_pin_label');
+  addRefill(name,lat,lng,'');
+  nameEl.value='';latEl.value='';lngEl.value='';
 }
 async function resolveDepot(){
-  const el=document.getElementById('depot-input');const custom=el.value.trim();
-  // A manually pinned starting point takes priority (unless user typed/picked something afterward)
-  if(pinnedDepot&&!custom)return{...pinnedDepot};
-  if(custom){
-    if(el.dataset.lat&&el.dataset.lng)return{name:custom,lat:parseFloat(el.dataset.lat),lng:parseFloat(el.dataset.lng)};
-    const gc=await orsGeocode(custom);if(gc)return{name:custom,lat:gc.lat,lng:gc.lng};
-    const c=hospitals.length?centroid(hospitals):{lat:13.65,lng:100.55};return{name:custom,lat:c.lat,lng:c.lng};
-  }
+  // A manually pinned starting point takes priority; otherwise fall back to the TRCS default.
+  if(pinnedDepot)return{...pinnedDepot};
   // No starting point chosen — default to ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย (also the default refill point)
   return{...TRCS_REFILL};
 }
@@ -1574,27 +1473,6 @@ function openCoordBoxNew(){
   document.getElementById('coord-lat').value='';document.getElementById('coord-lng').value='';
   _coordShow();nameEl.focus();
 }
-function openCoordBoxDepot(){
-  coordMode='depot';
-  document.getElementById('coord-modal-title').textContent=t('coord_title_depot');
-  document.getElementById('coord-hosp-name').style.display='none';
-  document.getElementById('coord-name-row').style.display='grid';
-  document.getElementById('coord-dist-group').style.display='none';
-  const nameEl=document.getElementById('coord-name');nameEl.value=pinnedDepot?pinnedDepot.name:'';nameEl.placeholder=t('depot_pin_label');
-  document.getElementById('coord-lat').value=pinnedDepot?pinnedDepot.lat:'';
-  document.getElementById('coord-lng').value=pinnedDepot?pinnedDepot.lng:'';
-  _coordShow();nameEl.focus();
-}
-function openCoordBoxRefill(){
-  coordMode='refill';
-  document.getElementById('coord-modal-title').textContent=t('coord_title_refill');
-  document.getElementById('coord-hosp-name').style.display='none';
-  document.getElementById('coord-name-row').style.display='grid';
-  document.getElementById('coord-dist-group').style.display='none';
-  const nameEl=document.getElementById('coord-name');nameEl.value='';nameEl.placeholder=t('refill_pin_label');
-  document.getElementById('coord-lat').value='';document.getElementById('coord-lng').value='';
-  _coordShow();nameEl.focus();
-}
 function closeCoordBox(){document.getElementById('coord-modal').style.display='none';coordBoxHospId=null;}
 /* Paste a full "lat, lng" pair (e.g. copied from Google Maps) into either box → auto-split into both. */
 function onCoordPairInput(el){
@@ -1638,20 +1516,6 @@ function saveCoordBox(){
     hospitals.push(h);
     closeCoordBox();renderList();flagOutliers();
     toast(t('tn_pinned_added',{name:h.name}),'success',2800);
-  } else if(coordMode==='depot'){
-    const name=document.getElementById('coord-name').value.trim()||t('depot_pin_label');
-    pinnedDepot={name,lat:co.lat,lng:co.lng,addr:''};
-    savePinnedDepot();
-    const di=document.getElementById('depot-input');di.value='';delete di.dataset.lat;delete di.dataset.lng;
-    document.getElementById('s-depot').textContent=name;
-    showPinnedDepotChip();
-    closeCoordBox();
-    toast(`${t('depot_set')}: ${name}`,'success',2800);
-    reverseGeocode(co.lat,co.lng).then(addr=>{if(addr&&pinnedDepot){pinnedDepot.addr=addr;savePinnedDepot();showPinnedDepotChip();}});
-  } else if(coordMode==='refill'){
-    const name=document.getElementById('coord-name').value.trim()||t('refill_pin_label');
-    addRefill(name,co.lat,co.lng,'');
-    closeCoordBox();
   }
 }
 function loadPreset(){
