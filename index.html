@@ -1,0 +1,2132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Blood Delivery Route Optimizer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5C12 2.5 5 10 5 15a7 7 0 0 0 14 0c0-5-7-12.5-7-12.5Z' fill='%23D4163C'/%3E%3Ccircle cx='9.2' cy='16.4' r='1.5' fill='white'/%3E%3Ccircle cx='15' cy='12.2' r='1.5' fill='white'/%3E%3Cpath d='M9.2 16.4C11 16.4 13 15 15 12.2' stroke='white' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23D4163C'/%3E%3Cpath d='M12 4.5C12 4.5 6.5 10.5 6.5 14.5a5.5 5.5 0 0 0 11 0c0-4-5.5-10-5.5-10Z' fill='white' fill-opacity='0.2' stroke='white' stroke-width='1.3' stroke-linejoin='round'/%3E%3Ccircle cx='9.8' cy='15.4' r='1.2' fill='white'/%3E%3Ccircle cx='14.4' cy='12' r='1.2' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#D4163C;--red-dark:#9E0F2B;--red-light:#FDF0F3;--red-mid:#F7C5CF;
+  --ink:#18181B;--ink-2:#3F3F46;--ink-3:#71717A;--ink-4:#A1A1AA;
+  --rule:#E4E4E7;--rule-soft:#F0F0F2;--surface:#F8F8FA;--white:#FFFFFF;
+  --green:#059669;--green-light:#ECFDF5;--green-dark:#065F46;--green-mid:#A7F3D0;
+  --blue:#2563EB;--blue-light:#EFF6FF;--blue-dark:#1E40AF;
+  --amber:#D97706;--amber-light:#FFFBEB;--amber-dark:#92400E;--amber-mid:#FDE68A;
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+  --radius:12px;--radius-sm:8px;--radius-xs:5px;
+  --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.06);
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.05),0 2px 8px rgba(0,0,0,0.05);
+  --shadow-lg:0 4px 24px rgba(0,0,0,0.10),0 1px 4px rgba(0,0,0,0.06);
+}
+[data-theme="dark"]{
+  --red:#F0537A;--red-dark:#D4163C;--red-light:#2A1419;--red-mid:#5A2030;
+  --ink:#F4F4F5;--ink-2:#D4D4D8;--ink-3:#A1A1AA;--ink-4:#71717A;
+  --rule:#2E2E33;--rule-soft:#242428;--surface:#161618;--white:#1F1F23;
+  --green:#34D399;--green-light:#14271F;--green-dark:#6EE7B7;--green-mid:#1E4537;
+  --blue:#60A5FA;--blue-light:#16233A;--blue-dark:#93C5FD;
+  --amber:#FBBF24;--amber-light:#2A2113;--amber-dark:#FCD34D;--amber-mid:#4A3A12;
+  --shadow:0 1px 3px rgba(0,0,0,0.5),0 4px 16px rgba(0,0,0,0.5);
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.4),0 2px 8px rgba(0,0,0,0.4);
+  --shadow-lg:0 4px 24px rgba(0,0,0,0.6),0 1px 4px rgba(0,0,0,0.5);
+}
+body{font-family:var(--sans);background:var(--surface);color:var(--ink);min-height:100vh;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;transition:background 0.3s,color 0.3s;}
+/* ── Opening splash ── */
+#splash{position:fixed;inset:0;z-index:9000;background:var(--surface);display:flex;align-items:center;justify-content:center;animation:splashOut 0.6s ease 2.2s forwards;}
+.splash-inner{display:flex;flex-direction:column;align-items:center;gap:14px;}
+.splash-mark{width:88px;height:88px;filter:drop-shadow(0 6px 20px rgba(212,22,60,0.35));}
+#splash-drop{animation:dropDraw 1s ease forwards 0.2s, dropFill 0.7s ease forwards 1.1s;stroke-dasharray:60;stroke-dashoffset:60;}
+#splash-route{stroke-dasharray:12;stroke-dashoffset:12;opacity:0;animation:routeDraw 0.7s ease forwards 1.4s;}
+.splash-node{opacity:0;transform-box:fill-box;transform-origin:center;animation:nodePop 0.4s cubic-bezier(.5,1.6,.4,1) forwards;}
+.splash-node:nth-of-type(2){animation-delay:1.5s;}
+.splash-node:nth-of-type(3){animation-delay:1.7s;}
+.splash-title{font-size:26px;font-weight:700;letter-spacing:-0.03em;color:var(--ink);opacity:0;animation:fadeUp 0.6s ease forwards 1.5s;}
+.splash-title span{color:var(--red);}
+.splash-sub{font-size:11px;font-weight:500;letter-spacing:0.3em;text-transform:uppercase;color:var(--ink-4);opacity:0;animation:fadeUp 0.6s ease forwards 1.7s;}
+@keyframes dropDraw{to{stroke-dashoffset:0;}}
+@keyframes dropFill{to{fill-opacity:1;}}
+@keyframes routeDraw{from{opacity:1;stroke-dashoffset:12;}to{opacity:1;stroke-dashoffset:0;}}
+@keyframes nodePop{0%{opacity:0;transform:scale(0);}100%{opacity:1;transform:scale(1);}}
+@keyframes splashOut{to{opacity:0;visibility:hidden;}}
+@media(prefers-reduced-motion:reduce){#splash{animation:splashOut 0.3s ease 0.4s forwards;}#splash-drop,#splash-route,.splash-node,.splash-title,.splash-sub{animation:none!important;stroke-dashoffset:0!important;fill-opacity:1!important;opacity:1!important;}}
+[data-theme="dark"] header{background:rgba(31,31,35,0.85);}
+[data-theme="dark"] .leaflet-tile{filter:invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);}
+[data-theme="dark"] .leaflet-popup-content-wrapper,[data-theme="dark"] .leaflet-popup-tip{background:var(--white);color:var(--ink);}
+header{background:rgba(255,255,255,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--rule);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:200;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-mark{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:linear-gradient(140deg,var(--red) 0%,var(--red-dark) 100%);box-shadow:0 2px 10px rgba(212,22,60,0.35);}
+.logo-mark svg{width:20px;height:20px;display:block;}
+.logo-text{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-0.02em;line-height:1.05;display:flex;flex-direction:column;justify-content:center;}
+.logo-text .title-line span{color:var(--red);font-weight:700;}
+.logo-text .sub{font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-4);margin-top:1px;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.header-tag{font-family:var(--mono);font-size:11px;color:var(--ink-4);letter-spacing:0.02em;padding:4px 10px;background:var(--surface);border:1px solid var(--rule);border-radius:20px;}
+.header-tag.connected{color:var(--green);background:var(--green-light);border-color:var(--green-mid);}
+.settings-btn{background:var(--white);border:1px solid var(--rule);color:var(--ink-2);padding:6px 14px;border-radius:20px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.18s;box-shadow:var(--shadow-sm);}
+.settings-btn:hover{border-color:var(--ink-3);box-shadow:var(--shadow);}
+.modal-overlay{position:fixed;inset:0;background:rgba(24,24,27,0.45);backdrop-filter:blur(4px);z-index:300;display:flex;align-items:center;justify-content:center;}
+.modal{background:var(--white);border-radius:var(--radius);width:480px;max-width:95vw;border:1px solid var(--rule);box-shadow:var(--shadow-lg);}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-0.01em;}
+.modal-body{padding:20px 24px;}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--rule-soft);display:flex;justify-content:flex-end;gap:8px;}
+.modal-close{background:var(--surface);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;color:var(--ink-3);font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.modal-close:hover{background:var(--red-light);color:var(--red);}
+.key-status{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-family:var(--mono);font-size:10px;margin-left:8px;font-weight:500;}
+.key-status.ok{background:var(--green-light);color:var(--green-dark);}
+.key-status.missing{background:var(--red-light);color:var(--red-dark);}
+.key-hint{font-size:12px;color:var(--ink-3);font-family:var(--mono);margin-top:6px;line-height:1.7;}
+.key-hint a{color:var(--blue);text-decoration:none;}
+.key-hint a:hover{text-decoration:underline;}
+.container{max-width:1300px;margin:0 auto;padding:2rem;}
+.grid-2{display:grid;grid-template-columns:420px 1fr;gap:1.5rem;align-items:start;}
+.view-toggle{display:inline-flex;gap:0;background:var(--white);border:1px solid var(--rule);border-radius:10px;padding:4px;margin-bottom:1.25rem;box-shadow:var(--shadow-sm);max-width:340px;}
+.vt-btn{flex:1;padding:9px 16px;border:none;background:transparent;border-radius:7px;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--ink-3);cursor:pointer;transition:all 0.18s;}
+.vt-btn.active{background:var(--ink);color:var(--white);box-shadow:var(--shadow-sm);}
+/* When toggle is active (single-view mode), only show the selected column */
+.grid-2.single-view{grid-template-columns:1fr;}
+.slide-in-right{animation:slideInRight 0.38s cubic-bezier(.22,.61,.36,1);}
+.slide-in-left{animation:slideInLeft 0.38s cubic-bezier(.22,.61,.36,1);}
+@keyframes slideInRight{from{opacity:0;transform:translateX(36px);}to{opacity:1;transform:translateX(0);}}
+@keyframes slideInLeft{from{opacity:0;transform:translateX(-36px);}to{opacity:1;transform:translateX(0);}}
+@media(prefers-reduced-motion:reduce){.slide-in-right,.slide-in-left{animation:none;}}
+.grid-2.single-view #view-setup{display:none;}
+.grid-2.single-view #view-results{display:none;}
+.grid-2.single-view.show-setup #view-setup{display:block;}
+.grid-2.single-view.show-results #view-results{display:block;}
+.panel{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);margin-bottom:1rem;box-shadow:var(--shadow-sm);transition:box-shadow 0.2s;overflow:hidden;animation:fadeUp 0.3s ease both;}
+.panel.allow-overflow{overflow:visible;position:relative;z-index:100;}
+.panel:hover{box-shadow:var(--shadow);}
+.panel-header{padding:14px 18px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;justify-content:space-between;}
+.panel-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-3);}
+.panel-body{padding:18px;}
+label{display:block;font-size:12px;font-weight:500;color:var(--ink-3);margin-bottom:6px;letter-spacing:0.01em;}
+input[type=text],input[type=password],select{width:100%;padding:9px 13px;border:1.5px solid var(--rule);border-radius:var(--radius-sm);font-family:var(--sans);font-size:13.5px;background:var(--white);color:var(--ink);outline:none;transition:border-color 0.18s,box-shadow 0.18s;}
+input[type=text]:focus,input[type=password]:focus,select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(212,22,60,0.1);}
+input::placeholder{color:var(--ink-4);}
+/* ── Accessibility: visible keyboard focus on every interactive control ── */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible,.hosp-item:focus-visible,.autocomplete-item:focus-visible,.map-car-tab:focus-visible,.map-phase-tab:focus-visible,.vt-btn:focus-visible,.ps-btn:focus-visible{outline:2.5px solid var(--red);outline-offset:2px;border-radius:6px;}
+button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,.gmaps-btn,.settings-btn,.modal-close{touch-action:manipulation;}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.001ms!important;animation-iteration-count:1!important;transition-duration:0.001ms!important;scroll-behavior:auto!important;}}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-group{margin-bottom:14px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--radius-sm);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid transparent;transition:all 0.18s;white-space:nowrap;letter-spacing:-0.01em;}
+.btn-primary{background:linear-gradient(135deg,var(--red) 0%,var(--red-dark) 100%);color:var(--white);border-color:var(--red);box-shadow:0 2px 8px rgba(212,22,60,0.25);}
+.btn-primary:hover{box-shadow:0 4px 16px rgba(212,22,60,0.35);transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0);}
+.btn-primary:disabled{background:linear-gradient(135deg,#d4d4d8,#a1a1aa);border-color:#d4d4d8;box-shadow:none;cursor:not-allowed;transform:none;}
+.btn-outline{background:var(--white);color:var(--ink-2);border-color:var(--rule);box-shadow:var(--shadow-sm);}
+.btn-outline:hover{border-color:var(--ink-3);background:var(--surface);}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:6px;}
+.btn-danger-sm{background:transparent;color:var(--ink-4);border:none;padding:4px 8px;font-size:16px;cursor:pointer;line-height:1;border-radius:6px;transition:all 0.15s;}
+.btn-danger-sm:hover{color:var(--red);background:var(--red-light);}
+.trcs-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(135deg,#FDF0F3 0%,#FBE4EA 100%);border:1.5px solid var(--red-mid);border-radius:var(--radius-sm);margin-bottom:1rem;}
+.trcs-bar-text{font-size:13px;color:var(--red-dark);font-weight:500;}
+.hosp-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1.5px solid var(--rule-soft);border-radius:var(--radius-sm);margin-bottom:7px;background:var(--surface);transition:all 0.15s;}
+.hosp-item:hover{border-color:var(--rule);background:#f3f3f6;}
+.hosp-num{width:24px;height:24px;background:var(--ink);color:var(--white);font-family:var(--mono);font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;border-radius:6px;flex-shrink:0;}
+.geo-badge{font-size:10px;font-family:var(--mono);font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;line-height:1.4;}
+.geo-badge.ok{background:var(--green-light);color:var(--green-dark);}
+.geo-badge.approx{background:var(--amber-light);color:var(--amber-dark);cursor:pointer;}
+.geo-badge.needs{background:var(--red-light);color:var(--red-dark);cursor:pointer;}
+.geo-badge.approx:hover,.geo-badge.needs:hover{text-decoration:underline;}
+.btn-fix{background:var(--red);color:#fff;border:none;padding:4px 10px;border-radius:6px;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0;}
+.btn-fix:hover{background:var(--red-dark);}
+/* ── Global busy bar ── */
+#busy-bar{position:fixed;top:0;left:0;right:0;height:3px;z-index:9600;background:transparent;overflow:hidden;display:none;}
+#busy-bar.on{display:block;}
+#busy-bar::before{content:'';position:absolute;left:0;top:0;height:100%;width:40%;background:linear-gradient(90deg,transparent,var(--red),transparent);animation:busySlide 1s ease-in-out infinite;}
+@keyframes busySlide{0%{left:-40%;}100%{left:100%;}}
+#busy-chip{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9600;background:var(--white);border:1.5px solid var(--rule);box-shadow:var(--shadow-lg);border-radius:20px;padding:7px 16px;font-size:12px;font-weight:500;color:var(--ink-2);display:none;align-items:center;gap:8px;}
+#busy-chip.on{display:inline-flex;animation:toastIn 0.25s ease;}
+/* ── Setup step tabs (Starting / Refill / Hospitals) ── */
+.setup-tabs{display:flex;gap:0;background:var(--white);border:1px solid var(--rule);border-radius:10px;padding:4px;margin-bottom:1.25rem;box-shadow:var(--shadow-sm);}
+.st-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 10px;border:none;background:transparent;border-radius:7px;font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--ink-3);cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.st-btn.active{background:var(--ink);color:var(--white);box-shadow:var(--shadow-sm);}
+.st-num{width:18px;height:18px;border-radius:50%;background:var(--rule);color:var(--ink-3);font-family:var(--mono);font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.18s;}
+.st-btn.active .st-num{background:rgba(255,255,255,0.25);color:#fff;}
+.setup-tab-content{display:none;}
+.setup-tab-content.active{display:block;animation:fadeUp 0.25s ease both;}
+/* ── Guide page ── */
+#guide-page{position:fixed;inset:0;z-index:8000;background:var(--surface);display:none;flex-direction:column;}
+#guide-page.open{display:flex;}
+.guide-header{padding:14px 24px;background:rgba(255,255,255,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+[data-theme="dark"] .guide-header{background:rgba(31,31,35,0.85);}
+.guide-body{flex:1;overflow-y:auto;max-width:760px;width:100%;margin:0 auto;padding:32px 24px 60px;}
+.guide-intro{margin-bottom:32px;}
+.guide-intro h1{font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--ink);margin-bottom:8px;}
+.guide-intro p{font-size:14px;color:var(--ink-3);line-height:1.7;}
+.guide-section{display:flex;gap:16px;margin-bottom:26px;align-items:flex-start;}
+.guide-num{width:30px;height:30px;flex-shrink:0;border-radius:9px;background:linear-gradient(140deg,var(--red),var(--red-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:600;font-size:14px;box-shadow:0 2px 8px rgba(212,22,60,0.3);}
+.guide-content{flex:1;min-width:0;}
+.guide-content h2{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:6px;letter-spacing:-0.01em;}
+.guide-content p{font-size:13.5px;color:var(--ink-2);line-height:1.7;margin-bottom:8px;}
+.guide-list,.guide-badges{list-style:none;margin:8px 0;display:flex;flex-direction:column;gap:8px;}
+.guide-list li{font-size:13.5px;color:var(--ink-2);line-height:1.6;padding-left:18px;position:relative;}
+.guide-list li::before{content:'→';position:absolute;left:0;color:var(--red);font-weight:600;}
+.guide-badges li{font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:8px;line-height:1.5;flex-wrap:wrap;}
+.guide-phase{display:flex;align-items:flex-start;gap:10px;margin:8px 0;font-size:13.5px;color:var(--ink-2);line-height:1.6;}
+.ph-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.guide-tip{margin-top:30px;padding:16px 18px;border-radius:var(--radius-sm);background:var(--blue-light);border:1.5px solid var(--blue);color:var(--blue-dark);font-size:13.5px;line-height:1.7;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem;}
+.stat-box{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm);transition:all 0.2s;animation:fadeUp 0.3s ease both;}
+.stat-box:hover{box-shadow:var(--shadow);transform:translateY(-1px);}
+.stat-val{font-family:var(--mono);font-size:28px;font-weight:500;color:var(--ink);line-height:1;letter-spacing:-0.02em;}
+.stat-val.red{color:var(--red);}
+.stat-lbl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-4);margin-top:5px;}
+.car-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;}
+.car-card{border-radius:var(--radius);overflow:hidden;border:1px solid var(--rule);background:var(--white);box-shadow:var(--shadow-sm);transition:all 0.2s;}
+.car-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
+.stop-list{list-style:none;}
+.stop-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-soft);}
+.stop-time{display:inline-flex;align-items:center;gap:3px;background:var(--ink);color:var(--white);padding:1px 7px;border-radius:20px;font-size:10px;font-weight:500;white-space:nowrap;}
+.stop-item[draggable="true"]{cursor:grab;}
+.stop-item .drag-handle{color:var(--ink-4);font-size:14px;cursor:grab;flex-shrink:0;align-self:center;user-select:none;opacity:0.5;transition:opacity 0.15s;}
+.stop-item:hover .drag-handle{opacity:1;}
+.stop-item.dragging{opacity:0.4;}
+.car-card.drop-target{outline:2.5px dashed var(--red);outline-offset:2px;background:var(--red-light);}
+.car-card{transition:background 0.15s,outline 0.15s;}
+.refill-row{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:var(--radius-sm);background:var(--red-light);border:1.5px solid var(--red-mid);margin-bottom:7px;}
+.refill-row.off{background:var(--surface);border-color:var(--rule);border-style:dashed;}
+.stop-item:last-child{border-bottom:none;}
+.stop-badge{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:500;flex-shrink:0;margin-top:2px;}
+.route-flow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:12px;}
+.cc-head{padding:12px 16px;display:flex;align-items:center;gap:12px;}
+.phase-switch{display:flex;gap:0;background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:3px;margin-bottom:12px;}
+.ps-btn{flex:1;padding:6px 10px;border:none;background:transparent;border-radius:6px;font-family:var(--sans);font-size:11.5px;font-weight:600;color:var(--ink-3);cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.ps-btn.active{background:var(--white);color:var(--ink);box-shadow:var(--shadow-sm);}
+.cc-flow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:10px;}
+.cc-metric{display:inline-block;font-family:var(--mono);font-size:12px;font-weight:500;padding:5px 11px;border-radius:20px;margin-bottom:2px;}
+.rf-badge{font-family:var(--mono);font-size:10px;font-weight:500;padding:3px 8px;border-radius:20px;border:1px solid var(--rule);color:var(--ink-2);background:var(--surface);white-space:nowrap;}
+.rf-badge.depot{background:var(--ink);color:var(--white);border-color:var(--ink);}
+.rf-badge.trcs{background:var(--red-light);color:var(--red-dark);border-color:var(--red-mid);}
+.rf-badge.end{background:var(--ink-2);color:var(--white);border-color:var(--ink-2);}
+.rf-arrow{color:var(--ink-4);font-size:10px;}
+.dist-tag{font-family:var(--mono);font-size:11px;font-weight:500;padding:4px 10px;border-radius:20px;margin-bottom:10px;display:inline-block;}
+.dist-tag.road{background:var(--green-light);color:var(--green-dark);}
+.dist-tag.approx{background:var(--amber-light);color:var(--amber-dark);}
+.info-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;margin-bottom:10px;margin-right:8px;border:1px solid transparent;}
+.empty-state{text-align:center;padding:3.5rem 1rem;color:var(--ink-4);}
+.empty-state p{font-size:13px;line-height:1.9;color:var(--ink-3);}
+.loading-state{text-align:center;padding:2.5rem 1rem;color:var(--ink-3);font-size:13px;font-weight:500;}
+.spinner{display:inline-block;width:20px;height:20px;border:2.5px solid var(--rule);border-top-color:var(--red);border-radius:50%;animation:spin 0.7s linear infinite;margin-right:8px;vertical-align:middle;}
+.spinner-sm{display:inline-block;width:13px;height:13px;border:2px solid var(--rule);border-top-color:var(--amber);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.progress-log{background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius-sm);padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-top:14px;max-height:150px;overflow-y:auto;line-height:1.9;text-align:left;}
+.progress-log::-webkit-scrollbar{width:4px;}
+.progress-log::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+.notice{padding:11px 14px;border-radius:var(--radius-sm);border:1px solid;font-size:12px;font-family:var(--mono);margin-top:10px;line-height:1.6;}
+.notice.neutral{border-color:var(--rule);background:var(--surface);color:var(--ink-3);}
+.notice.info{border-color:#BFDBFE;background:var(--blue-light);color:var(--blue-dark);}
+*::-webkit-scrollbar{width:5px;height:5px;}
+*::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:940px){.grid-2{grid-template-columns:1fr;}.container{padding:1rem;}header{padding:0 1rem;}}
+/* MAP */
+.map-section{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-top:1.5rem;animation:fadeUp 0.4s ease both;}
+.map-header{padding:14px 18px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.map-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.map-legend-item{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--ink-2);}
+.map-legend-dot{width:11px;height:11px;border-radius:50%;border:2px solid rgba(0,0,0,0.15);}
+#route-map{height:480px;width:100%;z-index:1;}
+.dual-map-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+.route-map-pane{height:460px;width:100%;z-index:1;}
+.phase-dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+@media(max-width:1100px){.dual-map-grid{grid-template-columns:1fr;}}
+.leaflet-popup-content-wrapper{border-radius:10px;box-shadow:var(--shadow-lg);font-family:var(--sans);}
+.leaflet-popup-content{margin:10px 14px;font-size:13px;line-height:1.5;}
+.popup-name{font-weight:600;color:var(--ink);margin-bottom:2px;}
+.popup-sub{font-size:11px;color:var(--ink-3);font-family:var(--mono);}
+.popup-car{display:inline-block;margin-top:5px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;}
+.map-car-tab{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:1.5px solid;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.18s;font-family:var(--sans);}
+.map-car-tab.inactive{opacity:0.35;filter:grayscale(0.4);}
+.map-phase-tab{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--rule);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.18s;font-family:var(--sans);background:var(--white);color:var(--ink-2);}
+.map-phase-tab.active{background:var(--ink);color:var(--white);border-color:var(--ink);}
+.map-phase-tab:not(.active){background:var(--surface);color:var(--ink-4);border-color:var(--rule);}
+.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:var(--white);border:1.5px solid var(--rule);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:9999;margin-top:4px;max-height:240px;overflow-y:auto;}
+.autocomplete-item{padding:9px 13px;cursor:pointer;border-bottom:1px solid var(--rule-soft);transition:background 0.12s;}
+.autocomplete-item:last-child{border-bottom:none;}
+.autocomplete-item:hover,.autocomplete-item.active{background:var(--red-light);}
+.ac-name{font-size:13px;font-weight:500;color:var(--ink);}
+.ac-sub{font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-top:1px;}
+.ac-loading{padding:10px 13px;font-size:12px;color:var(--ink-4);font-family:var(--mono);}
+.gmaps-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid var(--blue);background:var(--blue-light);color:var(--blue-dark);font-size:11px;font-weight:600;cursor:pointer;text-decoration:none;transition:all 0.15s;margin-top:8px;}
+.gmaps-btn:hover{background:var(--blue);color:#fff;}
+/* ── Toasts ── */
+#toast-wrap{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9500;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;}
+.toast{pointer-events:auto;min-width:240px;max-width:420px;padding:11px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:9px;animation:toastIn 0.3s ease;border:1.5px solid;}
+.toast.info{background:var(--blue-light);color:var(--blue-dark);border-color:var(--blue);}
+.toast.error{background:var(--red-light);color:var(--red-dark);border-color:var(--red);}
+.toast.success{background:var(--green-light);color:var(--green-dark);border-color:var(--green);}
+.toast.warn{background:var(--amber-light);color:var(--amber-dark);border-color:var(--amber);}
+.toast.fade-out{animation:toastOut 0.3s ease forwards;}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+@keyframes toastOut{to{opacity:0;transform:translateY(12px);}}
+</style>
+</head>
+<body>
+
+<!-- GUIDE PAGE -->
+<div id="guide-page">
+  <div class="guide-header">
+    <div class="logo">
+      <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5C12 2.5 5 10 5 15a7 7 0 0 0 14 0c0-5-7-12.5-7-12.5Z" fill="white" fill-opacity="0.16" stroke="white" stroke-width="1.6" stroke-linejoin="round"/><circle cx="9.2" cy="16.4" r="1.5" fill="white"/><circle cx="15" cy="12.2" r="1.5" fill="white"/><path d="M9.2 16.4C11 16.4 13 15 15 12.2" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="0.2 2.6"/></svg></div>
+      <span class="logo-text"><span class="title-line">How it<span>Works</span></span><span class="sub">Quick Guide</span></span>
+    </div>
+    <button class="btn btn-primary" onclick="closeGuide()">✕ Close guide</button>
+  </div>
+  <div class="guide-body">
+   <div class="guide-lang guide-en">
+
+    <div class="guide-intro">
+      <h1>Welcome to Blood Route Optimizer 🩸</h1>
+      <p>This tool plans the most time-efficient daily blood-delivery routes from a depot to multiple hospitals, splitting the work across several vehicles. Here's everything you need to know.</p>
+    </div>
+
+    <div class="guide-tip" style="margin-top:0;margin-bottom:28px;background:var(--surface);border-color:var(--rule);color:var(--ink-2);">
+      <strong>🧭 Two views:</strong> The app has a <strong>⚙ Setup</strong> view (add hospitals &amp; choose depot) and a <strong>📊 Results</strong> view (routes &amp; maps). Switch with the toggle at the top — or just press the <strong>← / → arrow keys</strong> on your keyboard. It jumps to Results automatically when you optimize.
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">1</div>
+      <div class="guide-content">
+        <h2>Set your ORS API key (recommended)</h2>
+        <p>Open <strong>⚙ Settings</strong> and paste a free OpenRouteService key. Without it, the app can only estimate with straight lines and can't look up real hospital locations. Get one free at openrouteservice.org → Sign up → Dashboard → Request a token. Settings is also where you set stop time per hospital, max hospitals per car, departure time (used for arrival estimates), and workload balancing.</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">2</div>
+      <div class="guide-content">
+        <h2>Pick a starting depot</h2>
+        <p>Type any starting location — the location box has autocomplete too, or leave it blank to default to ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย.</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">3</div>
+      <div class="guide-content">
+        <h2>Add your hospitals</h2>
+        <p>Adding is fully manual — there's no automatic name lookup, so accuracy is entirely in your hands:</p>
+        <ul class="guide-list">
+          <li><strong>📍 Add hospital</strong> — type the name, an optional district, and its exact latitude/longitude (paste "lat, lng" copied straight from Google Maps works too).</li>
+          <li><strong>Load 20 defaults</strong> — demo hospitals with preset coordinates, to try things out.</li>
+        </ul>
+        <p>Each hospital shows a status badge — normally <span class="geo-badge ok">✓ geocoded</span> once you've entered it. If it lands far from the rest of your group it gets flagged <span class="geo-badge needs">⚠ far from others</span> as a nudge to double-check the coordinates you typed.</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">4</div>
+      <div class="guide-content">
+        <h2>Fix any wrong locations 📍</h2>
+        <p>Every hospital has a <strong>📍 Fix</strong> button (also clickable via its status badge). It opens a small box where you type the exact latitude/longitude — or paste a "lat, lng" pair copied from Google Maps — then Save. Use this whenever a hospital is flagged or lands in the wrong place — it guarantees accuracy.</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">5</div>
+      <div class="guide-content">
+        <h2>Save &amp; reuse your lists 💾</h2>
+        <p>Use the <strong>💾 Save</strong> button above the hospital list to store the current set under a name (e.g. "Monday route"). Reload it anytime from the dropdown — lists persist across page refreshes and sessions, so you don't have to re-enter hospitals each day.</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">6</div>
+      <div class="guide-content">
+        <h2>Optimize routes ▶</h2>
+        <p>Press <strong>Optimize routes</strong>. The app then:</p>
+        <ul class="guide-list">
+          <li><strong>Clusters</strong> hospitals into groups (one per car) using K-Means, balanced by driving workload so no driver is overloaded.</li>
+          <li><strong>Finds the fastest visiting order</strong> for each car — minimizing total driving time, not just distance.</li>
+          <li>Builds a two-phase journey for every car. Hospitals with no valid location are skipped automatically.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">7</div>
+      <div class="guide-content">
+        <h2>Understand the two phases</h2>
+        <p>Each car runs a round trip in two phases:</p>
+        <div class="guide-phase"><span class="ph-dot" style="background:var(--ink);"></span><div><strong>Phase 1 · Collect</strong> — Depot → hospitals (pick up empty blood containers) → ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย (fill containers with blood).</div></div>
+        <div class="guide-phase"><span class="ph-dot" style="background:var(--red);"></span><div><strong>Phase 2 · Deliver</strong> — TRCS → hospitals (deliver the filled blood) → back to depot.</div></div>
+        <p>Both phases visit the same hospitals, but each is optimized separately for its own start point, so the order can differ.</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">8</div>
+      <div class="guide-content">
+        <h2>Read the results</h2>
+        <p>Each car gets a card. Use the <strong>Phase 1 / Phase 2</strong> toggle on the card to switch between the collect and deliver legs — the stop list, route flow, and time/distance update accordingly. Each stop shows its estimated <strong>🕐 arrival time</strong>, based on the departure time you set in Settings plus driving and stop times. The header shows total stops and estimated full-trip time. Tap <strong>Open in Google Maps</strong> to navigate the full journey on a phone.</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">9</div>
+      <div class="guide-content">
+        <h2>Explore the maps</h2>
+        <p>Two side-by-side maps show the Phase 1 and Phase 2 routes following real roads. Use the car filter on each map to focus on a single vehicle, or view all at once. The header also has a dark-mode toggle (🌙) and a language switch (🇬🇧 EN / 🇹🇭 ไทย).</p>
+      </div>
+    </div>
+
+    <div class="guide-tip">
+      <strong>💡 Accuracy tip:</strong> Since adding is manual, double-check the coordinates you enter — copy them straight from Google Maps for the best accuracy. Watch for the ⚠ flag and use 📍 Fix to correct anything that looks off.
+    </div>
+
+    <div style="text-align:center;margin-top:24px;">
+      <button class="btn btn-primary" onclick="closeGuide()" style="padding:11px 28px;">Got it — let's start</button>
+    </div>
+
+   </div>
+   <div class="guide-lang guide-th" style="display:none;">
+
+    <div class="guide-intro">
+      <h1>ยินดีต้อนรับสู่ Blood Route Optimizer 🩸</h1>
+      <p>เครื่องมือนี้ช่วยวางแผนเส้นทางส่งเลือดประจำวันให้มีประสิทธิภาพด้านเวลามากที่สุด จากจุดเริ่มต้นไปยังโรงพยาบาลหลายแห่ง โดยแบ่งงานให้รถหลายคัน ต่อไปนี้คือทุกสิ่งที่คุณควรรู้</p>
+    </div>
+
+    <div class="guide-tip" style="margin-top:0;margin-bottom:28px;background:var(--surface);border-color:var(--rule);color:var(--ink-2);">
+      <strong>🧭 สองมุมมอง:</strong> แอปมีมุมมอง <strong>⚙ ตั้งค่าข้อมูล</strong> (เพิ่มโรงพยาบาลและเลือกจุดเริ่มต้น) และ <strong>📊 ผลลัพธ์</strong> (เส้นทางและแผนที่) สลับด้วยปุ่มด้านบน หรือกด <strong>ปุ่มลูกศร ← / →</strong> บนคีย์บอร์ด และจะข้ามไปหน้าผลลัพธ์อัตโนมัติเมื่อจัดเส้นทางเสร็จ
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">1</div>
+      <div class="guide-content">
+        <h2>ตั้งคีย์ ORS API (แนะนำ)</h2>
+        <p>เปิด <strong>⚙ ตั้งค่า</strong> แล้ววางคีย์ OpenRouteService ฟรี หากไม่มีคีย์ แอปจะประมาณได้แค่ระยะเส้นตรงและค้นหาตำแหน่งจริงของโรงพยาบาลไม่ได้ ขอคีย์ฟรีที่ openrouteservice.org → สมัคร → Dashboard → ขอ token ในหน้าตั้งค่ายังกำหนดเวลาต่อโรงพยาบาล จำนวนโรงพยาบาลสูงสุดต่อรถ เวลาออกเดินทาง (ใช้ประมาณเวลาถึง) และการกระจายงานได้ด้วย</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">2</div>
+      <div class="guide-content">
+        <h2>เลือกจุดเริ่มต้น</h2>
+        <p>พิมพ์จุดเริ่มต้นใดก็ได้ — ช่องนี้มีการเติมข้อความอัตโนมัติด้วย หรือเว้นว่างไว้เพื่อใช้ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทยเป็นค่าเริ่มต้น</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">3</div>
+      <div class="guide-content">
+        <h2>เพิ่มโรงพยาบาล</h2>
+        <p>การเพิ่มโรงพยาบาลเป็นแบบกรอกเองทั้งหมด — ไม่มีการค้นหาชื่ออัตโนมัติ ความแม่นยำจึงขึ้นอยู่กับคุณ:</p>
+        <ul class="guide-list">
+          <li><strong>📍 เพิ่มโรงพยาบาล</strong> — พิมพ์ชื่อ เขต (ไม่บังคับ) และละติจูด/ลองจิจูดที่แน่นอน (วาง "lat, lng" ที่คัดลอกจาก Google Maps ก็ได้)</li>
+          <li><strong>โหลด 20 แห่ง</strong> — โรงพยาบาลตัวอย่างพร้อมพิกัดที่กำหนดไว้ ไว้ทดลองใช้</li>
+        </ul>
+        <p>โรงพยาบาลแต่ละแห่งจะแสดงป้ายสถานะ — ปกติจะเป็น <span class="geo-badge ok">✓ geocoded</span> เมื่อกรอกเสร็จ หากอยู่ไกลจากกลุ่มผิดปกติจะถูกทำเครื่องหมาย <span class="geo-badge needs">⚠ far from others</span> เพื่อเตือนให้ตรวจสอบพิกัดที่กรอกอีกครั้ง</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">4</div>
+      <div class="guide-content">
+        <h2>แก้ไขตำแหน่งที่ผิด 📍</h2>
+        <p>โรงพยาบาลทุกแห่งมีปุ่ม <strong>📍 แก้ไข</strong> (กดที่ป้ายสถานะก็ได้) กดเพื่อเปิดกล่องเล็กๆ ให้พิมพ์ละติจูด/ลองจิจูดที่ถูกต้อง หรือวาง "lat, lng" จาก Google Maps แล้วกดบันทึก ใช้เมื่อโรงพยาบาลถูกทำเครื่องหมายหรืออยู่ผิดที่ — รับประกันความแม่นยำ</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">5</div>
+      <div class="guide-content">
+        <h2>บันทึกและใช้รายการซ้ำ 💾</h2>
+        <p>ใช้ปุ่ม <strong>💾 บันทึก</strong> เหนือรายการโรงพยาบาลเพื่อเก็บชุดปัจจุบันไว้ในชื่อ (เช่น "เส้นทางวันจันทร์") โหลดกลับมาได้ทุกเมื่อจากเมนูแบบเลื่อนลง — รายการจะคงอยู่แม้รีเฟรชหน้าหรือปิดเปิดใหม่ จึงไม่ต้องกรอกโรงพยาบาลใหม่ทุกวัน</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">6</div>
+      <div class="guide-content">
+        <h2>จัดเส้นทาง ▶</h2>
+        <p>กด <strong>จัดเส้นทาง</strong> จากนั้นแอปจะ:</p>
+        <ul class="guide-list">
+          <li><strong>จัดกลุ่ม</strong> โรงพยาบาลเป็นกลุ่ม (หนึ่งกลุ่มต่อรถหนึ่งคัน) ด้วย K-Means โดยสมดุลตามภาระการขับ ไม่ให้คนขับคนใดงานหนักเกินไป</li>
+          <li><strong>หาลำดับการเยี่ยมที่เร็วที่สุด</strong> ของแต่ละคัน — ลดเวลาขับรวม ไม่ใช่แค่ระยะทาง</li>
+          <li>สร้างการเดินทางสองเฟสสำหรับทุกคัน โรงพยาบาลที่ไม่มีตำแหน่งจะถูกข้ามอัตโนมัติ</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">7</div>
+      <div class="guide-content">
+        <h2>เข้าใจสองเฟส</h2>
+        <p>รถแต่ละคันเดินทางไปกลับเป็นสองเฟส:</p>
+        <div class="guide-phase"><span class="ph-dot" style="background:var(--ink);"></span><div><strong>เฟส 1 · เก็บภาชนะ</strong> — จุดเริ่มต้น → โรงพยาบาล (รับภาชนะเลือดเปล่า) → ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย (เติมเลือดลงภาชนะ)</div></div>
+        <div class="guide-phase"><span class="ph-dot" style="background:var(--red);"></span><div><strong>เฟส 2 · ส่งเลือด</strong> — ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย → โรงพยาบาล (ส่งเลือดที่เติมแล้ว) → กลับจุดเริ่มต้น</div></div>
+        <p>ทั้งสองเฟสเยี่ยมโรงพยาบาลชุดเดียวกัน แต่แต่ละเฟสถูกจัดให้เหมาะกับจุดเริ่มต้นของตัวเอง ลำดับจึงต่างกันได้</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">8</div>
+      <div class="guide-content">
+        <h2>อ่านผลลัพธ์</h2>
+        <p>รถแต่ละคันจะมีการ์ด ใช้ปุ่มสลับ <strong>เฟส 1 / เฟส 2</strong> บนการ์ดเพื่อสลับระหว่างช่วงเก็บและช่วงส่ง — รายการจุด เส้นทาง และเวลา/ระยะทางจะเปลี่ยนตาม แต่ละจุดแสดง <strong>🕐 เวลาถึงโดยประมาณ</strong> คำนวณจากเวลาออกเดินทางที่ตั้งไว้บวกเวลาขับและเวลาแวะ ส่วนหัวการ์ดแสดงจำนวนจุดและเวลารวมทั้งทริป กด <strong>เปิดใน Google Maps</strong> เพื่อนำทางทั้งเส้นทางบนมือถือ</p>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="guide-num">9</div>
+      <div class="guide-content">
+        <h2>สำรวจแผนที่</h2>
+        <p>แผนที่สองฝั่งแสดงเส้นทางเฟส 1 และเฟส 2 ตามถนนจริง ใช้ตัวกรองรถบนแต่ละแผนที่เพื่อดูเฉพาะคันเดียว หรือดูทั้งหมดพร้อมกัน ส่วนหัวยังมีปุ่มสลับโหมดมืด (🌙) และสลับภาษา (🇬🇧 EN / 🇹🇭 ไทย)</p>
+      </div>
+    </div>
+
+    <div class="guide-tip">
+      <strong>💡 เคล็ดลับความแม่นยำ:</strong> เนื่องจากการเพิ่มโรงพยาบาลเป็นแบบกรอกเองทั้งหมด ควรตรวจสอบพิกัดที่กรอกให้ถูกต้อง — คัดลอกจาก Google Maps โดยตรงจะแม่นยำที่สุด สังเกตป้าย ⚠ และใช้ 📍 แก้ไข เพื่อแก้สิ่งที่ดูผิดปกติ</p>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;">
+      <button class="btn btn-primary" onclick="closeGuide()" style="padding:11px 28px;">เข้าใจแล้ว — เริ่มเลย</button>
+    </div>
+
+   </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div id="toast-wrap"></div>
+<div id="busy-bar"></div>
+<div id="busy-chip"><span class="spinner-sm"></span><span id="busy-chip-text">Working…</span></div>
+
+<!-- OPENING SPLASH -->
+<div id="splash">
+  <div class="splash-inner">
+    <svg class="splash-mark" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path id="splash-drop" d="M12 2.5C12 2.5 5 10 5 15a7 7 0 0 0 14 0c0-5-7-12.5-7-12.5Z" fill="var(--red)" fill-opacity="0" stroke="var(--red)" stroke-width="1.4" stroke-linejoin="round"/>
+      <circle class="splash-node" cx="9.2" cy="16.4" r="1.5" fill="#fff"/>
+      <circle class="splash-node" cx="15" cy="12.2" r="1.5" fill="#fff"/>
+      <path id="splash-route" d="M9.2 16.4C11 16.4 13 15 15 12.2" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <div class="splash-title"><span>Blood</span>Route</div>
+    <div class="splash-sub">Optimizer</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="settings-modal" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" data-i18n="set_title">Settings</span>
+      <button class="modal-close" onclick="closeSettings()" aria-label="Close settings">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label><span data-i18n="set_key">OpenRouteService API Key</span> <span class="key-status missing" id="ors-status">Missing</span></label>
+        <input type="password" id="ors-key" placeholder="Paste your ORS API key here" oninput="onKeyInput()"/>
+        <div class="key-hint" data-i18n="set_keyhint">Free at <a href="https://openrouteservice.org/dev/#/signup" target="_blank">openrouteservice.org</a> → Sign up → Dashboard → Request token.<br>Used for: real geocoding of hospital names + actual road distances between stops.</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label data-i18n="set_stop">Stop time per hospital (min)</label>
+          <input type="text" id="stop-min" placeholder="10" inputmode="numeric"/>
+        </div>
+        <div class="form-group">
+          <label data-i18n="set_max">Max hospitals per car</label>
+          <input type="text" id="max-per-car" placeholder="5" inputmode="numeric"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label data-i18n="set_depart">Departure time</label>
+          <input type="time" id="depart-time" value="08:00"/>
+        </div>
+        <div class="form-group">
+          <label data-i18n="set_balance">Workload balancing</label>
+          <select id="balance-mode">
+            <option value="time" data-i18n="bal_time">By cost → time → distance</option>
+            <option value="count" data-i18n="bal_count">By hospital count</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label data-i18n="set_cost_km">Cost per km</label>
+          <input type="text" id="cost-per-km" placeholder="5" inputmode="decimal"/>
+        </div>
+        <div class="form-group">
+          <label data-i18n="set_cost_hr">Cost per hour</label>
+          <input type="text" id="cost-per-hour" placeholder="100" inputmode="decimal"/>
+        </div>
+      </div>
+      <div class="notice neutral" style="margin-top:14px;" data-i18n="set_notice_cost">💰 Routes are ranked by total cost first (distance×cost-per-km + time×cost-per-hour), then by time, then by distance, to break ties.</div>
+      <div class="notice neutral" data-i18n="set_notice_priv">🔒 Key &amp; settings stored in your browser's localStorage. Never sent anywhere except ORS directly.</div>
+      <div class="notice info" data-i18n="set_notice_nokey">ℹ Without an ORS key the app still works using straight-line distances as fallback.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeSettings()" data-i18n="set_cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="saveKeys()" data-i18n="set_save">Save settings</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="coord-modal" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="coord-modal-title" data-i18n="coord_title">Set coordinates manually</span>
+      <button class="modal-close" onclick="closeCoordBox()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:14px;" id="coord-hosp-name">Hospital name</div>
+      <div class="form-row" id="coord-name-row" style="display:none;">
+        <div class="form-group">
+          <label data-i18n="coord_name">Name</label>
+          <input type="text" id="coord-name" placeholder="e.g. Bangna BTS" onkeydown="if(event.key==='Enter')document.getElementById('coord-lat').focus();"/>
+        </div>
+        <div class="form-group" id="coord-dist-group" style="display:none;">
+          <label data-i18n="l_dist">District (optional)</label>
+          <input type="text" id="coord-dist" placeholder="e.g. Bang Na" onkeydown="if(event.key==='Enter')document.getElementById('coord-lat').focus();"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label data-i18n="coord_lat">Latitude</label>
+          <input type="text" id="coord-lat" inputmode="decimal" placeholder="13.7367" oninput="onCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveCoordBox()"/>
+        </div>
+        <div class="form-group">
+          <label data-i18n="coord_lng">Longitude</label>
+          <input type="text" id="coord-lng" inputmode="decimal" placeholder="100.5344" oninput="onCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveCoordBox()"/>
+        </div>
+      </div>
+      <div class="key-hint" data-i18n="coord_hint">Tip: paste "lat, lng" (e.g. copied from Google Maps) into either box.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeCoordBox()" data-i18n="coord_cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCoordBox()" data-i18n="coord_save">Save location</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2.5C12 2.5 5 10 5 15a7 7 0 0 0 14 0c0-5-7-12.5-7-12.5Z" fill="white" fill-opacity="0.16" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+        <circle cx="9.2" cy="16.4" r="1.5" fill="white"/>
+        <circle cx="15" cy="12.2" r="1.5" fill="white"/>
+        <path d="M9.2 16.4C11 16.4 13 15 15 12.2" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="0.2 2.6"/>
+      </svg>
+    </div>
+    <span class="logo-text"><span class="title-line">Blood<span>Route</span></span><span class="sub">Optimizer</span></span>
+  </div>
+  <div class="header-right">
+    <span class="header-tag" id="api-indicator">⚠ ORS key not set</span>
+    <button class="settings-btn" id="lang-btn" onclick="toggleLang()" title="Language" aria-label="Switch language"></button>
+    <button class="settings-btn" onclick="openGuide()" title="How it works" data-i18n="nav_guide" aria-label="Open guide"></button>
+    <button class="settings-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode"></button>
+    <button class="settings-btn" onclick="openSettings()" data-i18n="nav_settings" aria-label="Open settings"></button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="view-toggle">
+    <button class="vt-btn active" id="vt-setup" onclick="switchView('setup')" data-i18n="vt_setup">Setup</button>
+    <button class="vt-btn" id="vt-results" onclick="switchView('results')" data-i18n="vt_results">Results</button>
+  </div>
+  <div class="grid-2" id="main-grid">
+    <div id="view-setup">
+      <div class="trcs-bar">
+        <span style="font-size:18px;">🩸</span>
+        <span class="trcs-bar-text" id="trcs-bar-text" data-i18n="trcs_bar">Blood refill always at: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย, Henri Dunant Rd</span>
+      </div>
+
+      <div class="setup-tabs">
+        <button class="st-btn active" id="stab-btn-start" onclick="switchSetupTab('start')"><span class="st-num">1</span> <span data-i18n="stab_start">Starting</span></button>
+        <button class="st-btn" id="stab-btn-refill" onclick="switchSetupTab('refill')"><span class="st-num">2</span> <span data-i18n="stab_refill">Refill</span></button>
+        <button class="st-btn" id="stab-btn-hosp" onclick="switchSetupTab('hosp')"><span class="st-num">3</span> <span data-i18n="stab_hosp">Hospitals</span></button>
+      </div>
+
+      <div class="setup-tab-content active" id="stab-start">
+        <div class="panel allow-overflow" style="animation-delay:0.05s;z-index:120;">
+          <div class="panel-header">
+            <span class="panel-title" data-i18n="p_depot">Starting Depot</span>
+          </div>
+          <div class="panel-body">
+            <div class="form-group" style="margin-bottom:0;position:relative;">
+              <label data-i18n="or_type_loc">Type your starting location</label>
+              <input type="text" id="depot-input" autocomplete="off" placeholder="e.g. Bangna BTS, On Nut, Siam..." oninput="onDepotType()" onkeydown="if(event.key==='Enter')closeDepotAutocomplete()"/>
+              <div id="depot-autocomplete-list" class="autocomplete-list" style="display:none;"></div>
+              <div style="font-size:11px;color:var(--ink-4);font-family:var(--mono);margin-top:5px;" data-i18n="depot_hint">Pick a suggestion, or it'll be geocoded. Leave blank to default to ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย.</div>
+              <button class="btn btn-outline btn-sm" onclick="openCoordBoxDepot()" style="width:100%;margin-top:8px;" data-i18n="pin_depot">Enter coordinates manually</button>
+              <div id="pinned-depot-chip" style="display:none;margin-top:10px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--green-light);border:1.5px solid var(--green);">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <div style="min-width:0;">
+                    <div style="font-size:12px;font-weight:600;color:var(--green-dark);">📍 <span id="pinned-depot-name">Custom point</span></div>
+                    <div id="pinned-depot-addr" style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);margin-top:2px;white-space:normal;line-height:1.4;"></div>
+                  </div>
+                  <button class="btn-danger-sm" onclick="clearPinnedDepot()" title="Remove pinned point" aria-label="Remove pinned point" style="flex-shrink:0;">×</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <button class="btn btn-outline btn-sm" onclick="switchSetupTab('refill')" data-i18n="stab_next_refill">Next: Refill →</button>
+        </div>
+      </div>
+
+      <div class="setup-tab-content" id="stab-refill">
+        <div class="panel allow-overflow" style="animation-delay:0.05s;z-index:110;">
+          <div class="panel-header">
+            <span class="panel-title" data-i18n="p_refill">Refill Location</span>
+            <span id="refill-count" style="font-family:var(--mono);font-size:11px;color:var(--ink-4);"></span>
+          </div>
+          <div class="panel-body">
+            <div style="font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin-bottom:10px;line-height:1.5;" data-i18n="refill_intro">Each car automatically refills at whichever point gives its fastest route.</div>
+            <div id="refill-list"></div>
+            <div class="form-group" style="margin-bottom:0;margin-top:12px;position:relative;">
+              <label data-i18n="refill_add">Add a refill point</label>
+              <input type="text" id="refill-input" autocomplete="off" placeholder="e.g. Bangkok Hospital, blood bank..." data-i18n-ph="refill_ph" oninput="onRefillType()" onkeydown="if(event.key==='Enter')closeRefillAutocomplete()"/>
+              <div id="refill-autocomplete-list" class="autocomplete-list" style="display:none;"></div>
+              <button class="btn btn-outline btn-sm" onclick="openCoordBoxRefill()" style="width:100%;margin-top:8px;" data-i18n="pin_refill">Enter coordinates manually</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <button class="btn btn-outline btn-sm" onclick="switchSetupTab('start')" data-i18n="stab_back_start">← Back: Starting</button>
+          <button class="btn btn-outline btn-sm" onclick="switchSetupTab('hosp')" data-i18n="stab_next_hosp">Next: Hospitals →</button>
+        </div>
+      </div>
+
+      <div class="setup-tab-content" id="stab-hosp">
+        <div class="panel allow-overflow" style="animation-delay:0.05s;">
+          <div class="panel-header">
+            <span class="panel-title" data-i18n="p_add">Add Hospital</span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-outline btn-sm" onclick="loadPreset()" data-i18n="load_defaults">Load 20 defaults</button>
+              <button class="btn btn-outline btn-sm" onclick="clearAll()" data-i18n="clear_all">Clear all</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div style="font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin-bottom:10px;line-height:1.5;" data-i18n="add_manual_intro">Enter each hospital's name and exact coordinates yourself — no automatic lookup, so accuracy is fully in your hands.</div>
+            <button class="btn btn-outline" onclick="openCoordBoxNew()" style="width:100%;" data-i18n="add_hosp">+ Add hospital</button>
+          </div>
+        </div>
+
+        <div class="panel" style="animation-delay:0.1s;">
+          <div class="panel-header">
+            <span class="panel-title" data-i18n="p_list">Hospital list</span>
+            <span id="hosp-count" style="font-family:var(--mono);font-size:11px;color:var(--ink-4);">0 hospitals</span>
+          </div>
+          <div style="padding:10px 14px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <select id="list-select" onchange="onListSelect()" style="flex:1;min-width:120px;font-size:12px;padding:6px 10px;">
+              <option value="" data-i18n="saved_lists">— Saved lists —</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="saveCurrentList()" title="Save current hospitals as a named list" data-i18n="save_list">Save</button>
+            <button class="btn btn-danger-sm" onclick="deleteCurrentList()" title="Delete selected saved list" aria-label="Delete selected saved list" style="font-size:13px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2.5px;" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
+          </div>
+          <div class="panel-body" style="max-height:300px;overflow-y:auto;" id="hosp-list">
+            <div class="empty-state"><p><span data-i18n="empty_list">No hospitals added yet.</span><br><span data-i18n="empty_list_sub">Add manually or load defaults.</span></p></div>
+          </div>
+          <div style="padding:14px 18px;border-top:1px solid var(--rule-soft);">
+            <button class="btn btn-primary" onclick="runOptimize()" id="opt-btn" style="width:100%;" disabled data-i18n="opt_btn">Optimize routes</button>
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-outline btn-sm" onclick="switchSetupTab('refill')" data-i18n="stab_back_refill">← Back: Refill</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-results">
+      <div class="stats-row">
+        <div class="stat-box" style="animation-delay:0.05s;">
+          <div class="stat-val" id="s-hosp">0</div>
+          <div class="stat-lbl" data-i18n="s_hosp">Hospitals today</div>
+        </div>
+        <div class="stat-box" style="animation-delay:0.1s;">
+          <div class="stat-val red" id="s-cars">—</div>
+          <div class="stat-lbl" data-i18n="s_cars">Cars needed</div>
+        </div>
+        <div class="stat-box" style="animation-delay:0.15s;overflow:hidden;">
+          <div class="stat-val" id="s-depot" style="font-size:13px;padding-top:6px;line-height:1.4;">—</div>
+          <div class="stat-lbl" data-i18n="s_depot">Starting depot</div>
+        </div>
+      </div>
+      <div id="result-area">
+        <div class="empty-state" style="background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);padding:4.5rem 2rem;box-shadow:var(--shadow-sm);">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:14px;opacity:0.2;display:block;margin-left:auto;margin-right:auto;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          <p data-i18n="empty_msg">Add hospitals and press <strong>Optimize routes</strong> to begin.</p>
+        </div>
+      </div>
+
+      <!-- MAP SECTION -->
+      <div id="map-section" style="display:none;margin-top:1.5rem;">
+        <div class="dual-map-grid">
+
+          <!-- PHASE 1 MAP -->
+          <div class="map-section" style="margin-top:0;">
+            <div class="map-header" style="flex-direction:column;align-items:flex-start;gap:10px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="phase-dot" style="background:var(--ink);"></span>
+                <span class="panel-title" style="color:var(--ink);">Phase 1 · Collect</span>
+              </div>
+              <div class="map-car-tabs" id="map-car-tabs-1" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"></div>
+            </div>
+            <div class="map-legend" id="map-legend-1" style="padding:8px 18px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;"></div>
+            <div class="route-map-pane" id="route-map-1"></div>
+          </div>
+
+          <!-- PHASE 2 MAP -->
+          <div class="map-section" style="margin-top:0;">
+            <div class="map-header" style="flex-direction:column;align-items:flex-start;gap:10px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="phase-dot" style="background:var(--red);"></span>
+                <span class="panel-title" style="color:var(--red-dark);">Phase 2 · Deliver</span>
+              </div>
+              <div class="map-car-tabs" id="map-car-tabs-2" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"></div>
+            </div>
+            <div class="map-legend" id="map-legend-2" style="padding:8px 18px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;"></div>
+            <div class="route-map-pane" id="route-map-2"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Consistent inline SVG icon set (Feather-style, stroke 1.8, replaces emoji-as-icon) ── */
+function svgIcon(inner){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2.5px;flex-shrink:0;" aria-hidden="true">${inner}</svg>`;}
+const ICONS={
+  settings:svgIcon('<path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82A1.65 1.65 0 003.6 15H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/>'),
+  help:svgIcon('<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>'),
+  chart:svgIcon('<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>'),
+  pin:svgIcon('<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z"/><circle cx="12" cy="10" r="2.6"/>'),
+  save:svgIcon('<path d="M18 20H6a2 2 0 01-2-2V6a2 2 0 012-2h9l5 5v9a2 2 0 01-2 2z"/><polyline points="16 20 16 13 8 13 8 20"/><polyline points="8 4 8 8 14 8"/>'),
+  play:svgIcon('<polygon points="6 3 19 12 6 21 6 3"/>'),
+  trash:svgIcon('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>'),
+  globe:svgIcon('<circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a13.5 13.5 0 013.5 9A13.5 13.5 0 0112 21 13.5 13.5 0 018.5 12 13.5 13.5 0 0112 3z"/>'),
+  sun:svgIcon('<circle cx="12" cy="12" r="4.5"/><line x1="12" y1="1.5" x2="12" y2="3.5"/><line x1="12" y1="20.5" x2="12" y2="22.5"/><line x1="4" y1="4" x2="5.4" y2="5.4"/><line x1="18.6" y1="18.6" x2="20" y2="20"/><line x1="1.5" y1="12" x2="3.5" y2="12"/><line x1="20.5" y1="12" x2="22.5" y2="12"/><line x1="4" y1="20" x2="5.4" y2="18.6"/><line x1="18.6" y1="5.4" x2="20" y2="4"/>'),
+  moon:svgIcon('<path d="M20 13.5A8.5 8.5 0 1110.5 4 6.5 6.5 0 0020 13.5z"/>')
+};
+/* ── i18n (English + Thai) ── */
+const I18N={
+  en:{
+    // toasts / status
+    err_net_geo:'Network error during geocoding',
+    err_net_dist:'Network error computing distances',
+    err_key:'ORS key invalid or unauthorized — check Settings',
+    err_rate:'ORS rate limit reached — wait a moment and retry',
+    err_server:'ORS server error — try again shortly',
+    err_failed:'ORS request failed',
+    settings_saved:'Settings saved',
+    routes_done:'Routes optimized',
+    no_loc:'No hospitals have a valid location yet',
+    // header
+    nav_guide:`${ICONS.help} Guide`, nav_settings:`${ICONS.settings} Settings`,
+    api_set:'✓ ORS connected', api_unset:'⚠ ORS key not set',
+    vt_setup:`${ICONS.settings} Setup`, vt_results:`${ICONS.chart} Results`,
+    // trcs bar
+    trcs_bar:'Blood refill always at: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย, Henri Dunant Rd',
+    // depot panel
+    p_depot:'Starting Depot',
+    or_type_loc:'Type your starting location',
+    pin_depot:`${ICONS.pin} Enter coordinates manually`,
+    depot_hint:'Pick a suggestion, or it\u2019ll be geocoded. Leave blank to default to ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย.',
+    // add hospital
+    p_add:'Add Hospital', load_defaults:'Load 20 defaults', clear_all:'Clear all',
+    l_name:'Hospital name', l_dist:'District (optional)',
+    add_hosp:'+ Add hospital',
+    add_manual_intro:"Enter each hospital's name and exact coordinates yourself — no automatic lookup, so accuracy is fully in your hands.",
+    // list
+    p_list:'Hospital list', save_list:`${ICONS.save} Save`, opt_btn:`${ICONS.play} Optimize routes`,
+    saved_lists:'— Saved lists —',
+    // stats
+    s_hosp:'Hospitals today', s_cars:'Cars needed', s_depot:'Starting depot',
+    // empty
+    empty_msg:'Add hospitals and press <strong>Optimize routes</strong> to begin.',
+    // settings modal
+    set_title:'Settings', set_key:'OpenRouteService API Key',
+    set_stop:'Stop time per hospital (min)', set_max:'Max hospitals per car',
+    set_depart:'Departure time', set_balance:'Workload balancing',
+    bal_time:'By cost → time → distance', bal_count:'By hospital count',
+    set_cost_km:'Cost per km', set_cost_hr:'Cost per hour',
+    set_cancel:'Cancel', set_save:'Save settings',
+    coord_title:'Set coordinates manually', coord_lat:'Latitude', coord_lng:'Longitude',
+    coord_hint:'Tip: paste "lat, lng" (e.g. copied from Google Maps) into either box.',
+    coord_cancel:'Cancel', coord_save:'Save location', coord_name:'Name',
+    coord_title_new:'Add hospital by coordinates', coord_title_depot:'Set starting point by coordinates', coord_title_refill:'Add refill point by coordinates',
+    stab_start:'Starting', stab_refill:'Refill', stab_hosp:'Hospitals',
+    stab_next_refill:'Next: Refill →', stab_back_start:'← Back: Starting',
+    stab_next_hosp:'Next: Hospitals →', stab_back_refill:'← Back: Refill',
+    depot_pin_label:'Custom starting point',
+    depot_name_prompt:'Name this starting point:',
+    depot_set:'Starting point set',
+    // dynamic toasts / prompts (use {n}, {name} placeholders)
+    tn_far:'{n} hospital(s) look far from the others — flagged for review (📍 Fix)',
+    tn_pinned_added:'Added "{name}" at pinned location',
+    tn_loc_set:'Location set for {name}',
+    tn_demo:'Loaded 20 demo hospitals with preset coordinates',
+    tn_saved:'Saved "{name}" ({n} hospitals)',
+    tn_loaded_list:'Loaded "{name}" ({n} hospitals)',
+    tn_deleted:'Deleted "{name}"',
+    tn_skipped:'{n} hospital(s) skipped — no location set. Use the 📍 Fix button.',
+    tn_flagged_inc:'{n} flagged hospital(s) included — verify their pins if routes look off',
+    tn_add_first:'Add some hospitals first',
+    tn_save_prompt:'Save this hospital list as:',
+    tn_sel_del:'Select a saved list to delete',
+    tn_del_confirm:'Delete saved list "{name}"? This cannot be undone.',
+    tn_name_hosp:'Name this hospital:',
+    tn_routes_done:'Routes optimized — {n} cars',
+    // card / results
+    c_stops:'stops', c_total:'total', c_collect:'collect', c_deliver:'deliver',
+    c_straight:'straight-line est.', c_open_gmaps:'🗺️ Open full route in Google Maps',
+    ph1:'Phase 1 · Collect', ph2:'Phase 2 · Deliver',
+    res_depot:'▶ Depot', res_refill:'🩸 Refill: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย',
+    key_missing:'Missing', key_set:'✓ Set',
+    set_keyhint:'Free at <a href="https://openrouteservice.org/dev/#/signup" target="_blank">openrouteservice.org</a> → Sign up → Dashboard → Request token.<br>Used for: real geocoding of hospital names + actual road distances between stops.',
+    set_notice_priv:'🔒 Key &amp; settings stored in your browser\'s localStorage. Never sent anywhere except ORS directly.',
+    set_notice_nokey:'ℹ Without an ORS key the app still works using straight-line distances as fallback.',
+    set_notice_cost:'💰 Routes are ranked by total cost first (distance×cost-per-km + time×cost-per-hour), then by time, then by distance, to break ties.',
+    ac_setkey:'Set an ORS key in Settings to enable suggestions',
+    ac_searching:'Searching…', ac_nomatch:'No matches',
+    ac_setkey_map:'Set an ORS key to search — or just drag the map',
+    empty_list:'No hospitals added yet.', empty_list_sub:'Add manually or load defaults.',
+    optimizing:'Optimizing routes…',
+    map_allcars:'All cars', map_depot:'Depot', map_trcs:'TRCS', map_car:'Car',
+    new_hospital:'new hospital',
+    reassign_full:'That car is full (max {n}) — remove one first or raise the limit in Settings',
+    reassign_reopt:'Re-optimizing affected cars…',
+    reassign_done:'Hospital reassigned & routes updated',
+    drag_hint:'💡 Tip: drag a hospital onto another car to reassign it',
+    p_refill:'Refill Location',
+    refill_intro:'Each car automatically refills at whichever point gives its fastest route.',
+    refill_add:'Add a refill point', refill_ph:'e.g. Bangkok Hospital, blood bank...',
+    pin_refill:`${ICONS.pin} Enter coordinates manually`,
+    refill_pin_label:'Custom refill point', refill_name_prompt:'Name this refill location:',
+    refill_added:'Refill point added', refill_remove:'Remove this refill point',
+    refill_default_tag:'default', refill_disable:'Disable this refill point', refill_enable:'Enable this refill point',
+    refill_need_one:'Keep at least one refill point', refill_points_n:'refill points',
+    res_refill_lbl:'Refill', refill_stop:'Blood Refill Stop',
+    use_coords:'Use these coordinates'
+  },
+  th:{
+    err_net_geo:'เกิดข้อผิดพลาดเครือข่ายขณะค้นหาพิกัด',
+    err_net_dist:'เกิดข้อผิดพลาดเครือข่ายขณะคำนวณระยะทาง',
+    err_key:'คีย์ ORS ไม่ถูกต้องหรือไม่ได้รับอนุญาต — ตรวจสอบการตั้งค่า',
+    err_rate:'ใช้งาน ORS เกินขีดจำกัด — รอสักครู่แล้วลองใหม่',
+    err_server:'เซิร์ฟเวอร์ ORS ขัดข้อง — ลองใหม่อีกครั้ง',
+    err_failed:'คำขอ ORS ล้มเหลว',
+    settings_saved:'บันทึกการตั้งค่าแล้ว',
+    routes_done:'จัดเส้นทางเรียบร้อย',
+    no_loc:'ยังไม่มีโรงพยาบาลที่มีพิกัดที่ถูกต้อง',
+    nav_guide:`${ICONS.help} คู่มือ`, nav_settings:`${ICONS.settings} ตั้งค่า`,
+    api_set:'✓ เชื่อมต่อ ORS แล้ว', api_unset:'⚠ ยังไม่ได้ตั้งคีย์ ORS',
+    vt_setup:`${ICONS.settings} ตั้งค่าข้อมูล`, vt_results:`${ICONS.chart} ผลลัพธ์`,
+    trcs_bar:'เติมเลือดที่: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย ถนนอังรีดูนังต์ เสมอ',
+    p_depot:'จุดเริ่มต้น',
+    or_type_loc:'พิมพ์จุดเริ่มต้นของคุณ',
+    pin_depot:`${ICONS.pin} กรอกพิกัดด้วยตนเอง`,
+    depot_hint:'เลือกจากรายการแนะนำ หรือระบบจะค้นหาพิกัดให้ — เว้นว่างไว้จะใช้ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทยเป็นค่าเริ่มต้น',
+    p_add:'เพิ่มโรงพยาบาล', load_defaults:'โหลด 20 แห่ง', clear_all:'ล้างทั้งหมด',
+    l_name:'ชื่อโรงพยาบาล', l_dist:'เขต/อำเภอ (ไม่บังคับ)',
+    add_hosp:'+ เพิ่มโรงพยาบาล',
+    add_manual_intro:'กรอกชื่อและพิกัดที่แน่นอนของแต่ละโรงพยาบาลด้วยตนเอง — ไม่มีการค้นหาอัตโนมัติ ความแม่นยำจึงขึ้นอยู่กับคุณทั้งหมด',
+    p_list:'รายการโรงพยาบาล', save_list:`${ICONS.save} บันทึก`, opt_btn:`${ICONS.play} จัดเส้นทาง`,
+    saved_lists:'— รายการที่บันทึก —',
+    s_hosp:'โรงพยาบาลวันนี้', s_cars:'รถที่ต้องใช้', s_depot:'จุดเริ่มต้น',
+    empty_msg:'เพิ่มโรงพยาบาลแล้วกด <strong>จัดเส้นทาง</strong> เพื่อเริ่ม',
+    set_title:'ตั้งค่า', set_key:'คีย์ API ของ OpenRouteService',
+    set_stop:'เวลาต่อโรงพยาบาล (นาที)', set_max:'จำนวนโรงพยาบาลสูงสุดต่อรถ',
+    set_depart:'เวลาออกเดินทาง', set_balance:'การกระจายงาน',
+    bal_time:'ตามต้นทุน → เวลา → ระยะทาง', bal_count:'ตามจำนวนโรงพยาบาล',
+    set_cost_km:'ต้นทุนต่อกิโลเมตร', set_cost_hr:'ต้นทุนต่อชั่วโมง',
+    set_cancel:'ยกเลิก', set_save:'บันทึกการตั้งค่า',
+    coord_title:'ตั้งพิกัดด้วยตนเอง', coord_lat:'ละติจูด', coord_lng:'ลองจิจูด',
+    coord_hint:'เคล็ดลับ: วาง "lat, lng" (คัดลอกจาก Google Maps) ลงในช่องใดก็ได้',
+    coord_cancel:'ยกเลิก', coord_save:'บันทึกตำแหน่ง', coord_name:'ชื่อ',
+    coord_title_new:'เพิ่มโรงพยาบาลด้วยพิกัด', coord_title_depot:'ตั้งจุดเริ่มต้นด้วยพิกัด', coord_title_refill:'เพิ่มจุดเติมเลือดด้วยพิกัด',
+    stab_start:'จุดเริ่มต้น', stab_refill:'เติมเลือด', stab_hosp:'โรงพยาบาล',
+    stab_next_refill:'ถัดไป: เติมเลือด →', stab_back_start:'← ย้อนกลับ: จุดเริ่มต้น',
+    stab_next_hosp:'ถัดไป: โรงพยาบาล →', stab_back_refill:'← ย้อนกลับ: เติมเลือด',
+    depot_pin_label:'จุดเริ่มต้นที่กำหนดเอง',
+    depot_name_prompt:'ตั้งชื่อจุดเริ่มต้นนี้:',
+    depot_set:'ตั้งจุดเริ่มต้นแล้ว',
+    tn_far:'โรงพยาบาล {n} แห่งอยู่ไกลจากกลุ่ม — ทำเครื่องหมายให้ตรวจสอบ (📍 แก้ไข)',
+    tn_pinned_added:'เพิ่ม "{name}" ที่ตำแหน่งที่ปักหมุดแล้ว',
+    tn_loc_set:'ตั้งตำแหน่งให้ {name} แล้ว',
+    tn_demo:'โหลดโรงพยาบาลตัวอย่าง 20 แห่งพร้อมพิกัดที่กำหนดไว้',
+    tn_saved:'บันทึก "{name}" แล้ว ({n} โรงพยาบาล)',
+    tn_loaded_list:'โหลด "{name}" แล้ว ({n} โรงพยาบาล)',
+    tn_deleted:'ลบ "{name}" แล้ว',
+    tn_skipped:'ข้ามโรงพยาบาล {n} แห่ง — ยังไม่ได้ตั้งตำแหน่ง ใช้ปุ่ม 📍 แก้ไข',
+    tn_flagged_inc:'รวมโรงพยาบาลที่ถูกทำเครื่องหมาย {n} แห่ง — ตรวจสอบหมุดหากเส้นทางดูผิดปกติ',
+    tn_add_first:'เพิ่มโรงพยาบาลก่อน',
+    tn_save_prompt:'บันทึกรายการโรงพยาบาลนี้ในชื่อ:',
+    tn_sel_del:'เลือกรายการที่บันทึกเพื่อลบ',
+    tn_del_confirm:'ลบรายการ "{name}"? การลบนี้ไม่สามารถย้อนกลับได้',
+    tn_name_hosp:'ตั้งชื่อโรงพยาบาลนี้:',
+    tn_routes_done:'จัดเส้นทางเรียบร้อย — {n} คัน',
+    c_stops:'จุด', c_total:'รวม', c_collect:'เก็บภาชนะ', c_deliver:'ส่งเลือด',
+    c_straight:'ประมาณเส้นตรง', c_open_gmaps:'🗺️ เปิดเส้นทางเต็มใน Google Maps',
+    ph1:'เฟส 1 · เก็บภาชนะ', ph2:'เฟส 2 · ส่งเลือด',
+    res_depot:'▶ จุดเริ่มต้น', res_refill:'🩸 เติมเลือด: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย',
+    key_missing:'ยังไม่ได้ตั้ง', key_set:'✓ ตั้งแล้ว',
+    set_keyhint:'ขอฟรีที่ <a href="https://openrouteservice.org/dev/#/signup" target="_blank">openrouteservice.org</a> → สมัคร → Dashboard → ขอ token<br>ใช้สำหรับ: ค้นหาพิกัดจริงของชื่อโรงพยาบาล และระยะทางตามถนนจริงระหว่างจุด',
+    set_notice_priv:'🔒 คีย์และการตั้งค่าถูกเก็บใน localStorage ของเบราว์เซอร์คุณ ไม่ถูกส่งไปที่ใดนอกจาก ORS โดยตรง',
+    set_notice_nokey:'ℹ หากไม่มีคีย์ ORS แอปยังทำงานได้โดยใช้ระยะเส้นตรงแทน',
+    set_notice_cost:'💰 เส้นทางจะถูกจัดอันดับตามต้นทุนรวมก่อน (ระยะทาง×ต้นทุนต่อกม. + เวลา×ต้นทุนต่อชม.) จากนั้นตามเวลา และตามระยะทางเพื่อตัดสินกรณีเสมอกัน',
+    ac_setkey:'ตั้งคีย์ ORS ในการตั้งค่าเพื่อเปิดใช้คำแนะนำ',
+    ac_searching:'กำลังค้นหา…', ac_nomatch:'ไม่พบผลลัพธ์',
+    ac_setkey_map:'ตั้งคีย์ ORS เพื่อค้นหา — หรือเลื่อนแผนที่เอง',
+    empty_list:'ยังไม่ได้เพิ่มโรงพยาบาล', empty_list_sub:'เพิ่มเองหรือโหลดค่าเริ่มต้น',
+    optimizing:'กำลังจัดเส้นทาง…',
+    map_allcars:'ทุกคัน', map_depot:'จุดเริ่มต้น', map_trcs:'สภากาชาด', map_car:'รถ',
+    new_hospital:'โรงพยาบาลใหม่',
+    reassign_full:'รถคันนั้นเต็มแล้ว (สูงสุด {n}) — เอาออกหนึ่งแห่งก่อน หรือเพิ่มขีดจำกัดในการตั้งค่า',
+    reassign_reopt:'กำลังจัดเส้นทางรถที่เกี่ยวข้องใหม่…',
+    reassign_done:'ย้ายโรงพยาบาลและอัปเดตเส้นทางแล้ว',
+    drag_hint:'💡 เคล็ดลับ: ลากโรงพยาบาลไปยังรถอีกคันเพื่อย้าย',
+    p_refill:'จุดเติมเลือด',
+    refill_intro:'รถแต่ละคันจะเติมเลือดที่จุดที่ทำให้เส้นทางเร็วที่สุดโดยอัตโนมัติ',
+    refill_add:'เพิ่มจุดเติมเลือด', refill_ph:'เช่น รพ.กรุงเทพ, ธนาคารเลือด...',
+    pin_refill:`${ICONS.pin} กรอกพิกัดด้วยตนเอง`,
+    refill_pin_label:'จุดเติมเลือดที่กำหนดเอง', refill_name_prompt:'ตั้งชื่อจุดเติมเลือดนี้:',
+    refill_added:'เพิ่มจุดเติมเลือดแล้ว', refill_remove:'ลบจุดเติมเลือดนี้',
+    refill_default_tag:'ค่าเริ่มต้น', refill_disable:'ปิดใช้จุดนี้', refill_enable:'เปิดใช้จุดนี้',
+    refill_need_one:'ต้องมีจุดเติมเลือดอย่างน้อยหนึ่งจุด', refill_points_n:'จุดเติมเลือด',
+    res_refill_lbl:'เติมเลือด', refill_stop:'จุดเติมเลือด',
+    use_coords:'ใช้พิกัดนี้'
+  }
+};
+function getLang(){return localStorage.getItem('lang')||'en';}
+function t(key,vars){let s=(I18N[getLang()]&&I18N[getLang()][key])||I18N.en[key]||key;if(vars)for(const k in vars)s=s.replace(new RegExp('\\{'+k+'\\}','g'),vars[k]);return s;}
+/* Apply translations to all [data-i18n] elements (text) and [data-i18n-ph] (placeholders) */
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');const v=t(k);if(v)el.innerHTML=v;});
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const k=el.getAttribute('data-i18n-ph');const v=t(k);if(v)el.setAttribute('placeholder',v);});
+  // guide language blocks
+  const th=getLang()==='th';
+  const ge=document.querySelector('.guide-en'),gt=document.querySelector('.guide-th');
+  if(ge&&gt){ge.style.display=th?'none':'block';gt.style.display=th?'block':'none';}
+  // dynamic bits
+  updateApiIndicator();
+  if(typeof showRefillChip==='function')showRefillChip();
+  if(typeof renderList==='function')renderList();
+  if(window._lastRouted&&window._lastSp)renderResults(window._lastRouted,window._lastSp);
+}
+function setLang(l){localStorage.setItem('lang',l);const b=document.getElementById('lang-btn');if(b)b.innerHTML=(l==='th'?`${ICONS.globe} ไทย`:`${ICONS.globe} EN`);applyLang();}
+function toggleLang(){setLang(getLang()==='en'?'th':'en');}
+const TRCS_REFILL={name:'ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย',lat:13.7367,lng:100.5344};
+let customRefills=[]; // list of {name,lat,lng,addr} custom refill points (in addition to TRCS default)
+let useTrcsDefault=true; // whether the TRCS default is included as a candidate
+function getRefillCandidates(){const list=[];if(useTrcsDefault)list.push({...TRCS_REFILL,isDefault:true});customRefills.forEach(r=>list.push({name:r.name,lat:r.lat,lng:r.lng}));return list.length?list:[{...TRCS_REFILL,isDefault:true}];}
+function getRefill(){return getRefillCandidates()[0];} // fallback single (used before optimization)
+function saveRefills(){localStorage.setItem('custom_refills',JSON.stringify(customRefills));localStorage.setItem('use_trcs_default',useTrcsDefault?'1':'0');}
+function restoreRefills(){try{const v=JSON.parse(localStorage.getItem('custom_refills')||'[]');if(Array.isArray(v))customRefills=v.filter(r=>r&&typeof r.lat==='number');const u=localStorage.getItem('use_trcs_default');useTrcsDefault=(u===null)?true:(u==='1');if(!useTrcsDefault&&!customRefills.length)useTrcsDefault=true;renderRefillList();}catch(e){}}
+const PRESET_HOSPS=[{name:'Bangpakok 9 International',district:'Phra Pradaeng',lat:13.6889,lng:100.4767},{name:'Phra Pradaeng Hospital',district:'Phra Pradaeng',lat:13.6573,lng:100.5341},{name:'Rajpracha Samasai Institute',district:'Phra Pradaeng',lat:13.6489,lng:100.5402},{name:'Bangchak Hospital',district:'Phra Pradaeng South',lat:13.6096,lng:100.5402},{name:'Paolo Hospital Phra Pradaeng',district:'Phra Pradaeng South',lat:13.6085,lng:100.5514},{name:'Vibharam Samutprakan',district:'Samrong',lat:13.6489,lng:100.5699},{name:'Mueang Samut Pu Chao',district:'Samrong',lat:13.6467,lng:100.5784},{name:'Samrong Medical Hospital',district:'Samrong North',lat:13.6505,lng:100.5941},{name:'BBH Hospital',district:'Samrong North',lat:13.6558,lng:100.6044},{name:'Samut Prakan Hospital',district:'Mueang Samut Prakan',lat:13.5837,lng:100.5974},{name:'Sikarin Hospital',district:'Bang Na',lat:13.6549,lng:100.6464},{name:'WIH International Hospital',district:'Bang Na',lat:13.6640,lng:100.6507},{name:'Thainakarin Hospital',district:'Bang Na',lat:13.6677,lng:100.6385},{name:'Bangna General Hospital 1',district:'Bang Na',lat:13.6668,lng:100.6355},{name:'BMA Bang Na Hospital',district:'Bang Na West',lat:13.6800,lng:100.5922},{name:'Kluaynamthai Hospital 3',district:'Bang Na North',lat:13.6794,lng:100.6040},{name:'Kluaynamthai 2 Natural Home',district:'Bang Na North',lat:13.6757,lng:100.6068},{name:'Geriatric Kluaynamthai 2',district:'Bang Na North',lat:13.6739,lng:100.6092},{name:'Paolo Hospital Samut Prakan',district:'Srinagarindra',lat:13.5983,lng:100.6145},{name:'Ruamjairak Hospital',district:'Phra Khanong',lat:13.6935,lng:100.6017}];
+// Red is reserved for the TRCS/refill marker (see trcsIcon in buildPhaseMap) — kept out of the
+// first slots here so Car 1 never renders in the same color as the refill point on the map.
+const CAR_PALETTE=[{bg:'#2563EB',light:'#EFF6FF',dark:'#1E40AF'},{bg:'#059669',light:'#ECFDF5',dark:'#065F46'},{bg:'#D97706',light:'#FFFBEB',dark:'#92400E'},{bg:'#7C3AED',light:'#F5F3FF',dark:'#4C1D95'},{bg:'#0891B2',light:'#ECFEFF',dark:'#164E63'},{bg:'#65A30D',light:'#F7FEE7',dark:'#3F6212'},{bg:'#DB2777',light:'#FDF2F8',dark:'#831843'},{bg:'#D4163C',light:'#FDF0F3',dark:'#9E0F2B'}];
+let hospitals=[],nextId=0;
+/* ── Settings (with defaults) ── */
+function getStopMin(){return parseFloat(localStorage.getItem('stop_min'))||10;}
+function getMaxPerCar(){return parseInt(localStorage.getItem('max_per_car'))||5;}
+function getBalanceMode(){return localStorage.getItem('balance_mode')||'time';}
+function getDepartTime(){return localStorage.getItem('depart_time')||'08:00';}
+function getCostPerKm(){return parseFloat(localStorage.getItem('cost_per_km'))||5;}
+function getCostPerHour(){return parseFloat(localStorage.getItem('cost_per_hour'))||100;}
+/* ── Theme ── */
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('theme-btn').innerHTML=t==='dark'?ICONS.sun:ICONS.moon;}
+function toggleTheme(){const cur=localStorage.getItem('theme')==='dark'?'dark':'light';const next=cur==='dark'?'light':'dark';localStorage.setItem('theme',next);applyTheme(next);
+  // Leaflet maps need a redraw after theme swap
+  [1,2].forEach(p=>{if(phaseMaps[p]&&phaseMaps[p].map)setTimeout(()=>phaseMaps[p].map.invalidateSize(),50);});
+}
+function getORS(){return localStorage.getItem('ors_key')||'';}
+function openSettings(){
+  document.getElementById('ors-key').value=getORS();
+  document.getElementById('stop-min').value=getStopMin();
+  document.getElementById('max-per-car').value=getMaxPerCar();
+  document.getElementById('balance-mode').value=getBalanceMode();
+  document.getElementById('depart-time').value=getDepartTime();
+  document.getElementById('cost-per-km').value=getCostPerKm();
+  document.getElementById('cost-per-hour').value=getCostPerHour();
+  updateKeyStatus();document.getElementById('settings-modal').style.display='flex';
+}
+function closeSettings(){document.getElementById('settings-modal').style.display='none';}
+function saveKeys(){
+  const v=document.getElementById('ors-key').value.trim();if(v)localStorage.setItem('ors_key',v);else localStorage.removeItem('ors_key');
+  const sm=parseFloat(document.getElementById('stop-min').value);localStorage.setItem('stop_min',(!isNaN(sm)&&sm>=0)?sm:10);
+  const mp=parseInt(document.getElementById('max-per-car').value);localStorage.setItem('max_per_car',(!isNaN(mp)&&mp>=1)?mp:5);
+  localStorage.setItem('balance_mode',document.getElementById('balance-mode').value);
+  const dt=document.getElementById('depart-time').value;if(dt)localStorage.setItem('depart_time',dt);
+  const ck=parseFloat(document.getElementById('cost-per-km').value);localStorage.setItem('cost_per_km',(!isNaN(ck)&&ck>=0)?ck:5);
+  const ch=parseFloat(document.getElementById('cost-per-hour').value);localStorage.setItem('cost_per_hour',(!isNaN(ch)&&ch>=0)?ch:100);
+  updateApiIndicator();closeSettings();renderList();toast(t('settings_saved'),'success',2500);
+  if(window._lastRouted&&window._lastSp)renderResults(window._lastRouted,window._lastSp);
+}
+function onKeyInput(){updateKeyStatus();}
+function updateKeyStatus(){const v=document.getElementById('ors-key').value.trim();const el=document.getElementById('ors-status');el.className='key-status '+(v?'ok':'missing');el.textContent=v?t('key_set'):t('key_missing');}
+function updateApiIndicator(){const k=getORS();const el=document.getElementById('api-indicator');if(k){el.textContent=t('api_set');el.className='header-tag connected';}else{el.textContent=t('api_unset');el.className='header-tag';}}
+/* ── ORS request throttle ──
+   Serializes ORS calls with a minimum gap between them to stay under the
+   free-tier rate limit (~40 req/min for matrix/directions). One in-flight at a time. */
+let _orsQueue=Promise.resolve();
+const ORS_GAP_MS=350;
+function orsThrottle(fn){
+  const run=_orsQueue.then(async()=>{const t=Date.now();const res=await fn();const wait=ORS_GAP_MS-(Date.now()-t);if(wait>0)await new Promise(r=>setTimeout(r,wait));return res;});
+  // keep the chain alive even if one call rejects
+  _orsQueue=run.catch(()=>{});
+  return run;
+}
+/* Fetch with one automatic retry on transient failures (429 rate-limit, 5xx, network).
+   Waits a short backoff before retrying. Returns the Response (caller checks .ok). */
+async function fetchRetry(url,opts,tries=2){
+  for(let attempt=1;attempt<=tries;attempt++){
+    try{
+      const r=await fetch(url,opts);
+      if(r.ok) return r;
+      // retry only on transient server-side codes
+      if(attempt<tries && (r.status===429||r.status>=500)){
+        await new Promise(res=>setTimeout(res, r.status===429?1500:700));
+        continue;
+      }
+      return r; // non-transient or out of tries — let caller handle
+    }catch(e){
+      if(attempt<tries){ await new Promise(res=>setTimeout(res,700)); continue; }
+      throw e;
+    }
+  }
+}
+function hasThai(s){return /[\u0E00-\u0E7F]/.test(s||'');}
+/* Parse coordinate text like "13.598, 100.614", "13.598°N 100.614°E", "13.598 100.614".
+   Returns {lat,lng} if valid Thailand-range coords, else null. */
+function parseCoords(text){
+  if(!text)return null;
+  let s=text.trim();
+  // capture two decimal numbers each optionally followed by a hemisphere letter
+  const m=s.match(/^\s*(-?\d{1,3}(?:\.\d+)?)\s*°?\s*([NSns])?[,\s]+\s*(-?\d{1,3}(?:\.\d+)?)\s*°?\s*([EWew])?\s*$/);
+  if(!m)return null;
+  let a=parseFloat(m[1]), b=parseFloat(m[3]);
+  const h1=(m[2]||'').toUpperCase(), h2=(m[4]||'').toUpperCase();
+  if(h1==='S')a=-a; if(h2==='W')b=-b;
+  // figure out which is lat vs lng: if a hemisphere letter tells us, honor it; else assume lat,lng order
+  let lat,lng;
+  if(h1==='E'||h1==='W'||h2==='N'||h2==='S'){lng=a;lat=b;} else {lat=a;lng=b;}
+  // sanity: lat -90..90, lng -180..180
+  if(Math.abs(lat)>90||Math.abs(lng)>180)return null;
+  return {lat,lng};
+}
+async function orsGeocode(query){const k=getORS();if(!k)return null;return orsThrottle(async()=>{try{
+  const th=hasThai(query);
+  // For Thai input, query as-is with lang=th; for English, append Thailand for disambiguation
+  const text=th?query:(query+' Thailand');
+  const langParam=th?'&lang=th':'';
+  const r=await fetchRetry(`https://api.openrouteservice.org/geocode/search?api_key=${k}&text=${encodeURIComponent(text)}&boundary.country=TH${langParam}&size=1`,{headers:{'Accept':'application/json'}});
+  if(!r.ok){handleOrsError(r.status);return null;}const d=await r.json();
+  if(d.features&&d.features.length){const f=d.features[0];const[lng,lat]=f.geometry.coordinates;const p=f.properties||{};return{lat,lng,label:p.label||query,confidence:p.confidence||0,region:[p.locality,p.localadmin,p.county,p.region].filter(Boolean).join(' ')};}
+}catch(e){console.error('geocode',e);toast(t('err_net_geo'),'error');}return null;});}
+async function orsMatrix(locations){const k=getORS();if(!k||locations.length<2)return null;return orsThrottle(async()=>{try{const body={locations:locations.map(l=>[l.lng,l.lat]),metrics:['distance','duration'],units:'km'};const r=await fetchRetry('https://api.openrouteservice.org/v2/matrix/driving-car',{method:'POST',headers:{'Authorization':k,'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok){handleOrsError(r.status);return null;}const d=await r.json();return(d.distances&&d.durations)?d:null;}catch(e){console.error('matrix',e);toast(t('err_net_dist'),'error');return null;}});}
+/* ── Toast notifications ── */
+let toastErrShown={};
+/* Global busy indicator — top progress bar + center chip with message */
+function setBusy(on,msg){
+  const bar=document.getElementById('busy-bar'),chip=document.getElementById('busy-chip'),txt=document.getElementById('busy-chip-text');
+  if(on){bar.classList.add('on');chip.classList.add('on');if(msg&&txt)txt.textContent=msg;}
+  else{bar.classList.remove('on');chip.classList.remove('on');}
+}
+function toast(msg,type='info',ms=4000){
+  const wrap=document.getElementById('toast-wrap');if(!wrap)return;
+  const icons={info:'ℹ',error:'⚠',success:'✓',warn:'⚠'};
+  const el=document.createElement('div');el.className='toast '+type;
+  el.innerHTML=`<span>${icons[type]||'ℹ'}</span><span>${msg}</span>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{el.classList.add('fade-out');setTimeout(()=>el.remove(),300);},ms);
+}
+/* Map ORS HTTP error codes to friendly messages (dedupe within a run) */
+function handleOrsError(status){
+  let msg;
+  if(status===401||status===403) msg=t('err_key');
+  else if(status===429) msg=t('err_rate');
+  else if(status>=500) msg=t('err_server');
+  else msg=t('err_failed')+' ('+status+')';
+  if(!toastErrShown[status]){toastErrShown[status]=true;toast(msg,'error',6000);setTimeout(()=>{delete toastErrShown[status];},8000);}
+}
+async function orsAutocomplete(text){const k=getORS();if(!k)return[];return orsThrottle(async()=>{try{const langParam=hasThai(text)?'&lang=th':'';const r=await fetch(`https://api.openrouteservice.org/geocode/autocomplete?api_key=${k}&text=${encodeURIComponent(text)}&boundary.country=TH${langParam}&size=8`,{headers:{'Accept':'application/json'}});if(!r.ok){handleOrsError(r.status);return[];}const d=await r.json();return(d.features||[]).map(f=>({name:f.properties.name||f.properties.label,label:f.properties.label,region:[f.properties.locality,f.properties.region].filter(Boolean).join(', '),lat:f.geometry.coordinates[1],lng:f.geometry.coordinates[0]}));}catch(e){console.error('autocomplete',e);return[];}});}
+/* ── Depot autocomplete ── */
+let depotAcDebounce=null, depotAcResults=[];
+function closeDepotAutocomplete(){document.getElementById('depot-autocomplete-list').style.display='none';}
+function pickDepotAutocomplete(i){
+  const r=depotAcResults[i];if(!r)return;
+  const el=document.getElementById('depot-input');
+  el.value=r.name;
+  el.dataset.lat=r.lat; el.dataset.lng=r.lng;
+  pinnedDepot=null;document.getElementById('pinned-depot-chip').style.display='none';
+  document.getElementById('s-depot').textContent=r.name;
+  closeDepotAutocomplete();
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#depot-input')&&!e.target.closest('#depot-autocomplete-list'))closeDepotAutocomplete();
+  if(!e.target.closest('#refill-input')&&!e.target.closest('#refill-autocomplete-list'))closeRefillAutocomplete();
+});
+function eDist(a,b){const dx=a.lat-b.lat,dy=a.lng-b.lng;return Math.sqrt(dx*dx+dy*dy);}
+function centroid(pts){return{lat:pts.reduce((s,p)=>s+p.lat,0)/pts.length,lng:pts.reduce((s,p)=>s+p.lng,0)/pts.length};}
+/* ── Pinned depot chip + reverse geocoding ── */
+function showPinnedDepotChip(){
+  const chip=document.getElementById('pinned-depot-chip');
+  if(!pinnedDepot){chip.style.display='none';return;}
+  document.getElementById('pinned-depot-name').textContent=pinnedDepot.name;
+  const addrEl=document.getElementById('pinned-depot-addr');
+  addrEl.textContent=pinnedDepot.addr||`${pinnedDepot.lat.toFixed(5)}, ${pinnedDepot.lng.toFixed(5)}`;
+  chip.style.display='block';
+}
+function clearPinnedDepot(){pinnedDepot=null;localStorage.removeItem('pinned_depot');document.getElementById('pinned-depot-chip').style.display='none';document.getElementById('s-depot').textContent=TRCS_REFILL.name;}
+function savePinnedDepot(){if(pinnedDepot)localStorage.setItem('pinned_depot',JSON.stringify(pinnedDepot));}
+function restorePinnedDepot(){try{const v=JSON.parse(localStorage.getItem('pinned_depot')||'null');if(v&&typeof v.lat==='number'){pinnedDepot=v;document.getElementById('s-depot').textContent=v.name;showPinnedDepotChip();}}catch(e){}}
+/* ── Custom refill locations (list; each car picks its fastest) ── */
+let refillAcDebounce=null, refillAcResults=[];
+function renderRefillList(){
+  const wrap=document.getElementById('refill-list');if(!wrap)return;
+  const cand=getRefillCandidates();
+  const cnt=document.getElementById('refill-count');if(cnt)cnt.textContent=cand.length+' '+t('refill_points_n');
+  let html='';
+  // TRCS default row (toggleable)
+  html+=`<div class="refill-row${useTrcsDefault?'':' off'}">
+    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;font-weight:600;color:${useTrcsDefault?'var(--red-dark)':'var(--ink-4)'};">🩸 ${TRCS_REFILL.name} <span style="font-weight:500;opacity:0.7;">· ${t('refill_default_tag')}</span></div></div>
+    <button class="btn-danger-sm" onclick="toggleTrcsDefault()" title="${useTrcsDefault?t('refill_disable'):t('refill_enable')}" aria-label="${useTrcsDefault?t('refill_disable'):t('refill_enable')}" style="flex-shrink:0;">${useTrcsDefault?'×':'+'}</button>
+  </div>`;
+  customRefills.forEach((r,i)=>{
+    html+=`<div class="refill-row">
+      <div style="flex:1;min-width:0;"><div style="font-size:12.5px;font-weight:600;color:var(--red-dark);">🩸 ${r.name}</div>${r.addr?`<div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);margin-top:1px;">${r.addr}</div>`:''}</div>
+      <button class="btn-danger-sm" onclick="removeRefill(${i})" title="${t('refill_remove')}" aria-label="${t('refill_remove')}" style="flex-shrink:0;">×</button>
+    </div>`;
+  });
+  wrap.innerHTML=html;
+  // top bar reflects status
+  const bar=document.getElementById('trcs-bar-text');
+  if(bar)bar.textContent=cand.length>1?`${t('res_refill_lbl')}: ${cand.length} ${t('refill_points_n')}`:(customRefills.length&&!useTrcsDefault?`${t('res_refill_lbl')}: ${cand[0].name}`:t('trcs_bar'));
+}
+function toggleTrcsDefault(){
+  // don't allow turning everything off
+  if(useTrcsDefault&&customRefills.length===0){toast(t('refill_need_one'),'warn',3000);return;}
+  useTrcsDefault=!useTrcsDefault;saveRefills();renderRefillList();reRenderIfRouted();
+}
+function addRefill(name,lat,lng,addr){
+  customRefills.push({name,lat,lng,addr:addr||''});saveRefills();renderRefillList();reRenderIfRouted();
+  if(!addr)reverseGeocode(lat,lng).then(a=>{const idx=customRefills.findIndex(r=>r.lat===lat&&r.lng===lng);if(a&&idx>=0){customRefills[idx].addr=a;saveRefills();renderRefillList();}});
+  toast(`${t('refill_added')}: ${name}`,'success',2600);
+}
+function removeRefill(i){customRefills.splice(i,1);if(!useTrcsDefault&&!customRefills.length)useTrcsDefault=true;saveRefills();renderRefillList();reRenderIfRouted();}
+function reRenderIfRouted(){if(window._lastRouted&&window._lastSp)renderResults(window._lastRouted,window._lastSp);}
+function showRefillChip(){renderRefillList();}
+function onRefillType(){
+  const el=document.getElementById('refill-input');const v=el.value.trim();
+  const box=document.getElementById('refill-autocomplete-list');
+  const co=parseCoords(v);
+  if(co){box.style.display='block';box.innerHTML=`<div class="autocomplete-item" onmousedown="useCoordsForRefill(${co.lat},${co.lng})"><div class="ac-name">📍 ${t('use_coords')}</div><div class="ac-sub">${co.lat.toFixed(5)}, ${co.lng.toFixed(5)}</div></div>`;return;}
+  if(v.length<3){box.style.display='none';return;}
+  if(!getORS()){box.style.display='block';box.innerHTML='<div class="ac-loading">'+t('ac_setkey')+'</div>';return;}
+  box.style.display='block';box.innerHTML='<div class="ac-loading">'+t('ac_searching')+'</div>';
+  clearTimeout(refillAcDebounce);
+  refillAcDebounce=setTimeout(async()=>{
+    refillAcResults=await orsAutocomplete(v);
+    if(!refillAcResults.length){box.innerHTML='<div class="ac-loading">'+t('ac_nomatch')+'</div>';return;}
+    box.innerHTML=refillAcResults.map((r,i)=>`<div class="autocomplete-item" onmousedown="pickRefillAutocomplete(${i})"><div class="ac-name">${r.name}</div><div class="ac-sub">${r.region||r.label}</div></div>`).join('');
+  },350);
+}
+function pickRefillAutocomplete(i){
+  const r=refillAcResults[i];if(!r)return;
+  document.getElementById('refill-input').value='';
+  closeRefillAutocomplete();
+  addRefill(r.name,r.lat,r.lng,r.region||'');
+}
+function closeRefillAutocomplete(){const b=document.getElementById('refill-autocomplete-list');if(b)b.style.display='none';}
+function useCoordsForDepot(lat,lng){
+  const el=document.getElementById('depot-input');
+  el.dataset.lat=lat;el.dataset.lng=lng;
+  el.value=`📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  document.getElementById('s-depot').textContent=el.value;
+  closeDepotAutocomplete();
+}
+function useCoordsForRefill(lat,lng){
+  document.getElementById('refill-input').value='';
+  closeRefillAutocomplete();
+  addRefill(`📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`,lat,lng,'');
+}
+async function reverseGeocode(lat,lng){
+  const k=getORS();if(!k)return '';
+  return orsThrottle(async()=>{
+    try{
+      const r=await fetchRetry(`https://api.openrouteservice.org/geocode/reverse?api_key=${k}&point.lon=${lng}&point.lat=${lat}&size=1${getLang()==='th'?'&lang=th':''}`,{headers:{'Accept':'application/json'}});
+      if(!r.ok)return '';
+      const d=await r.json();
+      if(d.features&&d.features.length){
+        const p=d.features[0].properties||{};
+        // build a readable address: street, neighbourhood, sub-district, district
+        return [p.name,p.neighbourhood,p.localadmin,p.locality,p.county].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
+      }
+    }catch(e){console.error('reverse',e);}
+    return '';
+  });
+}
+function onDepotType(){
+  const el=document.getElementById('depot-input');const v=el.value.trim();
+  // Typing manually invalidates any previously picked coords or pinned depot
+  delete el.dataset.lat; delete el.dataset.lng;
+  if(v){pinnedDepot=null;document.getElementById('pinned-depot-chip').style.display='none';}
+  else{document.getElementById('s-depot').textContent=TRCS_REFILL.name;closeDepotAutocomplete();return;}
+  const box=document.getElementById('depot-autocomplete-list');
+  // Coordinate input
+  const co=parseCoords(v);
+  if(co){el.dataset.lat=co.lat;el.dataset.lng=co.lng;box.style.display='block';box.innerHTML=`<div class="autocomplete-item" onmousedown="useCoordsForDepot(${co.lat},${co.lng})"><div class="ac-name">📍 ${t('use_coords')}</div><div class="ac-sub">${co.lat.toFixed(5)}, ${co.lng.toFixed(5)}</div></div>`;document.getElementById('s-depot').textContent=`📍 ${co.lat.toFixed(4)}, ${co.lng.toFixed(4)}`;return;}
+  if(v.length<3){box.style.display='none';return;}
+  if(!getORS()){box.style.display='block';box.innerHTML='<div class="ac-loading">'+t('ac_setkey')+'</div>';return;}
+  box.style.display='block';box.innerHTML='<div class="ac-loading">'+t('ac_searching')+'</div>';
+  clearTimeout(depotAcDebounce);
+  depotAcDebounce=setTimeout(async()=>{
+    depotAcResults=await orsAutocomplete(v);
+    if(!depotAcResults.length){box.innerHTML='<div class="ac-loading">'+t('ac_nomatch')+'</div>';return;}
+    box.innerHTML=depotAcResults.map((r,i)=>`<div class="autocomplete-item" onmousedown="pickDepotAutocomplete(${i})"><div class="ac-name">${r.name}</div><div class="ac-sub">${r.region||r.label}</div></div>`).join('');
+  },350);
+}
+async function resolveDepot(){
+  const el=document.getElementById('depot-input');const custom=el.value.trim();
+  // A manually pinned starting point takes priority (unless user typed/picked something afterward)
+  if(pinnedDepot&&!custom)return{...pinnedDepot};
+  if(custom){
+    if(el.dataset.lat&&el.dataset.lng)return{name:custom,lat:parseFloat(el.dataset.lat),lng:parseFloat(el.dataset.lng)};
+    const gc=await orsGeocode(custom);if(gc)return{name:custom,lat:gc.lat,lng:gc.lng};
+    const c=hospitals.length?centroid(hospitals):{lat:13.65,lng:100.55};return{name:custom,lat:c.lat,lng:c.lng};
+  }
+  // No starting point chosen — default to ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย (also the default refill point)
+  return{...TRCS_REFILL};
+}
+function removeHospital(id){hospitals=hospitals.filter(h=>h.id!==id);renderList();}
+/* ── Outlier detection ── flag hospitals far from the group cluster (no region lock) ── */
+function flagOutliers(){
+  const located=hospitals.filter(h=>h.lat!==null&&!h.needsLocation);
+  if(located.length<4) {located.forEach(h=>{if(h.outlier){h.outlier=false;}});return;}
+  // median center
+  const lats=located.map(h=>h.lat).sort((a,b)=>a-b), lngs=located.map(h=>h.lng).sort((a,b)=>a-b);
+  const med=arr=>arr[Math.floor(arr.length/2)];
+  const c={lat:med(lats),lng:med(lngs)};
+  const dists=located.map(h=>eDist(h,c));
+  const sorted=[...dists].sort((a,b)=>a-b);
+  const medDist=sorted[Math.floor(sorted.length/2)]||0;
+  // flag any hospital more than 4× the median distance from center (and a real gap)
+  let flagged=0;
+  located.forEach((h,i)=>{
+    const isOut = medDist>0 && dists[i] > Math.max(medDist*4, 0.25); // ~25km abs floor
+    if(isOut){ if(h.geocoded||!h.outlier){h.outlier=true;h.geocoded=false;flagged++;} }
+    else h.outlier=false;
+  });
+  if(flagged>0){renderList();toast(t('tn_far',{n:flagged}),'warn',5500);}
+}
+/* ── Manual pin placement ── */
+let pinnedDepot=null;
+/* ── Manual coordinate entry (replaces map pin-picking everywhere: hospitals, new hospital, depot, refill) ── */
+let coordBoxHospId=null, coordMode='hospital';
+function _coordShow(){document.getElementById('coord-modal').style.display='flex';}
+function openCoordBox(id){
+  const h=hospitals.find(x=>x.id===id);if(!h)return;
+  coordMode='hospital';coordBoxHospId=id;
+  document.getElementById('coord-modal-title').textContent=t('coord_title');
+  document.getElementById('coord-hosp-name').style.display='block';
+  document.getElementById('coord-hosp-name').textContent=h.name;
+  document.getElementById('coord-name-row').style.display='none';
+  document.getElementById('coord-lat').value=h.lat!=null?h.lat:'';
+  document.getElementById('coord-lng').value=h.lng!=null?h.lng:'';
+  _coordShow();document.getElementById('coord-lat').focus();
+}
+function openCoordBoxNew(){
+  coordMode='new';
+  document.getElementById('coord-modal-title').textContent=t('coord_title_new');
+  document.getElementById('coord-hosp-name').style.display='none';
+  document.getElementById('coord-name-row').style.display='grid';
+  document.getElementById('coord-dist-group').style.display='block';
+  const nameEl=document.getElementById('coord-name');nameEl.value='';nameEl.placeholder=t('l_name');
+  document.getElementById('coord-dist').value='';
+  document.getElementById('coord-lat').value='';document.getElementById('coord-lng').value='';
+  _coordShow();nameEl.focus();
+}
+function openCoordBoxDepot(){
+  coordMode='depot';
+  document.getElementById('coord-modal-title').textContent=t('coord_title_depot');
+  document.getElementById('coord-hosp-name').style.display='none';
+  document.getElementById('coord-name-row').style.display='grid';
+  document.getElementById('coord-dist-group').style.display='none';
+  const nameEl=document.getElementById('coord-name');nameEl.value=pinnedDepot?pinnedDepot.name:'';nameEl.placeholder=t('depot_pin_label');
+  document.getElementById('coord-lat').value=pinnedDepot?pinnedDepot.lat:'';
+  document.getElementById('coord-lng').value=pinnedDepot?pinnedDepot.lng:'';
+  _coordShow();nameEl.focus();
+}
+function openCoordBoxRefill(){
+  coordMode='refill';
+  document.getElementById('coord-modal-title').textContent=t('coord_title_refill');
+  document.getElementById('coord-hosp-name').style.display='none';
+  document.getElementById('coord-name-row').style.display='grid';
+  document.getElementById('coord-dist-group').style.display='none';
+  const nameEl=document.getElementById('coord-name');nameEl.value='';nameEl.placeholder=t('refill_pin_label');
+  document.getElementById('coord-lat').value='';document.getElementById('coord-lng').value='';
+  _coordShow();nameEl.focus();
+}
+function closeCoordBox(){document.getElementById('coord-modal').style.display='none';coordBoxHospId=null;}
+/* Paste a full "lat, lng" pair (e.g. copied from Google Maps) into either box → auto-split into both. */
+function onCoordPairInput(el){
+  const co=parseCoords(el.value);
+  if(!co)return; // not a full pair yet (still typing one number) — leave as-is
+  document.getElementById('coord-lat').value=co.lat;
+  document.getElementById('coord-lng').value=co.lng;
+  document.getElementById('coord-lng').focus();
+}
+function _readCoordLatLng(){
+  const latEl=document.getElementById('coord-lat'),lngEl=document.getElementById('coord-lng');
+  let lat=parseFloat(latEl.value),lng=parseFloat(lngEl.value);
+  if(isNaN(lat)||isNaN(lng)){
+    const co=parseCoords(latEl.value)||parseCoords(lngEl.value);
+    if(co){lat=co.lat;lng=co.lng;}
+  }
+  if(isNaN(lat)||isNaN(lng)||Math.abs(lat)>90||Math.abs(lng)>180)return null;
+  return{lat,lng};
+}
+function saveCoordBox(){
+  const co=_readCoordLatLng();
+  if(!co){toast('Enter a valid latitude and longitude','error',4000);return;}
+  if(coordMode==='hospital'){
+    const h=hospitals.find(x=>x.id===coordBoxHospId);if(!h)return;
+    h.lat=co.lat;h.lng=co.lng;h.geocoded=true;h.needsLocation=false;h.flag='';h.outlier=false;h.confidence=1;h.manualPin=true;
+    closeCoordBox();renderList();flagOutliers();reRenderIfRouted();
+    toast(t('tn_loc_set',{name:h.name}),'success',2500);
+  } else if(coordMode==='new'){
+    const name=document.getElementById('coord-name').value.trim();
+    if(!name){toast(t('tn_name_hosp'),'error',3500);return;}
+    const dist=document.getElementById('coord-dist').value.trim();
+    const h={id:nextId++,name,district:dist||'—',lat:co.lat,lng:co.lng,geocoded:true,needsLocation:false,confidence:1,manualPin:true,outlier:false,flag:''};
+    hospitals.push(h);
+    closeCoordBox();renderList();flagOutliers();
+    toast(t('tn_pinned_added',{name:h.name}),'success',2800);
+  } else if(coordMode==='depot'){
+    const name=document.getElementById('coord-name').value.trim()||t('depot_pin_label');
+    pinnedDepot={name,lat:co.lat,lng:co.lng,addr:''};
+    savePinnedDepot();
+    const di=document.getElementById('depot-input');di.value='';delete di.dataset.lat;delete di.dataset.lng;
+    document.getElementById('s-depot').textContent=name;
+    showPinnedDepotChip();
+    closeCoordBox();
+    toast(`${t('depot_set')}: ${name}`,'success',2800);
+    reverseGeocode(co.lat,co.lng).then(addr=>{if(addr&&pinnedDepot){pinnedDepot.addr=addr;savePinnedDepot();showPinnedDepotChip();}});
+  } else if(coordMode==='refill'){
+    const name=document.getElementById('coord-name').value.trim()||t('refill_pin_label');
+    addRefill(name,co.lat,co.lng,'');
+    closeCoordBox();
+  }
+}
+function loadPreset(){
+  hospitals=PRESET_HOSPS.map(h=>({...h,id:nextId++,geocoded:true,needsLocation:false,confidence:1}));
+  renderList();
+  toast(t('tn_demo'),'success',3500);
+  flagOutliers();
+}
+function clearAll(){hospitals=[];renderList();showEmpty();document.getElementById('map-section').style.display='none';}
+/* ── Saved hospital lists (localStorage) ── */
+function getSavedLists(){try{return JSON.parse(localStorage.getItem('saved_lists')||'{}');}catch(e){return {};}}
+function setSavedLists(o){localStorage.setItem('saved_lists',JSON.stringify(o));}
+function refreshListDropdown(){
+  const sel=document.getElementById('list-select');if(!sel)return;
+  const lists=getSavedLists();const names=Object.keys(lists).sort();
+  sel.innerHTML='<option value="">— Saved lists —</option>'+names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n} (${lists[n].length})</option>`).join('');
+}
+function saveCurrentList(){
+  if(!hospitals.length){toast(t('tn_add_first'),'warn',2500);return;}
+  const name=prompt(t('tn_save_prompt'));
+  if(!name||!name.trim())return;
+  const lists=getSavedLists();
+  // store only the essential fields
+  lists[name.trim()]=hospitals.map(h=>({name:h.name,district:h.district,lat:h.lat,lng:h.lng,geocoded:h.geocoded,needsLocation:h.needsLocation,confidence:h.confidence,manualPin:h.manualPin}));
+  setSavedLists(lists);refreshListDropdown();
+  document.getElementById('list-select').value=name.trim();
+  toast(t('tn_saved',{name:name.trim(),n:hospitals.length}),'success',2800);
+}
+function onListSelect(){
+  const name=document.getElementById('list-select').value;if(!name)return;
+  const lists=getSavedLists();const saved=lists[name];if(!saved)return;
+  hospitals=saved.map(h=>({...h,id:nextId++}));
+  renderList();
+  flagOutliers();
+  toast(t('tn_loaded_list',{name:name,n:saved.length}),'success',2500);
+}
+function deleteCurrentList(){
+  const sel=document.getElementById('list-select');const name=sel.value;
+  if(!name){toast(t('tn_sel_del'),'warn',2500);return;}
+  if(!confirm(t('tn_del_confirm',{name:name})))return;
+  const lists=getSavedLists();delete lists[name];setSavedLists(lists);
+  refreshListDropdown();toast(t('tn_deleted',{name:name}),'info',2500);
+}
+function renderList(){
+  const n=hospitals.length,cap=getMaxPerCar();document.getElementById('hosp-count').textContent=t('hosp_count',{n:n});document.getElementById('opt-btn').disabled=n===0;document.getElementById('s-hosp').textContent=n;document.getElementById('s-cars').textContent=n?Math.ceil(n/cap):'—';
+  const list=document.getElementById('hosp-list');
+  if(!n){list.innerHTML='<div class="empty-state"><p>'+t('empty_list')+'</p></div>';return;}
+  list.innerHTML=hospitals.map((h,i)=>{
+    let badge;
+    if(h.lat===null&&!h.needsLocation) badge='<span class="spinner-sm"></span>';
+    else if(h.needsLocation) badge=`<span class="geo-badge needs" onclick="openCoordBox(${h.id})" title="Click to enter coordinates manually">📍 needs location</span>`;
+    else if(h.outlier) badge=`<span class="geo-badge needs" onclick="openCoordBox(${h.id})" title="Click to enter coordinates manually">⚠ far from others</span>`;
+    else if(h.flag==='district mismatch') badge=`<span class="geo-badge needs" onclick="openCoordBox(${h.id})" title="Click to enter coordinates manually">⚠ district mismatch</span>`;
+    else if(h.geocoded) badge='<span class="geo-badge ok">✓ geocoded</span>';
+    else badge=`<span class="geo-badge approx" onclick="openCoordBox(${h.id})" title="Click to enter coordinates manually">~ approx</span>`;
+    const confTxt=(!h.needsLocation&&h.lat!==null&&typeof h.confidence==='number')?` <span style="opacity:0.7;">· ${Math.round(h.confidence*100)}%</span>`:'';
+    const showFix=h.needsLocation||h.lat!==null;
+    const fixBtn=showFix?`<button class="btn-fix" onclick="openCoordBox(${h.id})">${ICONS.pin} Fix</button>`:'';
+    return `<div class="hosp-item"><div class="hosp-num">${i+1}</div><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${h.name}</div><div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap;"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;">${h.district}</span>${badge}${confTxt}</div></div>${fixBtn}<button class="btn-danger-sm" onclick="removeHospital(${h.id})" aria-label="Remove ${h.name}">×</button></div>`;
+  }).join('');
+}
+function showEmpty(){document.getElementById('result-area').innerHTML=`<div class="empty-state" style="background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);padding:4.5rem 2rem;box-shadow:var(--shadow-sm);"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:14px;opacity:0.2;display:block;margin-left:auto;margin-right:auto;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg><p>${t('empty_msg')}</p></div>`;}
+function kMeans(pts,k,iters=80){if(pts.length<=k)return pts.map((_,i)=>i);const used=new Set();let centers=[];for(let i=0;i<k;i++){let idx;do{idx=Math.floor(Math.random()*pts.length);}while(used.has(idx));used.add(idx);centers.push({lat:pts[idx].lat,lng:pts[idx].lng});}let assign=new Array(pts.length).fill(0);for(let it=0;it<iters;it++){assign=pts.map(p=>{let best=0,bd=Infinity;centers.forEach((c,i)=>{const d=eDist(p,c);if(d<bd){bd=d;best=i;}});return best;});centers=centers.map((_,ci)=>{const g=pts.filter((_,j)=>assign[j]===ci);if(!g.length)return centers[ci];return{lat:g.reduce((s,p)=>s+p.lat,0)/g.length,lng:g.reduce((s,p)=>s+p.lng,0)/g.length};});}return assign;}
+/* Real pairwise cost/time/distance sum within a group, from the shared road-network matrix —
+   a proxy for how much driving effort that group represents (more spread ⇒ more driving). */
+function groupTriple(g,shared){
+  if(!shared||g.length<2)return {cost:0,time:0,dist:0};
+  let cost=0,time=0,dist=0;
+  for(let a=0;a<g.length;a++)for(let b=a+1;b<g.length;b++){
+    const ia=shared.idOf.get(g[a].id),ib=shared.idOf.get(g[b].id);
+    cost+=shared.cost[ia][ib];time+=shared.time[ia][ib];dist+=shared.km[ia][ib];
+  }
+  return {cost,time,dist};
+}
+function spread(arr){return Math.max(...arr)-Math.min(...arr);}
+/* buildGroups(hosps, shared): shared is the optional bulk road-network matrix from
+   buildSharedMatrices — when present and balance mode is the workload one, groups are chosen
+   to minimize the spread of total cost across cars first, tie-broken by time spread, then
+   distance spread. Without it (no ORS key, or the bulk request failed), falls back to a
+   straight-line centroid-distance proxy. */
+function buildGroups(hosps,shared){
+  const cap=getMaxPerCar();const n=hosps.length,k=Math.ceil(n/cap);if(k===1)return[hosps];
+  const mode=getBalanceMode();
+  // Rough "time cost" proxy for a group = sum of distances from its centroid (more spread ⇒ more driving)
+  function groupCostEuclid(g){if(g.length<2)return 0;const c=centroid(g);return g.reduce((s,p)=>s+eDist(p,c),0);}
+  let best=null,bestScore=null;
+  for(let run=0;run<40;run++){
+    const assign=kMeans(hosps,k);
+    const raw=Array.from({length:k},()=>[]);
+    hosps.forEach((h,i)=>raw[assign[i]].push(h));
+    // enforce capacity: move overflow to the lightest group
+    const overflow=[];raw.forEach(g=>{while(g.length>cap)overflow.push(g.pop());});
+    overflow.forEach(h=>{const t=raw.reduce((a,b)=>a.length<=b.length?a:b);t.push(h);});
+    const groups=raw.filter(g=>g.length>0);
+    let score,better;
+    if(mode==='time'&&shared){
+      // minimise spread of real cost across cars, tie-broken by time spread then distance spread
+      const triples=groups.map(g=>groupTriple(g,shared));
+      score={cost:spread(triples.map(t=>t.cost)),time:spread(triples.map(t=>t.time)),dist:spread(triples.map(t=>t.dist))};
+      better=bestScore===null||tripleBetter(score,bestScore);
+    } else if(mode==='time'){
+      score=spread(groups.map(groupCostEuclid));
+      better=bestScore===null||score<bestScore;
+    } else {
+      score=spread(groups.map(g=>g.length));
+      better=bestScore===null||score<bestScore;
+    }
+    if(better){bestScore=score;best=groups;}
+  }
+  return best;
+}
+function nnMatrix(pts,startIdx,matrix){const n=pts.length,visited=new Array(n).fill(false),order=[];let cur=startIdx;for(let s=0;s<n;s++){visited[cur]=true;order.push(pts[cur]);let best=-1,bd=Infinity;for(let j=0;j<n;j++){if(!visited[j]&&matrix[cur][j]<bd){bd=matrix[cur][j];best=j;}}if(best===-1)break;cur=best;}return order;}
+/* Generate all permutations of an index array */
+function permute(arr){
+  if(arr.length<=1) return [arr];
+  const out=[];
+  arr.forEach((v,i)=>{
+    const rest=arr.slice(0,i).concat(arr.slice(i+1));
+    permute(rest).forEach(p=>out.push([v,...p]));
+  });
+  return out;
+}
+const BRUTE_MAX=9; // above this, permutations explode — switch to multi-start NN + 2-opt
+/* Nearest-neighbour order by cost matrix, anchored at a given starting index */
+function nnOrderFrom(n,startIdx,cMat){
+  const visited=new Array(n).fill(false),order=[];
+  let cur=startIdx;
+  for(let s=0;s<n;s++){visited[cur]=true;order.push(cur);let best=-1,bd=Infinity;for(let j=0;j<n;j++){if(!visited[j]&&cMat[cur][j]<bd){bd=cMat[cur][j];best=j;}}if(best===-1)break;cur=best;}
+  return order;
+}
+/* Canonical index order by coordinate, independent of the order hospitals were entered/added in —
+   ties are broken by iteration order, so without this, re-entering the same hospitals in a
+   different order could silently pick a different (but equally optimal) route. */
+function canonicalIdx(grp){
+  return grp.map((_,i)=>i).sort((a,b)=>grp[a].lat-grp[b].lat||grp[a].lng-grp[b].lng);
+}
+/* total cost of an index order for START→...→END, under one metric's matrix */
+function pathCost(order,startC,endC,cMat){let c=startC[order[0]];for(let s=0;s<order.length-1;s++)c+=cMat[order[s]][order[s+1]];c+=endC[order[order.length-1]];return c;}
+/* metrics = {cost:{s,e,m}, time:{s,e,m}, dist:{s,e,m}} — three parallel matrices for the same order.
+   totals under all three at once, for lexicographic ranking. */
+function tripleCost(order,metrics){
+  return {cost:pathCost(order,metrics.cost.s,metrics.cost.e,metrics.cost.m),
+          time:pathCost(order,metrics.time.s,metrics.time.e,metrics.time.m),
+          dist:pathCost(order,metrics.dist.s,metrics.dist.e,metrics.dist.m)};
+}
+/* true if triple a beats triple b: lower total cost wins; ties (within tolerance) fall through
+   to lower time; ties on both fall through to lower distance. Priority: cost > time > distance. */
+function tripleBetter(a,b){
+  const EPS=1e-6;
+  if(a.cost<b.cost-EPS)return true; if(b.cost<a.cost-EPS)return false;
+  if(a.time<b.time-EPS)return true; if(b.time<a.time-EPS)return false;
+  return a.dist<b.dist-EPS;
+}
+/* 2-opt improvement on an index order, ranked by the cost→time→distance priority */
+function twoOpt(order,metrics){
+  let improved=true,best=order.slice(),bestT=tripleCost(best,metrics);
+  while(improved){
+    improved=false;
+    for(let i=0;i<best.length-1;i++){for(let j=i+1;j<best.length;j++){
+      const cand=best.slice(0,i).concat(best.slice(i,j+1).reverse(),best.slice(j+1));
+      const c=tripleCost(cand,metrics);
+      if(tripleBetter(c,bestT)){best=cand;bestT=c;improved=true;}
+    }}
+  }
+  return best;
+}
+/* Multi-start NN + 2-opt: try every point as the NN seed, 2-opt each, keep the best (by priority).
+   More thorough than a single seed since 2-opt can get stuck in different local optima
+   depending on where the greedy walk began. NN construction greeds on the primary (cost) matrix. */
+function bestHeuristicOrder(n,metrics,seedOrder){
+  let best=null,bestT=null;
+  const seeds=seedOrder||Array.from({length:n},(_,i)=>i);
+  for(const seed of seeds){
+    const cand=twoOpt(nnOrderFrom(n,seed,metrics.cost.m),metrics);
+    const c=tripleCost(cand,metrics);
+    if(!bestT||tripleBetter(c,bestT)){bestT=c;best=cand;}
+  }
+  return best;
+}
+/* Finds the visiting order minimizing total cost (tie-broken by time, then distance).
+   metrics = {cost:{s,e,m}, time:{s,e,m}, dist:{s,e,m}} — s/e are start/end vectors, m is the
+   pairwise matrix, one set per criterion. */
+function optimalPath(grp,metrics){
+  const n=grp.length;
+  let bestOrder;
+  if(n<=BRUTE_MAX){
+    const idx=canonicalIdx(grp);let bestT=null;bestOrder=idx;
+    permute(idx).forEach(perm=>{const c=tripleCost(perm,metrics);if(!bestT||tripleBetter(c,bestT)){bestT=c;bestOrder=perm;}});
+  } else {
+    // multi-start NN seed + 2-opt refine (scales to large groups without freezing)
+    bestOrder=bestHeuristicOrder(n,metrics,canonicalIdx(grp));
+  }
+  const totals=tripleCost(bestOrder,metrics);
+  return {order:bestOrder.map(i=>grp[i]), cost:totals.cost, time:totals.time, distance:totals.dist};
+}
+/* Straight-line version: start point → hospitals → end point.
+   No real cost/time data available without ORS, so all three criteria collapse to the same
+   Euclidean distance matrix — the priority logic is still exercised, just with degenerate ties. */
+function optimalPathEuclid(grp,startPt,endPt){
+  const n=grp.length;
+  const s=grp.map(h=>eDist(startPt,h)), e=grp.map(h=>eDist(h,endPt));
+  const m=grp.map(a=>grp.map(b=>eDist(a,b)));
+  const metrics={cost:{s,e,m},time:{s,e,m},dist:{s,e,m}};
+  if(n<=BRUTE_MAX){
+    const idx=canonicalIdx(grp);let bestOrder=idx,bestT=null;
+    permute(idx).forEach(perm=>{const c=tripleCost(perm,metrics);if(!bestT||tripleBetter(c,bestT)){bestT=c;bestOrder=perm;}});
+    return bestOrder.map(i=>grp[i]);
+  }
+  return bestHeuristicOrder(n,metrics,canonicalIdx(grp)).map(i=>grp[i]);
+}
+function nnEuclid(pts,start){const rem=[...pts],route=[];let cur=start;while(rem.length){let bi=0,bd=Infinity;rem.forEach((p,i)=>{const d=eDist(cur,p);if(d<bd){bd=d;bi=i;}});route.push(rem[bi]);cur=rem[bi];rem.splice(bi,1);}return route;}
+function log(msg){const el=document.getElementById('progress-log');if(el){el.innerHTML+=`<div>${msg}</div>`;el.scrollTop=el.scrollHeight;}}
+/* One bulk ORS matrix query across depot + all refill candidates + every located hospital, done
+   once up front. Reused for both workload balancing (real cost/time/distance, not straight-line)
+   and per-car route ordering, instead of re-querying ORS per car per refill candidate. Returns
+   null if there's no key or the request fails (e.g. too many locations for the plan's limit) —
+   callers fall back to per-car queries or straight-line as appropriate. */
+async function buildSharedMatrices(sp,candidates,located){
+  const allLocs=[sp,...candidates,...located];
+  const mat=await orsMatrix(allLocs);
+  if(!(mat&&mat.distances&&mat.durations))return null;
+  const D=mat.distances,T=mat.durations;
+  const UNREACHABLE=1e9;
+  const safe=v=>(typeof v==='number'&&isFinite(v))?v:UNREACHABLE;
+  const costPerKm=getCostPerKm(),costPerHour=getCostPerHour();
+  const nLoc=allLocs.length;
+  const km=Array.from({length:nLoc},(_,i)=>Array.from({length:nLoc},(_,j)=>i===j?0:safe(D[i][j])));
+  const time=Array.from({length:nLoc},(_,i)=>Array.from({length:nLoc},(_,j)=>i===j?0:safe(T[i][j])));
+  const cost=Array.from({length:nLoc},(_,i)=>Array.from({length:nLoc},(_,j)=>legCost(km[i][j],time[i][j],costPerKm,costPerHour,UNREACHABLE)));
+  const idOf=new Map();located.forEach((h,i)=>idOf.set(h.id,1+candidates.length+i));
+  return {km,time,cost,idOf,depotIdx:0,refillIdx:ci=>1+ci,UNREACHABLE};
+}
+async function runOptimize(){
+  if(!hospitals.length)return;
+  document.getElementById('opt-btn').disabled=true;
+  setBusy(true,t('optimizing'));
+  document.getElementById('result-area').innerHTML=`<div class="loading-state"><span class="spinner"></span>${t('optimizing')}<div class="progress-log" id="progress-log"></div></div>`;
+  log('📍 Resolving starting depot...');const sp=await resolveDepot();document.getElementById('s-depot').textContent=sp.name;log(`✓ Depot: ${sp.name}`);
+  // Exclude hospitals that still have no real location
+  const unlocated=hospitals.filter(h=>h.needsLocation||h.lat===null);
+  if(unlocated.length){
+    log(`⚠ ${unlocated.length} hospital(s) have no location — excluded. Use 📍 Fix to add them.`);
+    toast(t('tn_skipped',{n:unlocated.length}),'warn',6000);
+  }
+  const located=hospitals.filter(h=>!h.needsLocation&&h.lat!==null);
+  if(!located.length){document.getElementById('opt-btn').disabled=false;setBusy(false);document.getElementById('result-area').innerHTML='';toast(t('no_loc'),'error',5000);return;}
+  const flagged=located.filter(h=>h.outlier||h.flag);
+  if(flagged.length){log(`⚠ ${flagged.length} hospital(s) flagged (far from group / district mismatch) — included but verify with 📍 Fix.`);toast(t('tn_flagged_inc',{n:flagged.length}),'warn',5500);}
+  log(`✓ ${located.filter(h=>h.geocoded).length}/${located.length} hospitals have real coordinates`);
+  const candidates=getRefillCandidates();
+  let shared=null;
+  if(getORS()){
+    log('🌐 Fetching road-network matrix for clustering + routing...');
+    shared=await buildSharedMatrices(sp,candidates,located);
+    if(shared)log(`✓ Matrix ready (${located.length} hospitals + depot + ${candidates.length} refill point(s))`);
+    else log('⚠ Bulk matrix request failed (e.g. too many locations for this plan) — falling back to per-car road queries.');
+  }
+  setBusy(true,'Clustering & routing…');
+  log('📊 Running K-means geographic clustering...');const groups=buildGroups([...located],shared);log(`✓ ${groups.length} group${groups.length!==1?'s':''} formed (≤${getMaxPerCar()} hospitals each)`);
+  if(candidates.length>1)log(`🩸 ${candidates.length} refill points available — each car will use its fastest.`);
+  const routed=[];
+  for(let gi=0;gi<groups.length;gi++){
+    const grp=groups[gi];log(`🚗 Car ${gi+1}: finding fastest visit order (${grp.length} hospitals)...`);
+    const r=await routeCar(grp,sp,candidates,shared);
+    if(r.useRoad){
+      log(`  ✓ Refill at ${r.refill.name} · Phase 1: ~${r.totalMin} min / ${r.totalKm} km · Phase 2: ~${r.totalMin2} min / ${r.totalKm2} km`);
+      if(r.unreachableCount)log(`  ⚠ ORS couldn't find a road route for ${r.unreachableCount} leg(s) in this car (e.g. across water with no bridge nearby) — those legs were excluded from optimization rather than treated as free, but double-check this car's order looks sane.`);
+    }
+    else log(`  ℹ Straight-line optimal (no ORS key or missing coords)`);
+    routed.push(r);
+  }
+  log('✅ Done!');renderResults(routed,sp);document.getElementById('opt-btn').disabled=false;setBusy(false);
+  switchView('results');
+  if(getORS())toast(t('tn_routes_done',{n:routed.length}),'success',3000);
+  else toast('Optimized with straight-line estimates (no ORS key) — distances are approximate','warn',6000);
+}
+async function renderResults(routed,sp){
+  window._lastRouted=routed;window._lastSp=sp;
+  document.getElementById('s-cars').textContent=routed.length;
+  window._cardData={};
+  const departStr=getDepartTime();
+  const stopMin=getStopMin();
+  // parse "HH:MM" → minutes since midnight
+  const parseHM=s=>{const m=/^(\d{1,2}):(\d{2})/.exec(s||'');return m?(+m[1]*60+ +m[2]):8*60;};
+  const fmtHM=mins=>{mins=Math.round(mins);const h=Math.floor(mins/60)%24,m=((mins%60)+60)%60;const ap=h<12?'AM':'PM';const h12=h%12||12;return `${h12}:${String(m).padStart(2,'0')} ${ap}`;};
+  const cards=routed.map((r,ci)=>{
+    const pal=CAR_PALETTE[ci%CAR_PALETTE.length];
+    const departMin=parseHM(departStr);
+    // Phase 1 starts at depart; Phase 2 starts after all of Phase 1 (drive+stops) completes
+    const p1total=r.useRoad&&r.totalMin?parseFloat(r.totalMin)+r.hospitals.length*stopMin:0;
+    const phaseStart={1:departMin,2:departMin+p1total};
+    // mkStops with arrival times. legs[i] = drive minutes to reach stop i; each stop adds stopMin service
+    const mkStops=(arr,legs,phase)=>{
+      let clock=phaseStart[phase];
+      return arr.map((h,si)=>{
+        let timeTag='';
+        if(r.useRoad&&legs&&legs[si]!=null){
+          clock+=legs[si]; // drive to this stop
+          timeTag=`<span class="stop-time">🕐 ${fmtHM(clock)}</span>`;
+          clock+=stopMin;  // service time at the stop
+        }
+        return `<li class="stop-item" draggable="true" data-car="${ci}" data-hid="${h.id}" ondragstart="onStopDragStart(event)" ondragend="onStopDragEnd(event)"><div class="drag-handle" aria-hidden="true">⠿</div><div class="stop-badge" style="background:${pal.light};color:${pal.dark};">${si+1}</div><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:500;">${h.name}</div><div style="font-size:11px;color:var(--ink-3);font-family:var(--mono);margin-top:1px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${h.district}${timeTag}</div></div></li>`;
+      }).join('');
+    };
+    const stops1=mkStops(r.hospitals,r.legs1,1);
+    const stops2=mkStops(r.hospitals2||r.hospitals,r.legs2,2);
+    let tripStr='';
+    if(r.useRoad&&r.totalMin&&r.totalMin2){
+      const tot=Math.round(parseFloat(r.totalMin)+parseFloat(r.totalMin2)+r.hospitals.length*2*stopMin);
+      const hrs=Math.floor(tot/60),mins=tot%60;
+      tripStr=hrs>0?`${hrs}h ${mins}m`:`${mins} min`;
+    }
+    const carRefill=r.refill||getRefill();
+    const journey=[sp,...r.hospitals,carRefill,...(r.hospitals2||r.hospitals),sp];
+    // Search by name/address and let Google Maps geocode it — falls back to raw coordinates
+    // only for manually-pinned points that have no real, searchable name.
+    const gStop=p=>{
+      const nm=(p.name||'').trim();
+      const generic=!nm||/^📍/.test(nm)||/^Custom (starting|refill) point$/i.test(nm);
+      if(generic)return`${p.lat},${p.lng}`;
+      const withDist=(p.district&&p.district!=='—')?`${nm}, ${p.district}`:nm;
+      return encodeURIComponent(withDist);
+    };
+    const gmapsUrl='https://www.google.com/maps/dir/'+journey.map(gStop).join('/');
+    const p1metric=r.useRoad&&r.totalMin?`~${r.totalMin} min · ${r.totalKm} km`:t('c_straight');
+    const p2metric=r.useRoad&&r.totalMin2?`~${r.totalMin2} min · ${r.totalKm2} km`:t('c_straight');
+    const depotShort=sp.name.length>14?sp.name.slice(0,12)+'…':sp.name;
+    const refillName=carRefill.name;const refillShort='🩸 '+(refillName.length>12?refillName.slice(0,11)+'…':refillName);
+    window._cardData[ci]={stops1,stops2,p1metric,p2metric,depot:depotShort,refill:refillShort,light:pal.light,dark:pal.dark,bg:pal.bg};
+    return `<div class="car-card" data-car="${ci}" ondragover="onCarDragOver(event,${ci})" ondragleave="onCarDragLeave(event,${ci})" ondrop="onCarDrop(event,${ci})">
+      <div class="cc-head" style="background:${pal.light};">
+        <div style="width:36px;height:36px;border-radius:10px;background:${pal.bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 2px 8px ${pal.bg}44;">🚗</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:14px;color:${pal.dark};">Car ${ci+1}</div>
+          <div style="font-size:11px;font-family:var(--mono);color:${pal.dark};opacity:0.75;margin-top:1px;">${r.hospitals.length} ${t('c_stops')}${tripStr?` · ${tripStr} ${t('c_total')}`:''}</div>
+        </div>
+      </div>
+      <div style="padding:14px 16px 16px;">
+        <div class="phase-switch">
+          <button class="ps-btn active" data-ps="${ci}-1" onclick="switchCardPhase(${ci},1)">${t('ph1')}</button>
+          <button class="ps-btn" data-ps="${ci}-2" onclick="switchCardPhase(${ci},2)">${t('ph2')}</button>
+        </div>
+        <div class="cc-flow" id="cc-flow-${ci}">
+          <span class="rf-badge depot">${depotShort}</span>
+          <span class="rf-arrow">→</span><span class="rf-badge" style="background:${pal.light};color:${pal.dark};border-color:${pal.bg}44;">${t('c_collect')}</span>
+          <span class="rf-arrow">→</span><span class="rf-badge trcs">${refillShort}</span>
+        </div>
+        <div class="cc-metric" id="cc-metric-${ci}" style="color:${pal.dark};background:${pal.light};">⏱ ${p1metric}</div>
+        <ul class="stop-list" id="cc-stops-${ci}" style="margin-top:10px;">${stops1}</ul>
+        <a class="gmaps-btn" href="${gmapsUrl}" target="_blank" rel="noopener">${t('c_open_gmaps')}</a>
+      </div>
+    </div>`;
+  }).join('');
+  const cand=getRefillCandidates();
+  const refillTag=cand.length>1?`🩸 ${t('res_refill_lbl')}: ${cand.length} ${t('refill_points_n')}`:`🩸 ${t('res_refill_lbl')}: ${cand[0].name}`;
+  document.getElementById('result-area').innerHTML=`<div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px;"><span class="info-tag" style="background:var(--ink);color:var(--white);border-color:var(--ink);">${t('res_depot')}: ${sp.name}</span><span class="info-tag" style="background:var(--red-light);color:var(--red-dark);border-color:var(--red-mid);">${refillTag}</span></div>${routed.length>1?`<div style="font-size:11.5px;color:var(--ink-4);font-family:var(--mono);margin-bottom:10px;">${t('drag_hint')}</div>`:''}<div class="car-grid">${cards}</div>`;
+  await renderMap(routed,sp);
+}
+function switchCardPhase(ci,phase){
+  const d=window._cardData&&window._cardData[ci];if(!d)return;
+  // toggle button active state
+  document.querySelector(`[data-ps="${ci}-1"]`).classList.toggle('active',phase===1);
+  document.querySelector(`[data-ps="${ci}-2"]`).classList.toggle('active',phase===2);
+  // swap stops
+  document.getElementById('cc-stops-'+ci).innerHTML = phase===1?d.stops1:d.stops2;
+  // swap metric
+  document.getElementById('cc-metric-'+ci).innerHTML = '⏱ '+(phase===1?d.p1metric:d.p2metric);
+  // swap flow
+  const flow=document.getElementById('cc-flow-'+ci);
+  if(phase===1){
+    flow.innerHTML=`<span class="rf-badge depot">${d.depot}</span><span class="rf-arrow">→</span><span class="rf-badge" style="background:${d.light};color:${d.dark};border-color:${d.bg}44;">${t('c_collect')}</span><span class="rf-arrow">→</span><span class="rf-badge trcs">${d.refill}</span>`;
+  } else {
+    flow.innerHTML=`<span class="rf-badge trcs">${d.refill}</span><span class="rf-arrow">→</span><span class="rf-badge" style="background:${d.light};color:${d.dark};border-color:${d.bg}44;">${t('c_deliver')}</span><span class="rf-arrow">→</span><span class="rf-badge depot">${d.depot}</span>`;
+  }
+}
+/* ── Drag-to-reassign hospitals between cars ── */
+let dragData=null;
+function onStopDragStart(e){
+  const li=e.target.closest('.stop-item');if(!li)return;
+  dragData={car:+li.dataset.car,hid:+li.dataset.hid};
+  li.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+  try{e.dataTransfer.setData('text/plain',li.dataset.hid);}catch(_){}
+}
+function onStopDragEnd(e){const li=e.target.closest('.stop-item');if(li)li.classList.remove('dragging');document.querySelectorAll('.car-card.drop-target').forEach(c=>c.classList.remove('drop-target'));}
+function onCarDragOver(e,ci){if(!dragData)return;if(dragData.car===ci)return;e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drop-target');}
+function onCarDragLeave(e,ci){const card=e.currentTarget;if(!card.contains(e.relatedTarget))card.classList.remove('drop-target');}
+async function onCarDrop(e,ci){
+  e.preventDefault();
+  document.querySelectorAll('.car-card.drop-target').forEach(c=>c.classList.remove('drop-target'));
+  if(!dragData||dragData.car===ci)return;
+  const routed=window._lastRouted,sp=window._lastSp;if(!routed)return;
+  const from=routed[dragData.car],to=routed[ci];if(!from||!to)return;
+  const idx=from.hospitals.findIndex(h=>h.id===dragData.hid);if(idx<0){dragData=null;return;}
+  const moved=from.hospitals[idx];
+  if(to.hospitals.length>=getMaxPerCar()){toast(t('reassign_full',{n:getMaxPerCar()}),'warn',4000);dragData=null;return;}
+  from.hospitals.splice(idx,1);
+  to.hospitals.push(moved);
+  dragData=null;
+  setBusy(true,t('reassign_reopt'));
+  await reoptimizeCar(from,sp);
+  await reoptimizeCar(to,sp);
+  window._lastRouted=routed.filter(r=>r.hospitals.length>0);
+  setBusy(false);
+  renderResults(window._lastRouted,sp);
+  toast(t('reassign_done'),'success',2500);
+}
+async function reoptimizeCar(r,sp){
+  const fresh=await routeCar(r.hospitals,sp);
+  Object.assign(r,fresh);
+}
+/* Route one car's hospital group: tries every refill candidate, keeps the fastest total. */
+/* Build cost = distance×costPerKm + time×costPerHour for one leg, sanitizing unreachable legs
+   to a huge value so they're never chosen as if free (mirrors the distance/time sanitization). */
+function legCost(km,sec,costPerKm,costPerHour,UNREACHABLE){
+  return (km>=UNREACHABLE||sec>=UNREACHABLE)?UNREACHABLE:km*costPerKm+(sec/3600)*costPerHour;
+}
+/* From per-leg km/time vectors+matrix (depot-side, refill-side, hospital-hospital), build the
+   {cost,time,dist} metrics bundles optimalPath needs for both phases with one refill point. */
+function mkPhaseMetrics(depotKm,depotT,refillKm,refillT,kmMat,tMat,costPerKm,costPerHour,UNREACHABLE){
+  const depotC=depotKm.map((v,i)=>legCost(v,depotT[i],costPerKm,costPerHour,UNREACHABLE));
+  const refillC=refillKm.map((v,i)=>legCost(v,refillT[i],costPerKm,costPerHour,UNREACHABLE));
+  const cMat=kmMat.map((row,i)=>row.map((v,j)=>legCost(v,tMat[i][j],costPerKm,costPerHour,UNREACHABLE)));
+  return {
+    metrics1:{cost:{s:depotC,e:refillC,m:cMat},time:{s:depotT,e:refillT,m:tMat},dist:{s:depotKm,e:refillKm,m:kmMat}},
+    metrics2:{cost:{s:refillC,e:depotC,m:cMat},time:{s:refillT,e:depotT,m:tMat},dist:{s:refillKm,e:depotKm,m:kmMat}}
+  };
+}
+async function routeCar(grp,sp,candidates,shared){
+  candidates=candidates||getRefillCandidates();
+  const base={hospitals:grp,hospitals2:grp,totalKm:null,totalKm2:null,totalMin:null,totalMin2:null,legs1:null,legs2:null,useRoad:false,refill:candidates[0]};
+  if(!grp.length)return {...base,hospitals2:[]};
+  const costPerKm=getCostPerKm(),costPerHour=getCostPerHour();
+  const UNREACHABLE=1e9;
+
+  async function evalCandidates(buildForRefill){
+    let best=null,bestTriple=null;
+    for(let ci=0;ci<candidates.length;ci++){
+      const refill=candidates[ci];
+      const built=await buildForRefill(refill,ci);
+      if(!built)continue;
+      const {metrics1,metrics2,unreachableCount}=built;
+      const p1=optimalPath(grp,metrics1),p2=optimalPath(grp,metrics2);
+      const totalTriple={cost:p1.cost+p2.cost,time:p1.time+p2.time,dist:p1.distance+p2.distance};
+      if(!best||tripleBetter(totalTriple,bestTriple)){
+        bestTriple=totalTriple;
+        best={refill,unreachableCount,
+          hospitals:p1.order,hospitals2:p2.order,
+          totalMin:(p1.time/60).toFixed(0),totalKm:p1.distance.toFixed(1),
+          totalMin2:(p2.time/60).toFixed(0),totalKm2:p2.distance.toFixed(1),
+          legs1:p1.order.map((h,i)=>(i===0?metrics1.time.s[grp.indexOf(h)]:metrics1.time.m[grp.indexOf(p1.order[i-1])][grp.indexOf(h)])/60),
+          legs2:p2.order.map((h,i)=>(i===0?metrics2.time.s[grp.indexOf(h)]:metrics2.time.m[grp.indexOf(p2.order[i-1])][grp.indexOf(h)])/60),
+          useRoad:true};
+      }
+    }
+    return best;
+  }
+
+  let best=null;
+  if(shared){
+    // reuse the bulk road-network matrix fetched once up front — no network calls here
+    best=await evalCandidates(async(refill,ci)=>{
+      const di=shared.depotIdx, ri=shared.refillIdx(ci);
+      const idx=grp.map(h=>shared.idOf.get(h.id));
+      const depotKm=idx.map(gi=>shared.km[di][gi]), depotT=idx.map(gi=>shared.time[di][gi]);
+      const refillKm=idx.map(gi=>shared.km[ri][gi]), refillT=idx.map(gi=>shared.time[ri][gi]);
+      const kmMat=idx.map(gi=>idx.map(gj=>shared.km[gi][gj]));
+      const tMat=idx.map(gi=>idx.map(gj=>shared.time[gi][gj]));
+      const unreachableCount=[depotT,refillT,...tMat].flat().filter(v=>v>=shared.UNREACHABLE).length;
+      return {...mkPhaseMetrics(depotKm,depotT,refillKm,refillT,kmMat,tMat,costPerKm,costPerHour,shared.UNREACHABLE),unreachableCount};
+    });
+  } else if(getORS()&&grp.every(h=>h.lat!=null)){
+    // no bulk matrix available (e.g. it failed) — fall back to querying ORS per car, per refill
+    best=await evalCandidates(async(refill)=>{
+      const locs=[sp,refill,...grp];
+      const mat=await orsMatrix(locs);
+      if(!(mat&&mat.distances&&mat.durations))return null;
+      const D=mat.distances,T=mat.durations;
+      // ORS returns null for pairs it can't route between (e.g. across water with no bridge in range).
+      // null+n coerces to n in JS, i.e. an unreachable leg would silently look FREE to the optimizer —
+      // sanitize to a huge cost instead so it's never mistaken for a shortcut.
+      const safe=v=>(typeof v==='number'&&isFinite(v))?v:UNREACHABLE;
+      const depotKm=grp.map((_,i)=>safe(D[0][i+2])),depotT=grp.map((_,i)=>safe(T[0][i+2]));
+      const refillKm=grp.map((_,i)=>safe(D[1][i+2])),refillT=grp.map((_,i)=>safe(T[1][i+2]));
+      const kmMat=grp.map((_,i)=>grp.map((_,j)=>i===j?0:safe(D[i+2][j+2])));
+      const tMat=grp.map((_,i)=>grp.map((_,j)=>i===j?0:safe(T[i+2][j+2])));
+      const unreachableCount=[depotT,refillT,...tMat].flat().filter(v=>v===UNREACHABLE).length;
+      return {...mkPhaseMetrics(depotKm,depotT,refillKm,refillT,kmMat,tMat,costPerKm,costPerHour,UNREACHABLE),unreachableCount};
+    });
+  }
+  if(best)return best;
+
+  // straight-line fallback: pick nearest refill by euclidean centroid distance
+  const c=centroid(grp);
+  let refill=candidates[0],bd=Infinity;
+  candidates.forEach(cand=>{const d=eDist(cand,c);if(d<bd){bd=d;refill=cand;}});
+  return {...base,refill,hospitals:optimalPathEuclid(grp,sp,refill),hospitals2:optimalPathEuclid(grp,refill,sp)};
+}
+applyTheme(localStorage.getItem('theme')==='dark'?'dark':'light');
+setLang(getLang());
+updateApiIndicator();
+renderList();
+refreshListDropdown();
+restorePinnedDepot();
+restoreRefills();
+
+/* ── Setup / Results view toggle ── */
+function switchView(view){
+  const grid=document.getElementById('main-grid');
+  const prev=grid.classList.contains('show-results')?'results':'setup';
+  grid.classList.add('single-view');
+  grid.classList.toggle('show-setup',view==='setup');
+  grid.classList.toggle('show-results',view==='results');
+  document.getElementById('vt-setup').classList.toggle('active',view==='setup');
+  document.getElementById('vt-results').classList.toggle('active',view==='results');
+  // directional slide: results is to the "right" of setup
+  if(prev!==view){
+    const pane=document.getElementById(view==='setup'?'view-setup':'view-results');
+    if(pane){
+      const dir=(view==='results')?'slide-in-right':'slide-in-left';
+      pane.classList.remove('slide-in-right','slide-in-left');
+      void pane.offsetWidth; // reflow to restart animation
+      pane.classList.add(dir);
+      setTimeout(()=>pane.classList.remove(dir),420);
+    }
+  }
+  // maps need a redraw when their container becomes visible
+  if(view==='results'){[1,2].forEach(p=>{if(phaseMaps[p]&&phaseMaps[p].map)setTimeout(()=>phaseMaps[p].map.invalidateSize(),60);});}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+/* ── Setup step tabs: Starting → Refill → Hospitals (kept simple so beginners aren't shown everything at once) ── */
+function switchSetupTab(tab){
+  ['start','refill','hosp'].forEach(k=>{
+    document.getElementById('stab-'+k).classList.toggle('active',k===tab);
+    document.getElementById('stab-btn-'+k).classList.toggle('active',k===tab);
+  });
+  document.querySelector('#view-setup').scrollIntoView({behavior:'smooth',block:'start'});
+}
+// Start in single-view Setup
+document.getElementById('main-grid').classList.add('single-view','show-setup');
+// Left/Right arrow keys switch between Setup and Results (ignored while typing or on overlay pages)
+document.addEventListener('keydown',e=>{
+  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+  const t=e.target;
+  if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable))return;
+  // don't hijack when an overlay (guide / coordinate box / settings) is open
+  if(document.getElementById('guide-page').classList.contains('open'))return;
+  if(document.getElementById('coord-modal').style.display==='flex')return;
+  if(document.getElementById('settings-modal').style.display==='flex')return;
+  switchView(e.key==='ArrowRight'?'results':'setup');
+});
+/* ── Guide page ── */
+function openGuide(){document.getElementById('guide-page').classList.add('open');}
+function closeGuide(){document.getElementById('guide-page').classList.remove('open');localStorage.setItem('guide_seen','1');}
+// Auto-show the guide once for first-time visitors (after the splash)
+if(!localStorage.getItem('guide_seen')){setTimeout(()=>openGuide(),3200);}
+// Remove splash after it finishes so it doesn't block interaction
+setTimeout(()=>{const s=document.getElementById('splash');if(s)s.remove();},3000);
+
+/* ═══════════════════════════════════════
+   MAP — two independent phase maps
+═══════════════════════════════════════ */
+async function orsRoadGeometry(waypoints){
+  const k=getORS();
+  if(!k||waypoints.length<2) return null;
+  try{
+    const body={coordinates:waypoints.map(p=>[p.lng,p.lat])};
+    const r=await fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson',{
+      method:'POST',
+      headers:{'Authorization':k,'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    const d=await r.json();
+    if(d.features&&d.features[0]) return d.features[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+  }catch(e){console.error('directions',e);}
+  return null;
+}
+
+// One controller object per phase map
+const phaseMaps={
+  1:{map:null,domId:'route-map-1',tabsId:'map-car-tabs-1',legendId:'map-legend-1',shared:[],groups:[],filter:'all'},
+  2:{map:null,domId:'route-map-2',tabsId:'map-car-tabs-2',legendId:'map-legend-2',shared:[],groups:[],filter:'all'}
+};
+let mapSpRef=null;
+
+function applyPhaseVisibility(phase){
+  const pm=phaseMaps[phase];
+  pm.groups.forEach((g,i)=>{
+    const vis=(pm.filter==='all'||pm.filter===i);
+    [...g.lines,...g.markers].forEach(l=>{
+      if(vis&&!pm.map.hasLayer(l)) l.addTo(pm.map);
+      if(!vis&&pm.map.hasLayer(l)) pm.map.removeLayer(l);
+    });
+  });
+}
+
+function fitPhaseBounds(phase){
+  const pm=phaseMaps[phase];
+  const pts=[];
+  pm.groups.forEach((g,i)=>{ if(pm.filter==='all'||pm.filter===i) g.bounds.forEach(b=>pts.push(b)); });
+  if(mapSpRef) pts.push([mapSpRef.lat,mapSpRef.lng]);
+  pts.push([getRefill().lat,getRefill().lng]);
+  if(pts.length) pm.map.fitBounds(pts,{padding:[28,28]});
+}
+
+function setCarFilter(phase,ci){
+  const pm=phaseMaps[phase];
+  pm.filter=ci;
+  document.querySelectorAll(`#${pm.tabsId} .map-car-tab`).forEach(btn=>{
+    const isAll=(ci==='all'&&btn.dataset.car==='all');
+    const isMatch=(ci!=='all'&&parseInt(btn.dataset.car)===ci);
+    btn.classList.toggle('inactive',!(isAll||isMatch));
+  });
+  applyPhaseVisibility(phase);
+  fitPhaseBounds(phase);
+}
+
+// Build one phase map. phase=1 collect, phase=2 deliver
+async function buildPhaseMap(phase, routed, sp){
+  const pm=phaseMaps[phase];
+  const k=getORS();
+
+  if(!pm.map){
+    pm.map=L.map(pm.domId,{zoomControl:true});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:18
+    }).addTo(pm.map);
+  } else {
+    [...pm.shared,...pm.groups.flatMap(g=>[...g.lines,...g.markers])].forEach(l=>{ if(pm.map.hasLayer(l)) pm.map.removeLayer(l); });
+  }
+  pm.shared=[]; pm.groups=[]; pm.filter='all';
+
+  const allBounds=[];
+
+  for(let ci=0;ci<routed.length;ci++){
+    const r=routed[ci], pal=CAR_PALETTE[ci%CAR_PALETTE.length], color=pal.bg;
+    const lines=[], markers=[], carBounds=[];
+
+    // Phase-specific waypoints and hospital order
+    const order = phase===1 ? r.hospitals : (r.hospitals2||r.hospitals);
+    const carRefill=r.refill||getRefill();
+    const pts = phase===1 ? [sp,...order,carRefill] : [carRefill,...order,sp];
+
+    let coords=null;
+    if(k) coords=await orsRoadGeometry(pts);
+    const line=L.polyline(coords||pts.map(p=>[p.lat,p.lng]),{color,weight:4,opacity:0.85}).addTo(pm.map);
+    lines.push(line);
+    pts.forEach(p=>{ carBounds.push([p.lat,p.lng]); allBounds.push([p.lat,p.lng]); });
+
+    order.forEach((h,si)=>{
+      // Offset markers that overlap the depot, refill, or another hospital so none get hidden underneath
+      const anchors=[sp,carRefill,...order];
+      const near=anchors.filter(o=>Math.abs(o.lat-h.lat)<0.0012&&Math.abs(o.lng-h.lng)<0.0012);
+      let mlat=h.lat, mlng=h.lng;
+      if(near.length>1){
+        const rank=Math.max(0,near.indexOf(h));
+        const ang=(2*Math.PI*(rank+1))/(near.length+1);
+        mlat=h.lat+0.0016*Math.cos(ang);
+        mlng=h.lng+0.0016*Math.sin(ang);
+      }
+      const icon=L.divIcon({className:'',html:`<div style="width:28px;height:28px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);font-family:'DM Mono',monospace;">${si+1}</div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-16]});
+      const marker=L.marker([mlat,mlng],{icon,zIndexOffset:500}).addTo(pm.map);
+      marker.bindPopup(`<div class="popup-name">${h.name}</div><div class="popup-sub">${h.district} · ${h.geocoded?'✓ geocoded':'~ approx'}</div><div class="popup-car" style="background:${pal.light};color:${pal.dark};">Car ${ci+1} · Stop ${si+1}</div>`);
+      markers.push(marker);
+    });
+    pm.groups.push({lines,markers,bounds:carBounds,pal});
+  }
+
+  // Depot marker
+  const depotIcon=L.divIcon({className:'',html:`<div style="width:34px;height:34px;border-radius:10px;background:#18181B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🏭</div>`,iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-18]});
+  const dm=L.marker([sp.lat,sp.lng],{icon:depotIcon,zIndexOffset:1000}).addTo(pm.map);
+  dm.bindPopup(`<div class="popup-name">${sp.name}</div><div class="popup-sub">Starting Depot</div>`);
+  pm.shared.push(dm); allBounds.push([sp.lat,sp.lng]);
+
+  // Refill markers (one per candidate)
+  const trcsIcon=L.divIcon({className:'',html:`<div style="width:34px;height:34px;border-radius:10px;background:#D4163C;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(212,22,60,0.4);">🩸</div>`,iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-18]});
+  getRefillCandidates().forEach(rf=>{
+    const tm=L.marker([rf.lat,rf.lng],{icon:trcsIcon,zIndexOffset:999}).addTo(pm.map);
+    tm.bindPopup(`<div class="popup-name">${rf.name}</div><div class="popup-sub">${t('refill_stop')}</div>`);
+    pm.shared.push(tm); allBounds.push([rf.lat,rf.lng]);
+  });
+
+  if(allBounds.length) pm.map.fitBounds(allBounds,{padding:[28,28]});
+  setTimeout(()=>pm.map.invalidateSize(),120);
+
+  // Car tabs
+  document.getElementById(pm.tabsId).innerHTML=
+    `<button class="map-car-tab" data-car="all" onclick="setCarFilter(${phase},'all')" style="background:#18181B;color:#fff;border-color:#18181B;">${t('map_allcars')}</button>`
+    +routed.map((_,ci)=>{ const pal=CAR_PALETTE[ci%CAR_PALETTE.length]; return `<button class="map-car-tab" data-car="${ci}" onclick="setCarFilter(${phase},${ci})" style="background:${pal.light};color:${pal.dark};border-color:${pal.bg};">🚗 ${t('map_car')} ${ci+1}</button>`; }).join('');
+
+  // Legend
+  document.getElementById(pm.legendId).innerHTML=`
+    <div class="map-legend-item"><div class="map-legend-dot" style="background:#18181B;"></div>${t('map_depot')}</div>
+    <div class="map-legend-item"><div class="map-legend-dot" style="background:#D4163C;"></div>${t('map_trcs')}</div>
+    ${routed.map((_,ci)=>{ const pal=CAR_PALETTE[ci%CAR_PALETTE.length]; return`<div class="map-legend-item"><div class="map-legend-dot" style="background:${pal.bg};"></div>${t('map_car')} ${ci+1}</div>`; }).join('')}
+  `;
+}
+
+async function renderMap(routed, sp){
+  mapSpRef=sp;
+  const section=document.getElementById('map-section');
+  section.style.display='block';
+  await buildPhaseMap(1,routed,sp);
+  await buildPhaseMap(2,routed,sp);
+  setTimeout(()=>section.scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+</script>
+</body>
+</html>
