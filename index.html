@@ -380,7 +380,6 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
         <p>Adding is fully manual — there's no automatic name lookup, so accuracy is entirely in your hands:</p>
         <ul class="guide-list">
           <li><strong>📍 Add hospital</strong> — type the name, an optional district, and its exact latitude/longitude (paste "lat, lng" copied straight from Google Maps works too).</li>
-          <li><strong>Load 20 defaults</strong> — demo hospitals with preset coordinates, to try things out.</li>
         </ul>
         <p>Each hospital shows a status badge — normally <span class="geo-badge ok">✓ geocoded</span> once you've entered it. If it lands far from the rest of your group it gets flagged <span class="geo-badge needs">⚠ far from others</span> as a nudge to double-check the coordinates you typed.</p>
       </div>
@@ -485,7 +484,6 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
         <p>การเพิ่มโรงพยาบาลเป็นแบบกรอกเองทั้งหมด — ไม่มีการค้นหาชื่ออัตโนมัติ ความแม่นยำจึงขึ้นอยู่กับคุณ:</p>
         <ul class="guide-list">
           <li><strong>📍 เพิ่มโรงพยาบาล</strong> — พิมพ์ชื่อ เขต (ไม่บังคับ) และละติจูด/ลองจิจูดที่แน่นอน (วาง "lat, lng" ที่คัดลอกจาก Google Maps ก็ได้)</li>
-          <li><strong>โหลด 20 แห่ง</strong> — โรงพยาบาลตัวอย่างพร้อมพิกัดที่กำหนดไว้ ไว้ทดลองใช้</li>
         </ul>
         <p>โรงพยาบาลแต่ละแห่งจะแสดงป้ายสถานะ — ปกติจะเป็น <span class="geo-badge ok">✓ geocoded</span> เมื่อกรอกเสร็จ หากอยู่ไกลจากกลุ่มผิดปกติจะถูกทำเครื่องหมาย <span class="geo-badge needs">⚠ far from others</span> เพื่อเตือนให้ตรวจสอบพิกัดที่กรอกอีกครั้ง</p>
       </div>
@@ -822,7 +820,6 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
             <span class="field-help" style="margin-top:0;" data-i18n="add_manual_intro">Enter each hospital's name and exact coordinates yourself — no automatic lookup, so accuracy is fully in your hands.</span>
             <div style="display:flex;gap:6px;flex-shrink:0;">
-              <button class="btn btn-outline btn-sm" onclick="loadPreset()" data-i18n="load_defaults">Load 20 defaults</button>
               <button class="btn btn-outline btn-sm" onclick="clearAll()" data-i18n="clear_all">Clear all</button>
             </div>
           </div>
@@ -966,7 +963,7 @@ const I18N={
     coord_invalid:'Enter a valid latitude (-90 to 90) and longitude (-180 to 180).',
     depot_hint:'Leave all fields blank to use the Thai Red Cross National Blood Centre as your starting point.',
     // add hospital
-    p_add:'Add Hospital', load_defaults:'Load 20 defaults', clear_all:'Clear all',
+    p_add:'Add Hospital', clear_all:'Clear all',
     l_name:'Hospital name', l_dist:'District (optional)',
     l_name_opt:'Name (optional)', depot_name_ph:'e.g. Warehouse, Main depot...',
     add_hosp:'+ Add hospital',
@@ -1000,7 +997,6 @@ const I18N={
     tn_far:'{n} hospital(s) look far from the others — flagged for review (📍 Fix)',
     tn_pinned_added:'Added "{name}" at pinned location',
     tn_loc_set:'Location set for {name}',
-    tn_demo:'Loaded 20 demo hospitals with preset coordinates',
     tn_saved:'Saved "{name}" ({n} hospitals)',
     tn_loaded_list:'Loaded "{name}" ({n} hospitals)',
     tn_deleted:'Deleted "{name}"',
@@ -1077,7 +1073,7 @@ const I18N={
     edit_location:'แก้ไข', clear_location:'ล้าง',
     coord_invalid:'กรอกละติจูด (-90 ถึง 90) และลองจิจูด (-180 ถึง 180) ให้ถูกต้อง',
     depot_hint:'เว้นว่างทุกช่องไว้เพื่อใช้ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทยเป็นจุดเริ่มต้น',
-    p_add:'เพิ่มโรงพยาบาล', load_defaults:'โหลด 20 แห่ง', clear_all:'ล้างทั้งหมด',
+    p_add:'เพิ่มโรงพยาบาล', clear_all:'ล้างทั้งหมด',
     l_name:'ชื่อโรงพยาบาล', l_dist:'เขต/อำเภอ (ไม่บังคับ)',
     l_name_opt:'ชื่อ (ไม่บังคับ)', depot_name_ph:'เช่น คลังสินค้า, จุดเริ่มต้นหลัก...',
     add_hosp:'+ เพิ่มโรงพยาบาล',
@@ -1106,7 +1102,6 @@ const I18N={
     tn_far:'โรงพยาบาล {n} แห่งอยู่ไกลจากกลุ่ม — ทำเครื่องหมายให้ตรวจสอบ (📍 แก้ไข)',
     tn_pinned_added:'เพิ่ม "{name}" ที่ตำแหน่งที่ปักหมุดแล้ว',
     tn_loc_set:'ตั้งตำแหน่งให้ {name} แล้ว',
-    tn_demo:'โหลดโรงพยาบาลตัวอย่าง 20 แห่งพร้อมพิกัดที่กำหนดไว้',
     tn_saved:'บันทึก "{name}" แล้ว ({n} โรงพยาบาล)',
     tn_loaded_list:'โหลด "{name}" แล้ว ({n} โรงพยาบาล)',
     tn_deleted:'ลบ "{name}" แล้ว',
@@ -1180,7 +1175,6 @@ function getRefillCandidates(){const list=[];if(useTrcsDefault)list.push({...TRC
 function getRefill(){return getRefillCandidates()[0];} // fallback single (used before optimization)
 function saveRefills(){localStorage.setItem('custom_refills',JSON.stringify(customRefills));localStorage.setItem('use_trcs_default',useTrcsDefault?'1':'0');}
 function restoreRefills(){try{const v=JSON.parse(localStorage.getItem('custom_refills')||'[]');if(Array.isArray(v))customRefills=v.filter(r=>r&&typeof r.lat==='number');const u=localStorage.getItem('use_trcs_default');useTrcsDefault=(u===null)?true:(u==='1');if(!useTrcsDefault&&!customRefills.length)useTrcsDefault=true;renderRefillList();}catch(e){}}
-const PRESET_HOSPS=[{name:'Bangpakok 9 International',district:'Phra Pradaeng',lat:13.6889,lng:100.4767},{name:'Phra Pradaeng Hospital',district:'Phra Pradaeng',lat:13.6573,lng:100.5341},{name:'Rajpracha Samasai Institute',district:'Phra Pradaeng',lat:13.6489,lng:100.5402},{name:'Bangchak Hospital',district:'Phra Pradaeng South',lat:13.6096,lng:100.5402},{name:'Paolo Hospital Phra Pradaeng',district:'Phra Pradaeng South',lat:13.6085,lng:100.5514},{name:'Vibharam Samutprakan',district:'Samrong',lat:13.6489,lng:100.5699},{name:'Mueang Samut Pu Chao',district:'Samrong',lat:13.6467,lng:100.5784},{name:'Samrong Medical Hospital',district:'Samrong North',lat:13.6505,lng:100.5941},{name:'BBH Hospital',district:'Samrong North',lat:13.6558,lng:100.6044},{name:'Samut Prakan Hospital',district:'Mueang Samut Prakan',lat:13.5837,lng:100.5974},{name:'Sikarin Hospital',district:'Bang Na',lat:13.6549,lng:100.6464},{name:'WIH International Hospital',district:'Bang Na',lat:13.6640,lng:100.6507},{name:'Thainakarin Hospital',district:'Bang Na',lat:13.6677,lng:100.6385},{name:'Bangna General Hospital 1',district:'Bang Na',lat:13.6668,lng:100.6355},{name:'BMA Bang Na Hospital',district:'Bang Na West',lat:13.6800,lng:100.5922},{name:'Kluaynamthai Hospital 3',district:'Bang Na North',lat:13.6794,lng:100.6040},{name:'Kluaynamthai 2 Natural Home',district:'Bang Na North',lat:13.6757,lng:100.6068},{name:'Geriatric Kluaynamthai 2',district:'Bang Na North',lat:13.6739,lng:100.6092},{name:'Paolo Hospital Samut Prakan',district:'Srinagarindra',lat:13.5983,lng:100.6145},{name:'Ruamjairak Hospital',district:'Phra Khanong',lat:13.6935,lng:100.6017}];
 // Red is reserved for the TRCS/refill marker (see trcsIcon in buildPhaseMap) — kept out of the
 // first slots here so Car 1 never renders in the same color as the refill point on the map.
 const CAR_PALETTE=[{bg:'#2563EB',light:'#EFF6FF',dark:'#1E40AF'},{bg:'#059669',light:'#ECFDF5',dark:'#065F46'},{bg:'#D97706',light:'#FFFBEB',dark:'#92400E'},{bg:'#7C3AED',light:'#F5F3FF',dark:'#4C1D95'},{bg:'#0891B2',light:'#ECFEFF',dark:'#164E63'},{bg:'#65A30D',light:'#F7FEE7',dark:'#3F6212'},{bg:'#DB2777',light:'#FDF2F8',dark:'#831843'},{bg:'#D4163C',light:'#FDF0F3',dark:'#9E0F2B'}];
@@ -1518,12 +1512,6 @@ function saveCoordBox(){
     toast(t('tn_pinned_added',{name:h.name}),'success',2800);
   }
 }
-function loadPreset(){
-  hospitals=PRESET_HOSPS.map(h=>({...h,id:nextId++,geocoded:true,needsLocation:false,confidence:1}));
-  renderList();
-  toast(t('tn_demo'),'success',3500);
-  flagOutliers();
-}
 function clearAll(){hospitals=[];renderList();showEmpty();document.getElementById('map-section').style.display='none';}
 /* ── Saved hospital lists (localStorage) ── */
 function getSavedLists(){try{return JSON.parse(localStorage.getItem('saved_lists')||'{}');}catch(e){return {};}}
@@ -1830,14 +1818,11 @@ async function renderResults(routed,sp){
     }
     const carRefill=r.refill||getRefill();
     const journey=[sp,...r.hospitals,carRefill,...(r.hospitals2||r.hospitals),sp];
-    // Search by name/address and let Google Maps geocode it — falls back to raw coordinates
-    // only for manually-pinned points that have no real, searchable name.
+    // Use the exact name as entered for each stop — Google Maps searches it as-is. Only falls
+    // back to raw coordinates when a stop genuinely has no name at all.
     const gStop=p=>{
       const nm=(p.name||'').trim();
-      const generic=!nm||/^📍/.test(nm)||/^Custom (starting|refill) point$/i.test(nm);
-      if(generic)return`${p.lat},${p.lng}`;
-      const withDist=(p.district&&p.district!=='—')?`${nm}, ${p.district}`:nm;
-      return encodeURIComponent(withDist);
+      return nm?encodeURIComponent(nm):`${p.lat},${p.lng}`;
     };
     const gmapsUrl='https://www.google.com/maps/dir/'+journey.map(gStop).join('/');
     const p1metric=r.useRoad&&r.totalMin?`~${r.totalMin} min · ${r.totalKm} km`:t('c_straight');
