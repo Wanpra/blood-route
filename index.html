@@ -699,73 +699,23 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
     <div id="view-setup">
       <div class="setup-heading">
         <h1 data-i18n="wiz_title">Create delivery route</h1>
-        <p data-i18n="wiz_desc">Choose the starting depot, refill locations, and hospitals used to calculate the optimal delivery route.</p>
+        <p data-i18n="wiz_desc">Pick refill locations, add hospitals, and we'll pick the best starting point for you (or choose it yourself).</p>
       </div>
 
       <nav class="wizard-stepper" id="wizard-stepper" aria-label="Route setup steps">
-        <button type="button" class="wiz-step active" id="wiz-btn-start" onclick="goToStep(1)" aria-current="step">
-          <span class="wiz-circle" id="wiz-circle-start">1</span>
-          <span class="wiz-label" data-i18n="stab_start">Starting</span>
-        </button>
-        <span class="wiz-connector" id="wiz-conn-1" aria-hidden="true"></span>
-        <button type="button" class="wiz-step" id="wiz-btn-refill" onclick="goToStep(2)">
-          <span class="wiz-circle" id="wiz-circle-refill">2</span>
+        <button type="button" class="wiz-step active" id="wiz-btn-refill" onclick="goToStep(1)" aria-current="step">
+          <span class="wiz-circle" id="wiz-circle-refill">1</span>
           <span class="wiz-label" data-i18n="stab_refill">Refill</span>
         </button>
-        <span class="wiz-connector" id="wiz-conn-2" aria-hidden="true"></span>
-        <button type="button" class="wiz-step" id="wiz-btn-hosp" onclick="goToStep(3)">
-          <span class="wiz-circle" id="wiz-circle-hosp">3</span>
-          <span class="wiz-label" data-i18n="stab_hosp">Hospitals</span>
+        <span class="wiz-connector" id="wiz-conn-1" aria-hidden="true"></span>
+        <button type="button" class="wiz-step" id="wiz-btn-hosp" onclick="goToStep(2)">
+          <span class="wiz-circle" id="wiz-circle-hosp">2</span>
+          <span class="wiz-label" data-i18n="stab_hosp">Hospitals &amp; Start</span>
         </button>
       </nav>
 
       <div class="step-card-wrap" id="step-card-wrap">
-      <div class="setup-tab-content step-card active" id="stab-start">
-        <div class="step-card-head">
-          <h2 data-i18n="step1_title">Starting depot</h2>
-          <p data-i18n="step1_desc">Select where the delivery vehicles begin.</p>
-        </div>
-        <div class="step-card-body">
-          <div class="form-group" style="margin-bottom:0;position:relative;">
-            <label style="margin-bottom:8px;" data-i18n="or_type_loc">Starting location</label>
-            <div id="depot-coord-inline" class="coord-inline" style="margin-top:0;">
-              <div class="form-group">
-                <label for="depot-name-inline" data-i18n="l_name_opt">Name (optional)</label>
-                <input type="text" id="depot-name-inline" autocomplete="off" placeholder="e.g. Warehouse, Main depot..." data-i18n-ph="depot_name_ph"/>
-              </div>
-              <div class="form-row">
-                <div class="form-group" style="margin-bottom:0;">
-                  <label for="depot-lat-inline" data-i18n="coord_lat">Latitude</label>
-                  <input type="text" id="depot-lat-inline" inputmode="decimal" placeholder="13.7367" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
-                </div>
-                <div class="form-group" style="margin-bottom:0;">
-                  <label for="depot-lng-inline" data-i18n="coord_lng">Longitude</label>
-                  <input type="text" id="depot-lng-inline" inputmode="decimal" placeholder="100.5344" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
-                </div>
-              </div>
-              <div class="field-help" data-i18n="depot_hint">Leave all fields blank to use the Thai Red Cross National Blood Centre as your starting point.</div>
-              <div id="depot-coord-error" class="continue-reason" style="display:none;text-align:left;color:var(--red-dark);" role="alert"></div>
-              <div style="margin-top:10px;">
-                <button type="button" class="btn btn-outline btn-sm" onclick="saveDepotCoordInline()" data-i18n="coord_set_location">Set location</button>
-              </div>
-            </div>
-            <div id="pinned-depot-chip" class="confirm-card" style="display:none;">
-              <div class="confirm-card-name">📍 <span id="pinned-depot-name">Custom point</span></div>
-              <div class="confirm-card-addr" id="pinned-depot-addr"></div>
-              <div class="confirm-card-coords" id="pinned-depot-coords"></div>
-              <div class="confirm-card-actions">
-                <button type="button" onclick="editPinnedDepot()" data-i18n="edit_location">Edit</button>
-                <button type="button" onclick="clearPinnedDepot()" data-i18n="clear_location">Clear</button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="step-card-footer end">
-          <button class="btn btn-continue" onclick="goToStep(2)" data-i18n="stab_next_refill">Continue to Refill →</button>
-        </div>
-      </div>
-
-      <div class="setup-tab-content step-card" id="stab-refill">
+      <div class="setup-tab-content step-card active" id="stab-refill">
         <div class="step-card-head">
           <h2 data-i18n="step2_title">Refill locations</h2>
           <p data-i18n="step2_desc">Add or remove the blood-refill points used when calculating routes.</p>
@@ -805,9 +755,8 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
             </div>
           </div>
         </div>
-        <div class="step-card-footer">
-          <button class="btn btn-back" onclick="goToStep(1)" data-i18n="wiz_back">Back</button>
-          <button class="btn btn-continue" onclick="goToStep(3)" data-i18n="stab_next_hosp">Continue to Hospitals →</button>
+        <div class="step-card-footer end">
+          <button class="btn btn-continue" onclick="goToStep(2)" data-i18n="stab_next_hosp">Continue to Hospitals &amp; Start →</button>
         </div>
       </div>
 
@@ -841,9 +790,59 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
               <div class="empty-state"><p><span data-i18n="empty_list">No hospitals added yet.</span><br><span data-i18n="empty_list_sub">Add manually or load defaults.</span></p></div>
             </div>
           </div>
+
+          <div style="border-top:1px solid var(--rule-soft);margin-top:18px;padding-top:16px;">
+            <h3 style="font-size:14px;margin:0 0 4px;" data-i18n="start_section_title">Starting point</h3>
+            <p class="field-help" style="margin-top:2px;" data-i18n="start_section_desc">Where the delivery vehicles begin. By default, we test each hospital in your list as the starting point and pick whichever gives the lowest overall cost.</p>
+            <label style="display:flex;align-items:center;gap:8px;margin:10px 0;cursor:pointer;">
+              <input type="checkbox" id="auto-start-toggle" checked onchange="onAutoStartToggle()"/>
+              <span data-i18n="auto_start_label">Auto-select the best starting hospital</span>
+            </label>
+            <div id="start-manual-section" style="display:none;">
+              <div class="form-group" id="start-hosp-picker">
+                <label for="start-hosp-select" data-i18n="start_pick_hosp">Choose one of your hospitals</label>
+                <select id="start-hosp-select" onchange="onStartHospitalSelect()">
+                  <option value="" data-i18n="start_pick_hosp_ph">— Select a hospital —</option>
+                </select>
+              </div>
+              <div class="field-help" style="margin:10px 0 6px;" data-i18n="start_or_coords">…or enter a custom location:</div>
+              <div class="form-group" style="margin-bottom:0;position:relative;">
+                <div id="depot-coord-inline" class="coord-inline" style="margin-top:0;">
+                  <div class="form-group">
+                    <label for="depot-name-inline" data-i18n="l_name_opt">Name (optional)</label>
+                    <input type="text" id="depot-name-inline" autocomplete="off" placeholder="e.g. Warehouse, Main depot..." data-i18n-ph="depot_name_ph"/>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0;">
+                      <label for="depot-lat-inline" data-i18n="coord_lat">Latitude</label>
+                      <input type="text" id="depot-lat-inline" inputmode="decimal" placeholder="13.7367" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                      <label for="depot-lng-inline" data-i18n="coord_lng">Longitude</label>
+                      <input type="text" id="depot-lng-inline" inputmode="decimal" placeholder="100.5344" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
+                    </div>
+                  </div>
+                  <div class="field-help" data-i18n="depot_hint">Leave all fields blank to use the Thai Red Cross National Blood Centre as your starting point.</div>
+                  <div id="depot-coord-error" class="continue-reason" style="display:none;text-align:left;color:var(--red-dark);" role="alert"></div>
+                  <div style="margin-top:10px;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="saveDepotCoordInline()" data-i18n="coord_set_location">Set location</button>
+                  </div>
+                </div>
+                <div id="pinned-depot-chip" class="confirm-card" style="display:none;">
+                  <div class="confirm-card-name">📍 <span id="pinned-depot-name">Custom point</span></div>
+                  <div class="confirm-card-addr" id="pinned-depot-addr"></div>
+                  <div class="confirm-card-coords" id="pinned-depot-coords"></div>
+                  <div class="confirm-card-actions">
+                    <button type="button" onclick="editPinnedDepot()" data-i18n="edit_location">Edit</button>
+                    <button type="button" onclick="clearPinnedDepot()" data-i18n="clear_location">Clear</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="step-card-footer">
-          <button class="btn btn-back" onclick="goToStep(2)" data-i18n="wiz_back">Back</button>
+          <button class="btn btn-back" onclick="goToStep(1)" data-i18n="stab_back_refill">← Back: Refill</button>
           <div style="text-align:right;">
             <button class="btn btn-continue" onclick="runOptimize()" id="opt-btn" disabled data-i18n="opt_btn">Calculate optimal route</button>
             <div class="continue-reason" id="opt-btn-reason" style="display:none;" data-i18n="opt_btn_reason">Add at least one hospital to calculate a route.</div>
@@ -946,11 +945,16 @@ const I18N={
     api_set:'✓ ORS connected', api_unset:'⚠ ORS key not set',
     vt_setup:`${ICONS.settings} Setup`, vt_results:`${ICONS.chart} Results`,
     wiz_title:'Create delivery route',
-    wiz_desc:'Choose the starting depot, refill locations, and hospitals used to calculate the optimal delivery route.',
+    wiz_desc:"Pick refill locations, add hospitals, and we'll pick the best starting point for you (or choose it yourself).",
     wiz_back:'Back', wiz_step_done:'completed', wiz_step_current:'current step',
     step1_title:'Starting depot', step1_desc:'Select where the delivery vehicles begin.',
     step2_title:'Refill locations', step2_desc:'Add or remove the blood-refill points used when calculating routes.',
     step3_title:'Hospitals', step3_desc:"Add the hospitals to include in today's route.",
+    start_section_title:'Starting point',
+    start_section_desc:'Where the delivery vehicles begin. By default, we test each hospital in your list as the starting point and pick whichever gives the lowest overall cost.',
+    auto_start_label:'Auto-select the best starting hospital',
+    start_pick_hosp:'Choose one of your hospitals', start_pick_hosp_ph:'— Select a hospital —',
+    start_or_coords:'…or enter a custom location:',
     // trcs bar
     trcs_bar:'Blood refill always at: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย, Henri Dunant Rd',
     // depot panel
@@ -987,9 +991,8 @@ const I18N={
     coord_hint:'Tip: paste "lat, lng" (e.g. copied from Google Maps) into either box.',
     coord_cancel:'Cancel', coord_save:'Save location', coord_name:'Name',
     coord_title_new:'Add hospital by coordinates', coord_title_depot:'Set starting point by coordinates', coord_title_refill:'Add refill point by coordinates',
-    stab_start:'Starting', stab_refill:'Refill', stab_hosp:'Hospitals',
-    stab_next_refill:'Continue to Refill →', stab_back_start:'← Back: Starting',
-    stab_next_hosp:'Continue to Hospitals →', stab_back_refill:'← Back: Refill',
+    stab_start:'Starting', stab_refill:'Refill', stab_hosp:'Hospitals & Start',
+    stab_next_hosp:'Continue to Hospitals & Start →', stab_back_refill:'← Back: Refill',
     depot_pin_label:'Custom starting point',
     depot_name_prompt:'Name this starting point:',
     depot_set:'Starting point set',
@@ -1059,11 +1062,16 @@ const I18N={
     api_set:'✓ เชื่อมต่อ ORS แล้ว', api_unset:'⚠ ยังไม่ได้ตั้งคีย์ ORS',
     vt_setup:`${ICONS.settings} ตั้งค่าข้อมูล`, vt_results:`${ICONS.chart} ผลลัพธ์`,
     wiz_title:'สร้างเส้นทางส่งเลือด',
-    wiz_desc:'เลือกจุดเริ่มต้น จุดเติมเลือด และโรงพยาบาล เพื่อคำนวณเส้นทางส่งที่ดีที่สุด',
+    wiz_desc:'เลือกจุดเติมเลือดและเพิ่มโรงพยาบาล แล้วเราจะเลือกจุดเริ่มต้นที่ดีที่สุดให้ (หรือเลือกเองก็ได้)',
     wiz_back:'ย้อนกลับ', wiz_step_done:'เสร็จแล้ว', wiz_step_current:'ขั้นตอนปัจจุบัน',
     step1_title:'จุดเริ่มต้น', step1_desc:'เลือกจุดที่รถส่งเลือดจะเริ่มออกเดินทาง',
     step2_title:'จุดเติมเลือด', step2_desc:'เพิ่มหรือลบจุดเติมเลือดที่ใช้ในการคำนวณเส้นทาง',
     step3_title:'โรงพยาบาล', step3_desc:'เพิ่มโรงพยาบาลที่จะรวมอยู่ในเส้นทางวันนี้',
+    start_section_title:'จุดเริ่มต้น',
+    start_section_desc:'จุดที่รถส่งเลือดจะเริ่มออกเดินทาง โดยค่าเริ่มต้นเราจะลองใช้โรงพยาบาลแต่ละแห่งในรายการของคุณเป็นจุดเริ่มต้น แล้วเลือกแห่งที่ให้ต้นทุนรวมต่ำที่สุด',
+    auto_start_label:'เลือกโรงพยาบาลเริ่มต้นที่ดีที่สุดอัตโนมัติ',
+    start_pick_hosp:'เลือกโรงพยาบาลแห่งหนึ่งของคุณ', start_pick_hosp_ph:'— เลือกโรงพยาบาล —',
+    start_or_coords:'...หรือกรอกตำแหน่งกำหนดเอง:',
     trcs_bar:'เติมเลือดที่: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย ถนนอังรีดูนังต์ เสมอ',
     p_depot:'จุดเริ่มต้น',
     or_type_loc:'จุดเริ่มต้น',
@@ -1093,9 +1101,8 @@ const I18N={
     coord_hint:'เคล็ดลับ: วาง "lat, lng" (คัดลอกจาก Google Maps) ลงในช่องใดก็ได้',
     coord_cancel:'ยกเลิก', coord_save:'บันทึกตำแหน่ง', coord_name:'ชื่อ',
     coord_title_new:'เพิ่มโรงพยาบาลด้วยพิกัด', coord_title_depot:'ตั้งจุดเริ่มต้นด้วยพิกัด', coord_title_refill:'เพิ่มจุดเติมเลือดด้วยพิกัด',
-    stab_start:'จุดเริ่มต้น', stab_refill:'เติมเลือด', stab_hosp:'โรงพยาบาล',
-    stab_next_refill:'ไปต่อ: เติมเลือด →', stab_back_start:'← ย้อนกลับ: จุดเริ่มต้น',
-    stab_next_hosp:'ไปต่อ: โรงพยาบาล →', stab_back_refill:'← ย้อนกลับ: เติมเลือด',
+    stab_start:'จุดเริ่มต้น', stab_refill:'เติมเลือด', stab_hosp:'โรงพยาบาล & จุดเริ่มต้น',
+    stab_next_hosp:'ไปต่อ: โรงพยาบาล & จุดเริ่มต้น →', stab_back_refill:'← ย้อนกลับ: เติมเลือด',
     depot_pin_label:'จุดเริ่มต้นที่กำหนดเอง',
     depot_name_prompt:'ตั้งชื่อจุดเริ่มต้นนี้:',
     depot_set:'ตั้งจุดเริ่มต้นแล้ว',
@@ -1186,6 +1193,35 @@ function getBalanceMode(){return localStorage.getItem('balance_mode')||'time';}
 function getDepartTime(){return localStorage.getItem('depart_time')||'08:00';}
 function getCostPerKm(){return parseFloat(localStorage.getItem('cost_per_km'))||5;}
 function getCostPerHour(){return parseFloat(localStorage.getItem('cost_per_hour'))||100;}
+/* ── Auto-select starting point (default on): pick whichever hospital in the list, used as the
+   start/end depot, gives the lowest overall cost — see chooseAutoStart(). ── */
+function getAutoStart(){return localStorage.getItem('auto_start')!=='0';}
+function setAutoStart(v){localStorage.setItem('auto_start',v?'1':'0');}
+function onAutoStartToggle(){
+  const on=document.getElementById('auto-start-toggle').checked;
+  setAutoStart(on);
+  document.getElementById('start-manual-section').style.display=on?'none':'block';
+}
+/* Manual "pick one of your added hospitals as the starting point" dropdown — reuses the existing
+   pinnedDepot mechanism so resolveDepot() picks it up exactly like a hand-typed coordinate. */
+function refreshStartHospitalOptions(){
+  const sel=document.getElementById('start-hosp-select');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML=`<option value="">${t('start_pick_hosp_ph')}</option>`+hospitals.filter(h=>h.lat!=null&&!h.needsLocation).map(h=>`<option value="${h.id}">${h.name}</option>`).join('');
+  if([...sel.options].some(o=>o.value===cur))sel.value=cur;
+}
+function onStartHospitalSelect(){
+  const sel=document.getElementById('start-hosp-select');
+  const id=+sel.value;
+  if(!id)return;
+  const h=hospitals.find(x=>x.id===id);
+  if(!h||h.lat==null||h.needsLocation){toast(t('coord_invalid'),'warn',4000);sel.value='';return;}
+  pinnedDepot={name:h.name,lat:h.lat,lng:h.lng};
+  savePinnedDepot();
+  document.getElementById('s-depot').textContent=pinnedDepot.name;
+  showDepotConfirm(pinnedDepot.name,h.lat,h.lng,h.district||'');
+  document.getElementById('depot-coord-inline').style.display='none';
+}
 /* ── Theme ── */
 function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('theme-btn').innerHTML=t==='dark'?ICONS.sun:ICONS.moon;}
 function toggleTheme(){const cur=localStorage.getItem('theme')==='dark'?'dark':'light';const next=cur==='dark'?'light':'dark';localStorage.setItem('theme',next);applyTheme(next);
@@ -1549,6 +1585,7 @@ function deleteCurrentList(){
 }
 function renderList(){
   const n=hospitals.length,cap=getMaxPerCar();document.getElementById('hosp-count').textContent=t('hosp_count',{n:n});document.getElementById('opt-btn').disabled=n===0;document.getElementById('opt-btn-reason').style.display=n===0?'block':'none';document.getElementById('s-hosp').textContent=n;document.getElementById('s-cars').textContent=n?Math.ceil(n/cap):'—';
+  refreshStartHospitalOptions();
   const list=document.getElementById('hosp-list');
   if(!n){list.innerHTML='<div class="empty-state"><p>'+t('empty_list')+'</p></div>';return;}
   list.innerHTML=hospitals.map((h,i)=>{
@@ -1736,12 +1773,45 @@ async function buildSharedMatrices(sp,candidates,located){
   const idOf=new Map();located.forEach((h,i)=>idOf.set(h.id,1+candidates.length+i));
   return {km,time,cost,idOf,depotIdx:0,refillIdx:ci=>1+ci,UNREACHABLE};
 }
+/* Auto-select the starting point: try every hospital in the list as the depot (it stays in the
+   route too — it still needs its own pickup/delivery, the start point just coincides with it),
+   and keep whichever gives the lowest total cost (then time, then distance) across all cars.
+   Reuses one shared road-network matrix built over candidates+located — no extra ORS calls,
+   since swapping depots is just re-pointing depotIdx into the same km/time/cost tables. */
+async function chooseAutoStart(located,candidates,shared){
+  if(shared){
+    let bestHosp=null,bestTriple=null;
+    for(const depotHosp of located){
+      const sc={...shared,depotIdx:shared.idOf.get(depotHosp.id)};
+      const groups=buildGroups(located,sc);
+      let cost=0,time=0,dist=0;
+      for(const grp of groups){
+        const r=await routeCar(grp,depotHosp,candidates,sc);
+        if(r.useRoad){
+          cost+=getCostPerKm()*(parseFloat(r.totalKm)+parseFloat(r.totalKm2))+getCostPerHour()*(parseFloat(r.totalMin)+parseFloat(r.totalMin2))/60;
+          time+=parseFloat(r.totalMin)+parseFloat(r.totalMin2);
+          dist+=parseFloat(r.totalKm)+parseFloat(r.totalKm2);
+        }
+      }
+      const triple={cost,time,dist};
+      if(!bestTriple||tripleBetter(triple,bestTriple)){bestTriple=triple;bestHosp=depotHosp;}
+    }
+    return bestHosp;
+  }
+  // no road-network matrix available — straight-line heuristic: the hospital with the smallest
+  // sum of Euclidean distances to all the others is the best proxy for a central starting point.
+  let bestHosp=located[0],bestSum=Infinity;
+  located.forEach(h=>{
+    const s=located.reduce((acc,o)=>o===h?acc:acc+eDist(h,o),0);
+    if(s<bestSum){bestSum=s;bestHosp=h;}
+  });
+  return bestHosp;
+}
 async function runOptimize(){
   if(!hospitals.length)return;
   document.getElementById('opt-btn').disabled=true;
   setBusy(true,t('optimizing'));
   document.getElementById('result-area').innerHTML=`<div class="loading-state"><span class="spinner"></span>${t('optimizing')}<div class="progress-log" id="progress-log"></div></div>`;
-  log('📍 Resolving starting depot...');const sp=await resolveDepot();document.getElementById('s-depot').textContent=sp.name;log(`✓ Depot: ${sp.name}`);
   // Exclude hospitals that still have no real location
   const unlocated=hospitals.filter(h=>h.needsLocation||h.lat===null);
   if(unlocated.length){
@@ -1754,12 +1824,28 @@ async function runOptimize(){
   if(flagged.length){log(`⚠ ${flagged.length} hospital(s) flagged (far from group / district mismatch) — included but verify with 📍 Fix.`);toast(t('tn_flagged_inc',{n:flagged.length}),'warn',5500);}
   log(`✓ ${located.filter(h=>h.geocoded).length}/${located.length} hospitals have real coordinates`);
   const candidates=getRefillCandidates();
-  let shared=null;
-  if(getORS()){
-    log('🌐 Fetching road-network matrix for clustering + routing...');
-    shared=await buildSharedMatrices(sp,candidates,located);
-    if(shared)log(`✓ Matrix ready (${located.length} hospitals + depot + ${candidates.length} refill point(s))`);
-    else log('⚠ Bulk matrix request failed (e.g. too many locations for this plan) — falling back to per-car road queries.');
+  const autoStart=getAutoStart()&&located.length>1;
+  let sp,shared=null;
+  if(autoStart){
+    if(getORS()){
+      log('🌐 Fetching road-network matrix for clustering + routing...');
+      shared=await buildSharedMatrices(located[0],candidates,located);
+      if(shared)log(`✓ Matrix ready (${located.length} hospitals + ${candidates.length} refill point(s))`);
+      else log('⚠ Bulk matrix request failed (e.g. too many locations for this plan) — falling back to straight-line estimate for starting-point choice.');
+    }
+    log('🧭 Testing each hospital as the starting point...');
+    sp=await chooseAutoStart(located,candidates,shared);
+    if(shared)shared={...shared,depotIdx:shared.idOf.get(sp.id)};
+    document.getElementById('s-depot').textContent=sp.name;
+    log(`✓ Starting point: ${sp.name} (auto-selected — lowest overall cost)`);
+  } else {
+    log('📍 Resolving starting depot...');sp=await resolveDepot();document.getElementById('s-depot').textContent=sp.name;log(`✓ Depot: ${sp.name}`);
+    if(getORS()){
+      log('🌐 Fetching road-network matrix for clustering + routing...');
+      shared=await buildSharedMatrices(sp,candidates,located);
+      if(shared)log(`✓ Matrix ready (${located.length} hospitals + depot + ${candidates.length} refill point(s))`);
+      else log('⚠ Bulk matrix request failed (e.g. too many locations for this plan) — falling back to per-car road queries.');
+    }
   }
   setBusy(true,'Clustering & routing…');
   log('📊 Running K-means geographic clustering...');const groups=buildGroups([...located],shared);log(`✓ ${groups.length} group${groups.length!==1?'s':''} formed (≤${getMaxPerCar()} hospitals each)`);
@@ -2006,6 +2092,7 @@ renderList();
 refreshListDropdown();
 restorePinnedDepot();
 restoreRefills();
+{const autoOn=getAutoStart();document.getElementById('auto-start-toggle').checked=autoOn;document.getElementById('start-manual-section').style.display=autoOn?'none':'block';}
 
 /* ── Setup / Results view toggle ── */
 function switchView(view){
@@ -2036,7 +2123,7 @@ function switchView(view){
    Steps stay fully populated in the DOM while hidden, so nothing entered is ever lost when
    navigating between them — this only toggles which card + stepper state is shown. ── */
 let setupStep=1;
-const WIZ_STEPS=['start','refill','hosp'];
+const WIZ_STEPS=['refill','hosp'];
 function goToStep(n){
   setupStep=n;
   WIZ_STEPS.forEach((k,i)=>{
@@ -2044,13 +2131,12 @@ function goToStep(n){
     const done=stepNum<n;
     btn.classList.toggle('active',stepNum===n);
     btn.classList.toggle('done',done);
-    btn.setAttribute('aria-label',(k==='start'?t('stab_start'):k==='refill'?t('stab_refill'):t('stab_hosp'))+(done?' — '+t('wiz_step_done'):stepNum===n?' — '+t('wiz_step_current'):''));
+    btn.setAttribute('aria-label',(k==='refill'?t('stab_refill'):t('stab_hosp'))+(done?' — '+t('wiz_step_done'):stepNum===n?' — '+t('wiz_step_current'):''));
     circle.innerHTML=done?'✓':String(stepNum);
     if(stepNum===n)btn.setAttribute('aria-current','step');else btn.removeAttribute('aria-current');
     document.getElementById('stab-'+k).classList.toggle('active',stepNum===n);
   });
   document.getElementById('wiz-conn-1').classList.toggle('done',n>1);
-  document.getElementById('wiz-conn-2').classList.toggle('done',n>2);
   document.getElementById('step-card-wrap').scrollIntoView({behavior:'smooth',block:'start'});
 }
 // Start in single-view Setup
