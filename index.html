@@ -744,14 +744,18 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
               <button type="button" class="ghost-link-btn" id="depot-coord-toggle-btn" onclick="toggleDepotCoordInline()" data-i18n="pin_depot">Use latitude and longitude instead</button>
             </div>
             <div id="depot-coord-inline" class="coord-inline" style="display:none;">
+              <div class="form-group">
+                <label for="depot-name-inline" data-i18n="l_name_opt">Name (optional)</label>
+                <input type="text" id="depot-name-inline" autocomplete="off" placeholder="e.g. Warehouse, Main depot..." data-i18n-ph="depot_name_ph"/>
+              </div>
               <div class="form-row">
                 <div class="form-group" style="margin-bottom:0;">
                   <label for="depot-lat-inline" data-i18n="coord_lat">Latitude</label>
-                  <input type="text" id="depot-lat-inline" inputmode="decimal" placeholder="13.7367" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
+                  <input type="text" id="depot-lat-inline" inputmode="decimal" placeholder="13.7367" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
                   <label for="depot-lng-inline" data-i18n="coord_lng">Longitude</label>
-                  <input type="text" id="depot-lng-inline" inputmode="decimal" placeholder="100.5344" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
+                  <input type="text" id="depot-lng-inline" inputmode="decimal" placeholder="100.5344" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
                 </div>
               </div>
               <div id="depot-coord-error" class="continue-reason" style="display:none;text-align:left;color:var(--red-dark);" role="alert"></div>
@@ -963,6 +967,7 @@ const I18N={
     // add hospital
     p_add:'Add Hospital', load_defaults:'Load 20 defaults', clear_all:'Clear all',
     l_name:'Hospital name', l_dist:'District (optional)',
+    l_name_opt:'Name (optional)', depot_name_ph:'e.g. Warehouse, Main depot...',
     add_hosp:'+ Add hospital',
     add_manual_intro:"Enter each hospital's name and exact coordinates yourself — no automatic lookup, so accuracy is fully in your hands.",
     // list
@@ -1073,6 +1078,7 @@ const I18N={
     depot_hint:'เลือกจากรายการแนะนำ หรือระบบจะค้นหาพิกัดให้ — เว้นว่างไว้จะใช้ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทยเป็นค่าเริ่มต้น',
     p_add:'เพิ่มโรงพยาบาล', load_defaults:'โหลด 20 แห่ง', clear_all:'ล้างทั้งหมด',
     l_name:'ชื่อโรงพยาบาล', l_dist:'เขต/อำเภอ (ไม่บังคับ)',
+    l_name_opt:'ชื่อ (ไม่บังคับ)', depot_name_ph:'เช่น คลังสินค้า, จุดเริ่มต้นหลัก...',
     add_hosp:'+ เพิ่มโรงพยาบาล',
     add_manual_intro:'กรอกชื่อและพิกัดที่แน่นอนของแต่ละโรงพยาบาลด้วยตนเอง — ไม่มีการค้นหาอัตโนมัติ ความแม่นยำจึงขึ้นอยู่กับคุณทั้งหมด',
     p_list:'รายการโรงพยาบาล', hosp_count:'{n} โรงพยาบาล', save_list:`${ICONS.save} บันทึก`, opt_btn:`${ICONS.play} คำนวณเส้นทางที่ดีที่สุด`,
@@ -1337,6 +1343,7 @@ function showPinnedDepotChip(){
 }
 function editPinnedDepot(){
   if(pinnedDepot){
+    document.getElementById('depot-name-inline').value=(pinnedDepot.name===t('depot_pin_label'))?'':pinnedDepot.name;
     document.getElementById('depot-lat-inline').value=pinnedDepot.lat;
     document.getElementById('depot-lng-inline').value=pinnedDepot.lng;
     document.getElementById('depot-coord-inline').style.display='block';
@@ -1349,6 +1356,9 @@ function editPinnedDepot(){
 function clearPinnedDepot(){
   pinnedDepot=null;localStorage.removeItem('pinned_depot');
   const el=document.getElementById('depot-input');el.value='';delete el.dataset.lat;delete el.dataset.lng;
+  document.getElementById('depot-name-inline').value='';
+  document.getElementById('depot-lat-inline').value='';
+  document.getElementById('depot-lng-inline').value='';
   hideDepotConfirm();
   document.getElementById('depot-coord-inline').style.display='none';
   document.getElementById('s-depot').textContent=TRCS_REFILL.name;
@@ -1371,7 +1381,8 @@ function saveDepotCoordInline(){
   const errEl=document.getElementById('depot-coord-error');
   if(isNaN(lat)||isNaN(lng)||Math.abs(lat)>90||Math.abs(lng)>180){errEl.textContent=t('coord_invalid');errEl.style.display='block';return;}
   errEl.style.display='none';
-  pinnedDepot={name:t('depot_pin_label'),lat,lng};
+  const customName=document.getElementById('depot-name-inline').value.trim();
+  pinnedDepot={name:customName||t('depot_pin_label'),lat,lng};
   savePinnedDepot();
   const el=document.getElementById('depot-input');el.value='';delete el.dataset.lat;delete el.dataset.lng;
   document.getElementById('s-depot').textContent=pinnedDepot.name;
@@ -1592,6 +1603,14 @@ function onCoordPairInput(el){
   document.getElementById('coord-lat').value=co.lat;
   document.getElementById('coord-lng').value=co.lng;
   document.getElementById('coord-lng').focus();
+}
+/* Same paste-a-full-pair auto-split, for the depot step's inline lat/lng fields (e.g. pasting
+   "13.655082296063863, 100.64656762891411" copied straight from Google Maps into either box). */
+function onDepotCoordPairInput(el){
+  const co=parseCoords(el.value);
+  if(!co)return;
+  document.getElementById('depot-lat-inline').value=co.lat;
+  document.getElementById('depot-lng-inline').value=co.lng;
 }
 function _readCoordLatLng(){
   const latEl=document.getElementById('coord-lat'),lngEl=document.getElementById('coord-lng');
