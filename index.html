@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+// If this file is opened directly (double-clicked, emailed, etc.) instead of via the hosted
+// site, redirect there — file:// pages can't call the ORS API (CORS rejects the null origin),
+// so running locally silently breaks routing. Only fires for file://; local dev servers and the
+// live site itself use http(s):// and load normally.
+if(location.protocol==='file:'){location.replace('https://wanpra.github.io/blood-route/');}
+</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Blood Delivery Route Optimizer</title>
