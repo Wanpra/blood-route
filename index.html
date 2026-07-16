@@ -1216,7 +1216,7 @@ function onStartHospitalSelect(){
   if(!id)return;
   const h=hospitals.find(x=>x.id===id);
   if(!h||h.lat==null||h.needsLocation){toast(t('coord_invalid'),'warn',4000);sel.value='';return;}
-  pinnedDepot={name:h.name,lat:h.lat,lng:h.lng};
+  pinnedDepot={name:h.name,lat:h.lat,lng:h.lng,id:h.id};
   savePinnedDepot();
   document.getElementById('s-depot').textContent=pinnedDepot.name;
   showDepotConfirm(pinnedDepot.name,h.lat,h.lng,h.district||'');
@@ -1773,17 +1773,23 @@ async function buildSharedMatrices(sp,candidates,located){
   const idOf=new Map();located.forEach((h,i)=>idOf.set(h.id,1+candidates.length+i));
   return {km,time,cost,idOf,depotIdx:0,refillIdx:ci=>1+ci,UNREACHABLE};
 }
-/* Auto-select the starting point: try every hospital in the list as the depot (it stays in the
-   route too — it still needs its own pickup/delivery, the start point just coincides with it),
-   and keep whichever gives the lowest total cost (then time, then distance) across all cars.
-   Reuses one shared road-network matrix built over candidates+located — no extra ORS calls,
-   since swapping depots is just re-pointing depotIdx into the same km/time/cost tables. */
+/* Auto-select the starting point: try every hospital in the list as the depot — excluded from
+   its own candidate group since the car is already there at the start, so it doesn't also count
+   as a numbered stop — and keep whichever gives the lowest total cost (then time, then distance)
+   across all cars. Reuses one shared road-network matrix built over candidates+located — no
+   extra ORS calls, since swapping depots is just re-pointing depotIdx into the same tables.
+   Candidates are tested in canonical (lat,lng) order, not list-entry order, so that an exact tie
+   between two equally-good starting hospitals resolves the same way regardless of what order the
+   hospitals were added/loaded in — otherwise identical hospital lists entered in a different
+   order could silently pick different starting points on different machines. */
 async function chooseAutoStart(located,candidates,shared){
+  const ordered=[...located].sort((a,b)=>a.lat-b.lat||a.lng-b.lng);
   if(shared){
     let bestHosp=null,bestTriple=null;
-    for(const depotHosp of located){
+    for(const depotHosp of ordered){
+      const rest=located.filter(h=>h!==depotHosp);
       const sc={...shared,depotIdx:shared.idOf.get(depotHosp.id)};
-      const groups=buildGroups(located,sc);
+      const groups=buildGroups(rest,sc);
       let cost=0,time=0,dist=0;
       for(const grp of groups){
         const r=await routeCar(grp,depotHosp,candidates,sc);
@@ -1800,8 +1806,8 @@ async function chooseAutoStart(located,candidates,shared){
   }
   // no road-network matrix available — straight-line heuristic: the hospital with the smallest
   // sum of Euclidean distances to all the others is the best proxy for a central starting point.
-  let bestHosp=located[0],bestSum=Infinity;
-  located.forEach(h=>{
+  let bestHosp=ordered[0],bestSum=Infinity;
+  ordered.forEach(h=>{
     const s=located.reduce((acc,o)=>o===h?acc:acc+eDist(h,o),0);
     if(s<bestSum){bestSum=s;bestHosp=h;}
   });
@@ -1818,7 +1824,7 @@ async function runOptimize(){
     log(`⚠ ${unlocated.length} hospital(s) have no location — excluded. Use 📍 Fix to add them.`);
     toast(t('tn_skipped',{n:unlocated.length}),'warn',6000);
   }
-  const located=hospitals.filter(h=>!h.needsLocation&&h.lat!==null);
+  let located=hospitals.filter(h=>!h.needsLocation&&h.lat!==null);
   if(!located.length){document.getElementById('opt-btn').disabled=false;setBusy(false);document.getElementById('result-area').innerHTML='';toast(t('no_loc'),'error',5000);return;}
   const flagged=located.filter(h=>h.outlier||h.flag);
   if(flagged.length){log(`⚠ ${flagged.length} hospital(s) flagged (far from group / district mismatch) — included but verify with 📍 Fix.`);toast(t('tn_flagged_inc',{n:flagged.length}),'warn',5500);}
@@ -1836,10 +1842,12 @@ async function runOptimize(){
     log('🧭 Testing each hospital as the starting point...');
     sp=await chooseAutoStart(located,candidates,shared);
     if(shared)shared={...shared,depotIdx:shared.idOf.get(sp.id)};
+    located=located.filter(h=>h.id!==sp.id); // the start point isn't also counted as a stop
     document.getElementById('s-depot').textContent=sp.name;
     log(`✓ Starting point: ${sp.name} (auto-selected — lowest overall cost)`);
   } else {
     log('📍 Resolving starting depot...');sp=await resolveDepot();document.getElementById('s-depot').textContent=sp.name;log(`✓ Depot: ${sp.name}`);
+    if(sp.id!=null)located=located.filter(h=>h.id!==sp.id); // manually picked one of the hospitals as the start point
     if(getORS()){
       log('🌐 Fetching road-network matrix for clustering + routing...');
       shared=await buildSharedMatrices(sp,candidates,located);
