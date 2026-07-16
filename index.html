@@ -26,6 +26,8 @@ if(location.protocol==='file:'){location.replace('https://wanpra.github.io/blood
   --green:#059669;--green-light:#ECFDF5;--green-dark:#065F46;--green-mid:#A7F3D0;
   --blue:#2563EB;--blue-light:#EFF6FF;--blue-dark:#1E40AF;
   --amber:#D97706;--amber-light:#FFFBEB;--amber-dark:#92400E;--amber-mid:#FDE68A;
+  /* Warm peach/orange brand accent — used for the setup wizard's stepper + primary Continue action */
+  --accent:#E8934A;--accent-dark:#C97536;--accent-light:#FBE7D3;--accent-mid:#F0C49A;--accent-ink:#4A2A0F;
   --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
   --radius:12px;--radius-sm:8px;--radius-xs:5px;
   --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.06);
@@ -34,11 +36,12 @@ if(location.protocol==='file:'){location.replace('https://wanpra.github.io/blood
 }
 [data-theme="dark"]{
   --red:#F0537A;--red-dark:#D4163C;--red-light:#2A1419;--red-mid:#5A2030;
-  --ink:#F4F4F5;--ink-2:#D4D4D8;--ink-3:#A1A1AA;--ink-4:#71717A;
-  --rule:#2E2E33;--rule-soft:#242428;--surface:#161618;--white:#1F1F23;
+  --ink:#F2F2F0;--ink-2:#B9BAC0;--ink-3:#8F9096;--ink-4:#6C6D73;
+  --rule:#2A2B2F;--rule-soft:#222327;--surface:#0E0F11;--white:#1A1B1E;
   --green:#34D399;--green-light:#14271F;--green-dark:#6EE7B7;--green-mid:#1E4537;
   --blue:#60A5FA;--blue-light:#16233A;--blue-dark:#93C5FD;
   --amber:#FBBF24;--amber-light:#2A2113;--amber-dark:#FCD34D;--amber-mid:#4A3A12;
+  --accent:#F0A868;--accent-dark:#D68A47;--accent-light:#3A2716;--accent-mid:#5A3D22;--accent-ink:#2A1608;
   --shadow:0 1px 3px rgba(0,0,0,0.5),0 4px 16px rgba(0,0,0,0.5);
   --shadow-sm:0 1px 2px rgba(0,0,0,0.4),0 2px 8px rgba(0,0,0,0.4);
   --shadow-lg:0 4px 24px rgba(0,0,0,0.6),0 1px 4px rgba(0,0,0,0.5);
@@ -152,14 +155,74 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
 @keyframes busySlide{0%{left:-40%;}100%{left:100%;}}
 #busy-chip{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9600;background:var(--white);border:1.5px solid var(--rule);box-shadow:var(--shadow-lg);border-radius:20px;padding:7px 16px;font-size:12px;font-weight:500;color:var(--ink-2);display:none;align-items:center;gap:8px;}
 #busy-chip.on{display:inline-flex;animation:toastIn 0.25s ease;}
-/* ── Setup step tabs (Starting / Refill / Hospitals) ── */
-.setup-tabs{display:flex;gap:0;background:var(--white);border:1px solid var(--rule);border-radius:10px;padding:4px;margin-bottom:1.25rem;box-shadow:var(--shadow-sm);}
-.st-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 10px;border:none;background:transparent;border-radius:7px;font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--ink-3);cursor:pointer;transition:all 0.18s;white-space:nowrap;}
-.st-btn.active{background:var(--ink);color:var(--white);box-shadow:var(--shadow-sm);}
-.st-num{width:18px;height:18px;border-radius:50%;background:var(--rule);color:var(--ink-3);font-family:var(--mono);font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.18s;}
-.st-btn.active .st-num{background:rgba(255,255,255,0.25);color:#fff;}
+/* ── Setup wizard: page heading ── */
+.setup-heading{margin-bottom:1.75rem;}
+.setup-heading h1{font-size:24px;font-weight:600;letter-spacing:-0.02em;color:var(--ink);margin-bottom:6px;}
+.setup-heading p{font-size:14px;color:var(--ink-2);line-height:1.6;max-width:640px;}
+/* ── Wizard stepper: numbered circles + checkmarks + connecting line, peach accent ── */
+.wizard-stepper{display:flex;align-items:flex-start;margin-bottom:2rem;max-width:600px;}
+.wiz-step{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:none;cursor:pointer;font-family:var(--sans);padding:2px;flex-shrink:0;}
+.wiz-step-row{display:flex;align-items:center;flex:1;}
+.wiz-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-size:13px;font-weight:600;flex-shrink:0;border:1.5px solid var(--rule);background:var(--white);color:var(--ink-4);transition:all 0.2s;}
+.wiz-step.active .wiz-circle{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);box-shadow:0 0 0 4px var(--accent-light);}
+.wiz-step.done .wiz-circle{background:var(--accent-light);border-color:var(--accent);color:var(--accent-dark);}
+.wiz-connector{flex:1;height:1.5px;background:var(--rule);margin:0 8px;min-width:24px;transition:background 0.2s;position:relative;top:16px;}
+.wiz-connector.done{background:var(--accent);}
+.wiz-label{font-size:12.5px;font-weight:500;color:var(--ink-4);white-space:nowrap;transition:color 0.2s;}
+.wiz-step.active .wiz-label{color:var(--ink);font-weight:600;}
+.wiz-step.done .wiz-label{color:var(--ink-3);}
+.wiz-step:focus-visible .wiz-circle{outline:2.5px solid var(--accent);outline-offset:2px;}
+@media(max-width:640px){.wizard-stepper{max-width:100%;}.wiz-label{font-size:11px;}.wiz-circle{width:28px;height:28px;font-size:12px;}}
+/* ── Step card: one focused card per wizard step ── */
+.step-card-wrap{max-width:1000px;}
+.step-card{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);box-shadow:none;animation:fadeUp 0.25s ease both;}
+.step-card-head{padding:22px 26px 4px;}
+.step-card-head h2{font-size:18px;font-weight:600;color:var(--ink);letter-spacing:-0.01em;margin-bottom:4px;}
+.step-card-head p{font-size:13.5px;color:var(--ink-2);line-height:1.5;}
+.step-card-body{padding:18px 26px 4px;}
+.step-card-footer{padding:18px 26px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.step-card-footer.end{justify-content:flex-end;}
+@media(max-width:560px){.step-card-footer{flex-direction:column-reverse;align-items:stretch;}}
 .setup-tab-content{display:none;}
-.setup-tab-content.active{display:block;animation:fadeUp 0.25s ease both;}
+.setup-tab-content.active{display:block;}
+/* ── Wizard-specific buttons: filled peach Continue, ghost/text Back ── */
+.btn-continue{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600;box-shadow:none;}
+.btn-continue:hover{background:var(--accent-dark);border-color:var(--accent-dark);}
+.btn-continue:disabled{background:var(--rule);border-color:var(--rule);color:var(--ink-4);cursor:not-allowed;}
+.btn-back{background:transparent;color:var(--ink-2);border-color:transparent;box-shadow:none;padding:9px 8px;}
+.btn-back:hover{color:var(--ink);background:var(--rule-soft);}
+.continue-reason{font-size:12px;color:var(--ink-3);margin-top:8px;text-align:right;}
+.ghost-link-btn{background:none;border:none;padding:0;color:var(--accent-dark);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+[data-theme="dark"] .ghost-link-btn{color:var(--accent);}
+.ghost-link-btn:hover{color:var(--accent);}
+.field-help{font-size:12.5px;color:var(--ink-2);line-height:1.5;margin-top:6px;font-family:var(--sans);}
+/* ── Selected-location confirmation card ── */
+.confirm-card{margin-top:12px;padding:12px 14px;border-radius:var(--radius-sm);background:var(--accent-light);border:1px solid var(--accent-mid);}
+.confirm-card-name{font-size:13px;font-weight:600;color:var(--accent-ink);}
+[data-theme="dark"] .confirm-card-name{color:var(--ink);}
+.confirm-card-addr{font-size:11.5px;color:var(--ink-2);margin-top:2px;line-height:1.4;}
+.confirm-card-coords{font-size:11px;font-family:var(--mono);color:var(--ink-3);margin-top:3px;}
+.confirm-card-actions{display:flex;gap:14px;margin-top:8px;}
+.confirm-card-actions button{background:none;border:none;padding:0;font-size:12px;font-weight:500;color:var(--accent-dark);cursor:pointer;text-decoration:underline;}
+[data-theme="dark"] .confirm-card-actions button{color:var(--accent);}
+/* ── Inline coordinate entry (depot step) ── */
+.coord-inline{margin-top:12px;padding:14px;border-radius:var(--radius-sm);background:var(--surface);border:1px solid var(--rule);}
+/* ── Refill: default-location callout + structured list rows ── */
+.refill-callout{display:flex;gap:10px;padding:12px 14px;border-radius:var(--radius-sm);background:var(--accent-light);border:1px solid var(--accent-mid);margin-bottom:16px;}
+.refill-callout-title{font-size:13px;font-weight:600;color:var(--accent-ink);}
+[data-theme="dark"] .refill-callout-title{color:var(--ink);}
+.refill-callout-body{font-size:12.5px;color:var(--ink-2);margin-top:2px;}
+.refill-callout-sub{font-size:11.5px;color:var(--ink-3);margin-top:4px;}
+.refill-list-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:var(--radius-sm);border:1px solid var(--rule);background:var(--white);margin-bottom:8px;}
+.refill-row-icon{width:30px;height:30px;border-radius:8px;background:var(--rule-soft);color:var(--ink-2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;}
+.refill-row-main{flex:1;min-width:0;}
+.refill-row-name{font-size:13px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.refill-row-addr{font-size:11.5px;color:var(--ink-3);margin-top:1px;}
+.refill-badge-default{font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:var(--accent-light);color:var(--accent-ink);}
+[data-theme="dark"] .refill-badge-default{color:var(--accent);}
+.refill-row-action{flex-shrink:0;display:flex;align-items:center;}
+.row-icon-btn{background:none;border:none;color:var(--ink-4);width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;}
+.row-icon-btn:hover{background:var(--rule-soft);color:var(--ink-2);}
 /* ── Guide page ── */
 #guide-page{position:fixed;inset:0;z-index:8000;background:var(--surface);display:none;flex-direction:column;}
 #guide-page.open{display:flex;}
@@ -235,6 +298,7 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
 *::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 @media(max-width:940px){.grid-2{grid-template-columns:1fr;}.container{padding:1rem;}header{padding:0 1rem;}}
+@media(max-width:520px){header{height:auto;flex-wrap:wrap;row-gap:8px;padding:10px 1rem;}.header-right{flex-wrap:wrap;row-gap:6px;}}
 /* MAP */
 .map-section{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;margin-top:1.5rem;animation:fadeUp 0.4s ease both;}
 .map-header{padding:14px 18px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
@@ -642,106 +706,148 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
   </div>
   <div class="grid-2" id="main-grid">
     <div id="view-setup">
-      <div class="trcs-bar">
-        <span style="font-size:18px;">🩸</span>
-        <span class="trcs-bar-text" id="trcs-bar-text" data-i18n="trcs_bar">Blood refill always at: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย, Henri Dunant Rd</span>
+      <div class="setup-heading">
+        <h1 data-i18n="wiz_title">Create delivery route</h1>
+        <p data-i18n="wiz_desc">Choose the starting depot, refill locations, and hospitals used to calculate the optimal delivery route.</p>
       </div>
 
-      <div class="setup-tabs">
-        <button class="st-btn active" id="stab-btn-start" onclick="switchSetupTab('start')"><span class="st-num">1</span> <span data-i18n="stab_start">Starting</span></button>
-        <button class="st-btn" id="stab-btn-refill" onclick="switchSetupTab('refill')"><span class="st-num">2</span> <span data-i18n="stab_refill">Refill</span></button>
-        <button class="st-btn" id="stab-btn-hosp" onclick="switchSetupTab('hosp')"><span class="st-num">3</span> <span data-i18n="stab_hosp">Hospitals</span></button>
-      </div>
+      <nav class="wizard-stepper" id="wizard-stepper" aria-label="Route setup steps">
+        <button type="button" class="wiz-step active" id="wiz-btn-start" onclick="goToStep(1)" aria-current="step">
+          <span class="wiz-circle" id="wiz-circle-start">1</span>
+          <span class="wiz-label" data-i18n="stab_start">Starting</span>
+        </button>
+        <span class="wiz-connector" id="wiz-conn-1" aria-hidden="true"></span>
+        <button type="button" class="wiz-step" id="wiz-btn-refill" onclick="goToStep(2)">
+          <span class="wiz-circle" id="wiz-circle-refill">2</span>
+          <span class="wiz-label" data-i18n="stab_refill">Refill</span>
+        </button>
+        <span class="wiz-connector" id="wiz-conn-2" aria-hidden="true"></span>
+        <button type="button" class="wiz-step" id="wiz-btn-hosp" onclick="goToStep(3)">
+          <span class="wiz-circle" id="wiz-circle-hosp">3</span>
+          <span class="wiz-label" data-i18n="stab_hosp">Hospitals</span>
+        </button>
+      </nav>
 
-      <div class="setup-tab-content active" id="stab-start">
-        <div class="panel allow-overflow" style="animation-delay:0.05s;z-index:120;">
-          <div class="panel-header">
-            <span class="panel-title" data-i18n="p_depot">Starting Depot</span>
-          </div>
-          <div class="panel-body">
-            <div class="form-group" style="margin-bottom:0;position:relative;">
-              <label data-i18n="or_type_loc">Type your starting location</label>
-              <input type="text" id="depot-input" autocomplete="off" placeholder="e.g. Bangna BTS, On Nut, Siam..." oninput="onDepotType()" onkeydown="if(event.key==='Enter')closeDepotAutocomplete()"/>
-              <div id="depot-autocomplete-list" class="autocomplete-list" style="display:none;"></div>
-              <div style="font-size:11px;color:var(--ink-4);font-family:var(--mono);margin-top:5px;" data-i18n="depot_hint">Pick a suggestion, or it'll be geocoded. Leave blank to default to ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย.</div>
-              <button class="btn btn-outline btn-sm" onclick="openCoordBoxDepot()" style="width:100%;margin-top:8px;" data-i18n="pin_depot">Enter coordinates manually</button>
-              <div id="pinned-depot-chip" style="display:none;margin-top:10px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--green-light);border:1.5px solid var(--green);">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                  <div style="min-width:0;">
-                    <div style="font-size:12px;font-weight:600;color:var(--green-dark);">📍 <span id="pinned-depot-name">Custom point</span></div>
-                    <div id="pinned-depot-addr" style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);margin-top:2px;white-space:normal;line-height:1.4;"></div>
-                  </div>
-                  <button class="btn-danger-sm" onclick="clearPinnedDepot()" title="Remove pinned point" aria-label="Remove pinned point" style="flex-shrink:0;">×</button>
+      <div class="step-card-wrap" id="step-card-wrap">
+      <div class="setup-tab-content step-card active" id="stab-start">
+        <div class="step-card-head">
+          <h2 data-i18n="step1_title">Starting depot</h2>
+          <p data-i18n="step1_desc">Select where the delivery vehicles begin.</p>
+        </div>
+        <div class="step-card-body">
+          <div class="form-group" style="margin-bottom:0;position:relative;">
+            <label for="depot-input" data-i18n="or_type_loc">Starting location</label>
+            <input type="text" id="depot-input" autocomplete="off" placeholder="Search for an address or place" data-i18n-ph="depot_ph" oninput="onDepotType()" onkeydown="if(event.key==='Enter')closeDepotAutocomplete()"/>
+            <div id="depot-autocomplete-list" class="autocomplete-list" style="display:none;"></div>
+            <div class="field-help" data-i18n="depot_hint">Choose a suggestion, or leave this blank to use the Thai Red Cross National Blood Centre.</div>
+            <div style="margin-top:10px;">
+              <button type="button" class="ghost-link-btn" id="depot-coord-toggle-btn" onclick="toggleDepotCoordInline()" data-i18n="pin_depot">Use latitude and longitude instead</button>
+            </div>
+            <div id="depot-coord-inline" class="coord-inline" style="display:none;">
+              <div class="form-row">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="depot-lat-inline" data-i18n="coord_lat">Latitude</label>
+                  <input type="text" id="depot-lat-inline" inputmode="decimal" placeholder="13.7367" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
                 </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="depot-lng-inline" data-i18n="coord_lng">Longitude</label>
+                  <input type="text" id="depot-lng-inline" inputmode="decimal" placeholder="100.5344" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
+                </div>
+              </div>
+              <div id="depot-coord-error" class="continue-reason" style="display:none;text-align:left;color:var(--red-dark);" role="alert"></div>
+              <div style="display:flex;gap:16px;align-items:center;margin-top:10px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="saveDepotCoordInline()" data-i18n="coord_set_location">Set location</button>
+                <button type="button" class="ghost-link-btn" onclick="toggleDepotCoordInline(true)" data-i18n="back_to_search">Back to search</button>
+              </div>
+            </div>
+            <div id="pinned-depot-chip" class="confirm-card" style="display:none;">
+              <div class="confirm-card-name">📍 <span id="pinned-depot-name">Custom point</span></div>
+              <div class="confirm-card-addr" id="pinned-depot-addr"></div>
+              <div class="confirm-card-coords" id="pinned-depot-coords"></div>
+              <div class="confirm-card-actions">
+                <button type="button" onclick="editPinnedDepot()" data-i18n="edit_location">Edit</button>
+                <button type="button" onclick="clearPinnedDepot()" data-i18n="clear_location">Clear</button>
               </div>
             </div>
           </div>
         </div>
-        <div style="text-align:right;">
-          <button class="btn btn-outline btn-sm" onclick="switchSetupTab('refill')" data-i18n="stab_next_refill">Next: Refill →</button>
+        <div class="step-card-footer end">
+          <button class="btn btn-continue" onclick="goToStep(2)" data-i18n="stab_next_refill">Continue to Refill →</button>
         </div>
       </div>
 
-      <div class="setup-tab-content" id="stab-refill">
-        <div class="panel allow-overflow" style="animation-delay:0.05s;z-index:110;">
-          <div class="panel-header">
-            <span class="panel-title" data-i18n="p_refill">Refill Location</span>
-            <span id="refill-count" style="font-family:var(--mono);font-size:11px;color:var(--ink-4);"></span>
-          </div>
-          <div class="panel-body">
-            <div style="font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin-bottom:10px;line-height:1.5;" data-i18n="refill_intro">Each car automatically refills at whichever point gives its fastest route.</div>
-            <div id="refill-list"></div>
-            <div class="form-group" style="margin-bottom:0;margin-top:12px;position:relative;">
-              <label data-i18n="refill_add">Add a refill point</label>
-              <input type="text" id="refill-input" autocomplete="off" placeholder="e.g. Bangkok Hospital, blood bank..." data-i18n-ph="refill_ph" oninput="onRefillType()" onkeydown="if(event.key==='Enter')closeRefillAutocomplete()"/>
-              <div id="refill-autocomplete-list" class="autocomplete-list" style="display:none;"></div>
-              <button class="btn btn-outline btn-sm" onclick="openCoordBoxRefill()" style="width:100%;margin-top:8px;" data-i18n="pin_refill">Enter coordinates manually</button>
+      <div class="setup-tab-content step-card" id="stab-refill">
+        <div class="step-card-head">
+          <h2 data-i18n="step2_title">Refill locations</h2>
+          <p data-i18n="step2_desc">Add or remove the blood-refill points used when calculating routes.</p>
+        </div>
+        <div class="step-card-body">
+          <div class="refill-callout">
+            <span style="font-size:18px;">🩸</span>
+            <div>
+              <div class="refill-callout-title" data-i18n="refill_default_title">Default refill location</div>
+              <div class="refill-callout-body" data-i18n="trcs_display_name">Thai Red Cross National Blood Centre, Henri Dunant Road</div>
+              <div class="refill-callout-sub" data-i18n="refill_default_sub">This location is always included in the route.</div>
             </div>
           </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <label style="margin-bottom:0;" data-i18n="p_refill">Refill Location</label>
+            <span id="refill-count" style="font-size:12px;color:var(--ink-3);"></span>
+          </div>
+          <div id="refill-list"></div>
+          <div class="form-group" style="margin-bottom:0;margin-top:14px;position:relative;">
+            <label for="refill-input" data-i18n="refill_add">Add a refill point</label>
+            <input type="text" id="refill-input" autocomplete="off" placeholder="e.g. Bangkok Hospital, blood bank..." data-i18n-ph="refill_ph" oninput="onRefillType()" onkeydown="if(event.key==='Enter')closeRefillAutocomplete()"/>
+            <div id="refill-autocomplete-list" class="autocomplete-list" style="display:none;"></div>
+            <button type="button" class="ghost-link-btn" onclick="openCoordBoxRefill()" style="margin-top:8px;" data-i18n="pin_refill">Use latitude and longitude instead</button>
+          </div>
         </div>
-        <div style="display:flex;justify-content:space-between;">
-          <button class="btn btn-outline btn-sm" onclick="switchSetupTab('start')" data-i18n="stab_back_start">← Back: Starting</button>
-          <button class="btn btn-outline btn-sm" onclick="switchSetupTab('hosp')" data-i18n="stab_next_hosp">Next: Hospitals →</button>
+        <div class="step-card-footer">
+          <button class="btn btn-back" onclick="goToStep(1)" data-i18n="wiz_back">Back</button>
+          <button class="btn btn-continue" onclick="goToStep(3)" data-i18n="stab_next_hosp">Continue to Hospitals →</button>
         </div>
       </div>
 
-      <div class="setup-tab-content" id="stab-hosp">
-        <div class="panel allow-overflow" style="animation-delay:0.05s;">
-          <div class="panel-header">
-            <span class="panel-title" data-i18n="p_add">Add Hospital</span>
-            <div style="display:flex;gap:6px;">
+      <div class="setup-tab-content step-card" id="stab-hosp">
+        <div class="step-card-head">
+          <h2 data-i18n="step3_title">Hospitals</h2>
+          <p data-i18n="step3_desc">Add the hospitals to include in today's route.</p>
+        </div>
+        <div class="step-card-body">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+            <span class="field-help" style="margin-top:0;" data-i18n="add_manual_intro">Enter each hospital's name and exact coordinates yourself — no automatic lookup, so accuracy is fully in your hands.</span>
+            <div style="display:flex;gap:6px;flex-shrink:0;">
               <button class="btn btn-outline btn-sm" onclick="loadPreset()" data-i18n="load_defaults">Load 20 defaults</button>
               <button class="btn btn-outline btn-sm" onclick="clearAll()" data-i18n="clear_all">Clear all</button>
             </div>
           </div>
-          <div class="panel-body">
-            <div style="font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin-bottom:10px;line-height:1.5;" data-i18n="add_manual_intro">Enter each hospital's name and exact coordinates yourself — no automatic lookup, so accuracy is fully in your hands.</div>
-            <button class="btn btn-outline" onclick="openCoordBoxNew()" style="width:100%;" data-i18n="add_hosp">+ Add hospital</button>
-          </div>
-        </div>
+          <button class="btn btn-outline" onclick="openCoordBoxNew()" style="width:100%;margin-bottom:16px;" data-i18n="add_hosp">+ Add hospital</button>
 
-        <div class="panel" style="animation-delay:0.1s;">
-          <div class="panel-header">
-            <span class="panel-title" data-i18n="p_list">Hospital list</span>
-            <span id="hosp-count" style="font-family:var(--mono);font-size:11px;color:var(--ink-4);">0 hospitals</span>
-          </div>
-          <div style="padding:10px 14px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <select id="list-select" onchange="onListSelect()" style="flex:1;min-width:120px;font-size:12px;padding:6px 10px;">
-              <option value="" data-i18n="saved_lists">— Saved lists —</option>
-            </select>
-            <button class="btn btn-outline btn-sm" onclick="saveCurrentList()" title="Save current hospitals as a named list" data-i18n="save_list">Save</button>
-            <button class="btn btn-danger-sm" onclick="deleteCurrentList()" title="Delete selected saved list" aria-label="Delete selected saved list" style="font-size:13px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2.5px;" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
-          </div>
-          <div class="panel-body" style="max-height:300px;overflow-y:auto;" id="hosp-list">
-            <div class="empty-state"><p><span data-i18n="empty_list">No hospitals added yet.</span><br><span data-i18n="empty_list_sub">Add manually or load defaults.</span></p></div>
-          </div>
-          <div style="padding:14px 18px;border-top:1px solid var(--rule-soft);">
-            <button class="btn btn-primary" onclick="runOptimize()" id="opt-btn" style="width:100%;" disabled data-i18n="opt_btn">Optimize routes</button>
+          <div style="border:1px solid var(--rule);border-radius:var(--radius-sm);overflow:hidden;">
+            <div style="padding:10px 14px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="field-help" style="margin-top:0;font-weight:500;" data-i18n="p_list">Hospital list</span>
+              <span id="hosp-count" style="font-size:12px;color:var(--ink-3);margin-left:auto;">0 hospitals</span>
+            </div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <select id="list-select" onchange="onListSelect()" style="flex:1;min-width:120px;font-size:12px;padding:6px 10px;">
+                <option value="" data-i18n="saved_lists">— Saved lists —</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="saveCurrentList()" title="Save current hospitals as a named list" data-i18n="save_list">Save</button>
+              <button class="btn btn-danger-sm" onclick="deleteCurrentList()" title="Delete selected saved list" aria-label="Delete selected saved list" style="font-size:13px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2.5px;" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
+            </div>
+            <div style="padding:10px 14px;max-height:300px;overflow-y:auto;" id="hosp-list">
+              <div class="empty-state"><p><span data-i18n="empty_list">No hospitals added yet.</span><br><span data-i18n="empty_list_sub">Add manually or load defaults.</span></p></div>
+            </div>
           </div>
         </div>
-        <div>
-          <button class="btn btn-outline btn-sm" onclick="switchSetupTab('refill')" data-i18n="stab_back_refill">← Back: Refill</button>
+        <div class="step-card-footer">
+          <button class="btn btn-back" onclick="goToStep(2)" data-i18n="wiz_back">Back</button>
+          <div style="text-align:right;">
+            <button class="btn btn-continue" onclick="runOptimize()" id="opt-btn" disabled data-i18n="opt_btn">Calculate optimal route</button>
+            <div class="continue-reason" id="opt-btn-reason" style="display:none;" data-i18n="opt_btn_reason">Add at least one hospital to calculate a route.</div>
+          </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -816,7 +922,9 @@ const ICONS={
   trash:svgIcon('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>'),
   globe:svgIcon('<circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a13.5 13.5 0 013.5 9A13.5 13.5 0 0112 21 13.5 13.5 0 018.5 12 13.5 13.5 0 0112 3z"/>'),
   sun:svgIcon('<circle cx="12" cy="12" r="4.5"/><line x1="12" y1="1.5" x2="12" y2="3.5"/><line x1="12" y1="20.5" x2="12" y2="22.5"/><line x1="4" y1="4" x2="5.4" y2="5.4"/><line x1="18.6" y1="18.6" x2="20" y2="20"/><line x1="1.5" y1="12" x2="3.5" y2="12"/><line x1="20.5" y1="12" x2="22.5" y2="12"/><line x1="4" y1="20" x2="5.4" y2="18.6"/><line x1="18.6" y1="5.4" x2="20" y2="4"/>'),
-  moon:svgIcon('<path d="M20 13.5A8.5 8.5 0 1110.5 4 6.5 6.5 0 0020 13.5z"/>')
+  moon:svgIcon('<path d="M20 13.5A8.5 8.5 0 1110.5 4 6.5 6.5 0 0020 13.5z"/>'),
+  lock:svgIcon('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>'),
+  unlock:svgIcon('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 017.75-1.5"/>')
 };
 /* ── i18n (English + Thai) ── */
 const I18N={
@@ -835,20 +943,31 @@ const I18N={
     nav_guide:`${ICONS.help} Guide`, nav_settings:`${ICONS.settings} Settings`,
     api_set:'✓ ORS connected', api_unset:'⚠ ORS key not set',
     vt_setup:`${ICONS.settings} Setup`, vt_results:`${ICONS.chart} Results`,
+    wiz_title:'Create delivery route',
+    wiz_desc:'Choose the starting depot, refill locations, and hospitals used to calculate the optimal delivery route.',
+    wiz_back:'Back', wiz_step_done:'completed', wiz_step_current:'current step',
+    step1_title:'Starting depot', step1_desc:'Select where the delivery vehicles begin.',
+    step2_title:'Refill locations', step2_desc:'Add or remove the blood-refill points used when calculating routes.',
+    step3_title:'Hospitals', step3_desc:"Add the hospitals to include in today's route.",
     // trcs bar
     trcs_bar:'Blood refill always at: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย, Henri Dunant Rd',
     // depot panel
     p_depot:'Starting Depot',
-    or_type_loc:'Type your starting location',
-    pin_depot:`${ICONS.pin} Enter coordinates manually`,
-    depot_hint:'Pick a suggestion, or it\u2019ll be geocoded. Leave blank to default to ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย.',
+    or_type_loc:'Starting location',
+    depot_ph:'Search for an address or place',
+    pin_depot:'Use latitude and longitude instead',
+    coord_set_location:'Set location', back_to_search:'Back to search',
+    edit_location:'Edit', clear_location:'Clear',
+    coord_invalid:'Enter a valid latitude (-90 to 90) and longitude (-180 to 180).',
+    depot_hint:'Choose a suggestion, or leave this blank to use the Thai Red Cross National Blood Centre.',
     // add hospital
     p_add:'Add Hospital', load_defaults:'Load 20 defaults', clear_all:'Clear all',
     l_name:'Hospital name', l_dist:'District (optional)',
     add_hosp:'+ Add hospital',
     add_manual_intro:"Enter each hospital's name and exact coordinates yourself — no automatic lookup, so accuracy is fully in your hands.",
     // list
-    p_list:'Hospital list', save_list:`${ICONS.save} Save`, opt_btn:`${ICONS.play} Optimize routes`,
+    p_list:'Hospital list', hosp_count:'{n} hospitals', save_list:`${ICONS.save} Save`, opt_btn:`${ICONS.play} Calculate optimal route`,
+    opt_btn_reason:'Add at least one hospital to calculate a route.',
     saved_lists:'— Saved lists —',
     // stats
     s_hosp:'Hospitals today', s_cars:'Cars needed', s_depot:'Starting depot',
@@ -866,8 +985,8 @@ const I18N={
     coord_cancel:'Cancel', coord_save:'Save location', coord_name:'Name',
     coord_title_new:'Add hospital by coordinates', coord_title_depot:'Set starting point by coordinates', coord_title_refill:'Add refill point by coordinates',
     stab_start:'Starting', stab_refill:'Refill', stab_hosp:'Hospitals',
-    stab_next_refill:'Next: Refill →', stab_back_start:'← Back: Starting',
-    stab_next_hosp:'Next: Hospitals →', stab_back_refill:'← Back: Refill',
+    stab_next_refill:'Continue to Refill →', stab_back_start:'← Back: Starting',
+    stab_next_hosp:'Continue to Hospitals →', stab_back_refill:'← Back: Refill',
     depot_pin_label:'Custom starting point',
     depot_name_prompt:'Name this starting point:',
     depot_set:'Starting point set',
@@ -909,9 +1028,14 @@ const I18N={
     reassign_done:'Hospital reassigned & routes updated',
     drag_hint:'💡 Tip: drag a hospital onto another car to reassign it',
     p_refill:'Refill Location',
+    refill_default_title:'Default refill location',
+    trcs_display_name:'Thai Red Cross National Blood Centre, Henri Dunant Road',
+    refill_default_sub:'This location is always included in the route.',
+    refill_disabled_note:'Currently excluded from routes — click to re-include.',
+    refill_point_one:'refill point',
     refill_intro:'Each car automatically refills at whichever point gives its fastest route.',
     refill_add:'Add a refill point', refill_ph:'e.g. Bangkok Hospital, blood bank...',
-    pin_refill:`${ICONS.pin} Enter coordinates manually`,
+    pin_refill:'Use latitude and longitude instead',
     refill_pin_label:'Custom refill point', refill_name_prompt:'Name this refill location:',
     refill_added:'Refill point added', refill_remove:'Remove this refill point',
     refill_default_tag:'default', refill_disable:'Disable this refill point', refill_enable:'Enable this refill point',
@@ -932,16 +1056,27 @@ const I18N={
     nav_guide:`${ICONS.help} คู่มือ`, nav_settings:`${ICONS.settings} ตั้งค่า`,
     api_set:'✓ เชื่อมต่อ ORS แล้ว', api_unset:'⚠ ยังไม่ได้ตั้งคีย์ ORS',
     vt_setup:`${ICONS.settings} ตั้งค่าข้อมูล`, vt_results:`${ICONS.chart} ผลลัพธ์`,
+    wiz_title:'สร้างเส้นทางส่งเลือด',
+    wiz_desc:'เลือกจุดเริ่มต้น จุดเติมเลือด และโรงพยาบาล เพื่อคำนวณเส้นทางส่งที่ดีที่สุด',
+    wiz_back:'ย้อนกลับ', wiz_step_done:'เสร็จแล้ว', wiz_step_current:'ขั้นตอนปัจจุบัน',
+    step1_title:'จุดเริ่มต้น', step1_desc:'เลือกจุดที่รถส่งเลือดจะเริ่มออกเดินทาง',
+    step2_title:'จุดเติมเลือด', step2_desc:'เพิ่มหรือลบจุดเติมเลือดที่ใช้ในการคำนวณเส้นทาง',
+    step3_title:'โรงพยาบาล', step3_desc:'เพิ่มโรงพยาบาลที่จะรวมอยู่ในเส้นทางวันนี้',
     trcs_bar:'เติมเลือดที่: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย ถนนอังรีดูนังต์ เสมอ',
     p_depot:'จุดเริ่มต้น',
-    or_type_loc:'พิมพ์จุดเริ่มต้นของคุณ',
-    pin_depot:`${ICONS.pin} กรอกพิกัดด้วยตนเอง`,
+    or_type_loc:'จุดเริ่มต้น',
+    depot_ph:'ค้นหาที่อยู่หรือสถานที่',
+    pin_depot:'ใช้ละติจูดและลองจิจูดแทน',
+    coord_set_location:'ตั้งค่าตำแหน่งนี้', back_to_search:'กลับไปค้นหา',
+    edit_location:'แก้ไข', clear_location:'ล้าง',
+    coord_invalid:'กรอกละติจูด (-90 ถึง 90) และลองจิจูด (-180 ถึง 180) ให้ถูกต้อง',
     depot_hint:'เลือกจากรายการแนะนำ หรือระบบจะค้นหาพิกัดให้ — เว้นว่างไว้จะใช้ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทยเป็นค่าเริ่มต้น',
     p_add:'เพิ่มโรงพยาบาล', load_defaults:'โหลด 20 แห่ง', clear_all:'ล้างทั้งหมด',
     l_name:'ชื่อโรงพยาบาล', l_dist:'เขต/อำเภอ (ไม่บังคับ)',
     add_hosp:'+ เพิ่มโรงพยาบาล',
     add_manual_intro:'กรอกชื่อและพิกัดที่แน่นอนของแต่ละโรงพยาบาลด้วยตนเอง — ไม่มีการค้นหาอัตโนมัติ ความแม่นยำจึงขึ้นอยู่กับคุณทั้งหมด',
-    p_list:'รายการโรงพยาบาล', save_list:`${ICONS.save} บันทึก`, opt_btn:`${ICONS.play} จัดเส้นทาง`,
+    p_list:'รายการโรงพยาบาล', hosp_count:'{n} โรงพยาบาล', save_list:`${ICONS.save} บันทึก`, opt_btn:`${ICONS.play} คำนวณเส้นทางที่ดีที่สุด`,
+    opt_btn_reason:'เพิ่มโรงพยาบาลอย่างน้อยหนึ่งแห่งเพื่อคำนวณเส้นทาง',
     saved_lists:'— รายการที่บันทึก —',
     s_hosp:'โรงพยาบาลวันนี้', s_cars:'รถที่ต้องใช้', s_depot:'จุดเริ่มต้น',
     empty_msg:'เพิ่มโรงพยาบาลแล้วกด <strong>จัดเส้นทาง</strong> เพื่อเริ่ม',
@@ -956,8 +1091,8 @@ const I18N={
     coord_cancel:'ยกเลิก', coord_save:'บันทึกตำแหน่ง', coord_name:'ชื่อ',
     coord_title_new:'เพิ่มโรงพยาบาลด้วยพิกัด', coord_title_depot:'ตั้งจุดเริ่มต้นด้วยพิกัด', coord_title_refill:'เพิ่มจุดเติมเลือดด้วยพิกัด',
     stab_start:'จุดเริ่มต้น', stab_refill:'เติมเลือด', stab_hosp:'โรงพยาบาล',
-    stab_next_refill:'ถัดไป: เติมเลือด →', stab_back_start:'← ย้อนกลับ: จุดเริ่มต้น',
-    stab_next_hosp:'ถัดไป: โรงพยาบาล →', stab_back_refill:'← ย้อนกลับ: เติมเลือด',
+    stab_next_refill:'ไปต่อ: เติมเลือด →', stab_back_start:'← ย้อนกลับ: จุดเริ่มต้น',
+    stab_next_hosp:'ไปต่อ: โรงพยาบาล →', stab_back_refill:'← ย้อนกลับ: เติมเลือด',
     depot_pin_label:'จุดเริ่มต้นที่กำหนดเอง',
     depot_name_prompt:'ตั้งชื่อจุดเริ่มต้นนี้:',
     depot_set:'ตั้งจุดเริ่มต้นแล้ว',
@@ -997,9 +1132,14 @@ const I18N={
     reassign_done:'ย้ายโรงพยาบาลและอัปเดตเส้นทางแล้ว',
     drag_hint:'💡 เคล็ดลับ: ลากโรงพยาบาลไปยังรถอีกคันเพื่อย้าย',
     p_refill:'จุดเติมเลือด',
+    refill_default_title:'จุดเติมเลือดเริ่มต้น',
+    trcs_display_name:'ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย ถนนอังรีดูนังต์',
+    refill_default_sub:'จุดนี้จะรวมอยู่ในเส้นทางเสมอ',
+    refill_disabled_note:'ปิดใช้งานอยู่ — คลิกเพื่อเปิดใช้อีกครั้ง',
+    refill_point_one:'จุดเติมเลือด',
     refill_intro:'รถแต่ละคันจะเติมเลือดที่จุดที่ทำให้เส้นทางเร็วที่สุดโดยอัตโนมัติ',
     refill_add:'เพิ่มจุดเติมเลือด', refill_ph:'เช่น รพ.กรุงเทพ, ธนาคารเลือด...',
-    pin_refill:`${ICONS.pin} กรอกพิกัดด้วยตนเอง`,
+    pin_refill:'ใช้ละติจูดและลองจิจูดแทน',
     refill_pin_label:'จุดเติมเลือดที่กำหนดเอง', refill_name_prompt:'ตั้งชื่อจุดเติมเลือดนี้:',
     refill_added:'เพิ่มจุดเติมเลือดแล้ว', refill_remove:'ลบจุดเติมเลือดนี้',
     refill_default_tag:'ค่าเริ่มต้น', refill_disable:'ปิดใช้จุดนี้', refill_enable:'เปิดใช้จุดนี้',
@@ -1170,8 +1310,9 @@ function pickDepotAutocomplete(i){
   const el=document.getElementById('depot-input');
   el.value=r.name;
   el.dataset.lat=r.lat; el.dataset.lng=r.lng;
-  pinnedDepot=null;document.getElementById('pinned-depot-chip').style.display='none';
+  pinnedDepot=null;
   document.getElementById('s-depot').textContent=r.name;
+  showDepotConfirm(r.name,r.lat,r.lng,r.region||'');
   closeDepotAutocomplete();
 }
 document.addEventListener('click',e=>{
@@ -1180,40 +1321,102 @@ document.addEventListener('click',e=>{
 });
 function eDist(a,b){const dx=a.lat-b.lat,dy=a.lng-b.lng;return Math.sqrt(dx*dx+dy*dy);}
 function centroid(pts){return{lat:pts.reduce((s,p)=>s+p.lat,0)/pts.length,lng:pts.reduce((s,p)=>s+p.lng,0)/pts.length};}
-/* ── Pinned depot chip + reverse geocoding ── */
-function showPinnedDepotChip(){
-  const chip=document.getElementById('pinned-depot-chip');
-  if(!pinnedDepot){chip.style.display='none';return;}
-  document.getElementById('pinned-depot-name').textContent=pinnedDepot.name;
-  const addrEl=document.getElementById('pinned-depot-addr');
-  addrEl.textContent=pinnedDepot.addr||`${pinnedDepot.lat.toFixed(5)}, ${pinnedDepot.lng.toFixed(5)}`;
-  chip.style.display='block';
+/* ── Selected-depot confirmation card: shown after any way of choosing a depot (search pick,
+   raw coordinates typed, or the inline lat/lng form) — not tied to the pinnedDepot variable
+   itself, which only represents the "manual coordinates" path specifically (see resolveDepot). ── */
+function showDepotConfirm(name,lat,lng,addr){
+  document.getElementById('pinned-depot-name').textContent=name;
+  document.getElementById('pinned-depot-addr').textContent=addr||'';
+  document.getElementById('pinned-depot-coords').textContent=(typeof lat==='number'&&typeof lng==='number')?`${lat.toFixed(5)}, ${lng.toFixed(5)}`:'';
+  document.getElementById('pinned-depot-chip').style.display='block';
 }
-function clearPinnedDepot(){pinnedDepot=null;localStorage.removeItem('pinned_depot');document.getElementById('pinned-depot-chip').style.display='none';document.getElementById('s-depot').textContent=TRCS_REFILL.name;}
+function hideDepotConfirm(){document.getElementById('pinned-depot-chip').style.display='none';}
+function showPinnedDepotChip(){
+  if(!pinnedDepot){hideDepotConfirm();return;}
+  showDepotConfirm(pinnedDepot.name,pinnedDepot.lat,pinnedDepot.lng,pinnedDepot.addr);
+}
+function editPinnedDepot(){
+  if(pinnedDepot){
+    document.getElementById('depot-lat-inline').value=pinnedDepot.lat;
+    document.getElementById('depot-lng-inline').value=pinnedDepot.lng;
+    document.getElementById('depot-coord-inline').style.display='block';
+    hideDepotConfirm();
+  } else {
+    hideDepotConfirm();
+    document.getElementById('depot-input').focus();
+  }
+}
+function clearPinnedDepot(){
+  pinnedDepot=null;localStorage.removeItem('pinned_depot');
+  const el=document.getElementById('depot-input');el.value='';delete el.dataset.lat;delete el.dataset.lng;
+  hideDepotConfirm();
+  document.getElementById('depot-coord-inline').style.display='none';
+  document.getElementById('s-depot').textContent=TRCS_REFILL.name;
+}
 function savePinnedDepot(){if(pinnedDepot)localStorage.setItem('pinned_depot',JSON.stringify(pinnedDepot));}
 function restorePinnedDepot(){try{const v=JSON.parse(localStorage.getItem('pinned_depot')||'null');if(v&&typeof v.lat==='number'){pinnedDepot=v;document.getElementById('s-depot').textContent=v.name;showPinnedDepotChip();}}catch(e){}}
+/* ── Inline latitude/longitude entry for the depot step (replaces the old modal for this one
+   entry point specifically) — the shared coord-modal is still used as-is for hospitals/refill. ── */
+function toggleDepotCoordInline(back){
+  const box=document.getElementById('depot-coord-inline');
+  const show=back?false:(box.style.display==='none');
+  box.style.display=show?'block':'none';
+  document.getElementById('depot-coord-error').style.display='none';
+  if(show)document.getElementById('depot-lat-inline').focus();
+}
+function saveDepotCoordInline(){
+  const latEl=document.getElementById('depot-lat-inline'),lngEl=document.getElementById('depot-lng-inline');
+  let lat=parseFloat(latEl.value),lng=parseFloat(lngEl.value);
+  if(isNaN(lat)||isNaN(lng)){const co=parseCoords(latEl.value)||parseCoords(lngEl.value);if(co){lat=co.lat;lng=co.lng;}}
+  const errEl=document.getElementById('depot-coord-error');
+  if(isNaN(lat)||isNaN(lng)||Math.abs(lat)>90||Math.abs(lng)>180){errEl.textContent=t('coord_invalid');errEl.style.display='block';return;}
+  errEl.style.display='none';
+  pinnedDepot={name:t('depot_pin_label'),lat,lng};
+  savePinnedDepot();
+  const el=document.getElementById('depot-input');el.value='';delete el.dataset.lat;delete el.dataset.lng;
+  document.getElementById('s-depot').textContent=pinnedDepot.name;
+  showDepotConfirm(pinnedDepot.name,lat,lng,'');
+  document.getElementById('depot-coord-inline').style.display='none';
+  reverseGeocode(lat,lng).then(a=>{if(a&&pinnedDepot&&pinnedDepot.lat===lat&&pinnedDepot.lng===lng){pinnedDepot.addr=a;savePinnedDepot();showDepotConfirm(pinnedDepot.name,lat,lng,a);}});
+}
 /* ── Custom refill locations (list; each car picks its fastest) ── */
 let refillAcDebounce=null, refillAcResults=[];
+/* English distinguishes "1 refill point" / "N refill points"; Thai uses one noun regardless of
+   count, so only English needs the singular/plural branch. */
+function refillCountLabel(n){
+  if(getLang()==='th')return n+' '+t('refill_points_n');
+  return n===1?'1 '+t('refill_point_one'):n+' '+t('refill_points_n');
+}
 function renderRefillList(){
   const wrap=document.getElementById('refill-list');if(!wrap)return;
   const cand=getRefillCandidates();
-  const cnt=document.getElementById('refill-count');if(cnt)cnt.textContent=cand.length+' '+t('refill_points_n');
+  const cnt=document.getElementById('refill-count');if(cnt)cnt.textContent=refillCountLabel(cand.length);
   let html='';
-  // TRCS default row (toggleable)
-  html+=`<div class="refill-row${useTrcsDefault?'':' off'}">
-    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;font-weight:600;color:${useTrcsDefault?'var(--red-dark)':'var(--ink-4)'};">🩸 ${TRCS_REFILL.name} <span style="font-weight:500;opacity:0.7;">· ${t('refill_default_tag')}</span></div></div>
-    <button class="btn-danger-sm" onclick="toggleTrcsDefault()" title="${useTrcsDefault?t('refill_disable'):t('refill_enable')}" aria-label="${useTrcsDefault?t('refill_disable'):t('refill_enable')}" style="flex-shrink:0;">${useTrcsDefault?'×':'+'}</button>
+  // TRCS default row: a lock (not a remove/trash icon) since it's the mandatory default — the
+  // click still calls the same toggleTrcsDefault(), preserving existing enable/disable behavior.
+  html+=`<div class="refill-list-row"${useTrcsDefault?'':' style="opacity:0.55;"'}>
+    <div class="refill-row-icon">🩸</div>
+    <div class="refill-row-main">
+      <div class="refill-row-name">${TRCS_REFILL.name}${useTrcsDefault?`<span class="refill-badge-default">${t('refill_default_tag')}</span>`:''}</div>
+      <div class="refill-row-addr">${useTrcsDefault?t('refill_default_sub'):t('refill_disabled_note')}</div>
+    </div>
+    <div class="refill-row-action">
+      <button class="row-icon-btn" onclick="toggleTrcsDefault()" title="${useTrcsDefault?t('refill_disable'):t('refill_enable')}" aria-label="${useTrcsDefault?t('refill_disable'):t('refill_enable')}">${useTrcsDefault?ICONS.lock:ICONS.unlock}</button>
+    </div>
   </div>`;
   customRefills.forEach((r,i)=>{
-    html+=`<div class="refill-row">
-      <div style="flex:1;min-width:0;"><div style="font-size:12.5px;font-weight:600;color:var(--red-dark);">🩸 ${r.name}</div>${r.addr?`<div style="font-size:10.5px;color:var(--ink-3);font-family:var(--mono);margin-top:1px;">${r.addr}</div>`:''}</div>
-      <button class="btn-danger-sm" onclick="removeRefill(${i})" title="${t('refill_remove')}" aria-label="${t('refill_remove')}" style="flex-shrink:0;">×</button>
+    html+=`<div class="refill-list-row">
+      <div class="refill-row-icon">🩸</div>
+      <div class="refill-row-main">
+        <div class="refill-row-name">${r.name}</div>
+        ${r.addr?`<div class="refill-row-addr">${r.addr}</div>`:''}
+      </div>
+      <div class="refill-row-action">
+        <button class="row-icon-btn" onclick="removeRefill(${i})" title="${t('refill_remove')}" aria-label="${t('refill_remove')}: ${r.name}">${ICONS.trash}</button>
+      </div>
     </div>`;
   });
   wrap.innerHTML=html;
-  // top bar reflects status
-  const bar=document.getElementById('trcs-bar-text');
-  if(bar)bar.textContent=cand.length>1?`${t('res_refill_lbl')}: ${cand.length} ${t('refill_points_n')}`:(customRefills.length&&!useTrcsDefault?`${t('res_refill_lbl')}: ${cand[0].name}`:t('trcs_bar'));
 }
 function toggleTrcsDefault(){
   // don't allow turning everything off
@@ -1255,6 +1458,8 @@ function useCoordsForDepot(lat,lng){
   el.dataset.lat=lat;el.dataset.lng=lng;
   el.value=`📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
   document.getElementById('s-depot').textContent=el.value;
+  pinnedDepot=null;
+  showDepotConfirm(el.value,lat,lng,'');
   closeDepotAutocomplete();
 }
 function useCoordsForRefill(lat,lng){
@@ -1472,7 +1677,7 @@ function deleteCurrentList(){
   refreshListDropdown();toast(t('tn_deleted',{name:name}),'info',2500);
 }
 function renderList(){
-  const n=hospitals.length,cap=getMaxPerCar();document.getElementById('hosp-count').textContent=t('hosp_count',{n:n});document.getElementById('opt-btn').disabled=n===0;document.getElementById('s-hosp').textContent=n;document.getElementById('s-cars').textContent=n?Math.ceil(n/cap):'—';
+  const n=hospitals.length,cap=getMaxPerCar();document.getElementById('hosp-count').textContent=t('hosp_count',{n:n});document.getElementById('opt-btn').disabled=n===0;document.getElementById('opt-btn-reason').style.display=n===0?'block':'none';document.getElementById('s-hosp').textContent=n;document.getElementById('s-cars').textContent=n?Math.ceil(n/cap):'—';
   const list=document.getElementById('hosp-list');
   if(!n){list.innerHTML='<div class="empty-state"><p>'+t('empty_list')+'</p></div>';return;}
   list.innerHTML=hospitals.map((h,i)=>{
@@ -1926,7 +2131,7 @@ async function routeCar(grp,sp,candidates,shared){
   candidates.forEach(cand=>{const d=eDist(cand,c);if(d<bd){bd=d;refill=cand;}});
   return {...base,refill,hospitals:optimalPathEuclid(grp,sp,refill),hospitals2:optimalPathEuclid(grp,refill,sp)};
 }
-applyTheme(localStorage.getItem('theme')==='dark'?'dark':'light');
+{const initTheme=localStorage.getItem('theme')==='light'?'light':'dark';localStorage.setItem('theme',initTheme);applyTheme(initTheme);}
 setLang(getLang());
 updateApiIndicator();
 renderList();
@@ -1959,15 +2164,30 @@ function switchView(view){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 /* ── Setup step tabs: Starting → Refill → Hospitals (kept simple so beginners aren't shown everything at once) ── */
-function switchSetupTab(tab){
-  ['start','refill','hosp'].forEach(k=>{
-    document.getElementById('stab-'+k).classList.toggle('active',k===tab);
-    document.getElementById('stab-btn-'+k).classList.toggle('active',k===tab);
+/* ── Route setup wizard: Starting → Refill → Hospitals, one step visible at a time.
+   Steps stay fully populated in the DOM while hidden, so nothing entered is ever lost when
+   navigating between them — this only toggles which card + stepper state is shown. ── */
+let setupStep=1;
+const WIZ_STEPS=['start','refill','hosp'];
+function goToStep(n){
+  setupStep=n;
+  WIZ_STEPS.forEach((k,i)=>{
+    const stepNum=i+1,btn=document.getElementById('wiz-btn-'+k),circle=document.getElementById('wiz-circle-'+k);
+    const done=stepNum<n;
+    btn.classList.toggle('active',stepNum===n);
+    btn.classList.toggle('done',done);
+    btn.setAttribute('aria-label',(k==='start'?t('stab_start'):k==='refill'?t('stab_refill'):t('stab_hosp'))+(done?' — '+t('wiz_step_done'):stepNum===n?' — '+t('wiz_step_current'):''));
+    circle.innerHTML=done?'✓':String(stepNum);
+    if(stepNum===n)btn.setAttribute('aria-current','step');else btn.removeAttribute('aria-current');
+    document.getElementById('stab-'+k).classList.toggle('active',stepNum===n);
   });
-  document.querySelector('#view-setup').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('wiz-conn-1').classList.toggle('done',n>1);
+  document.getElementById('wiz-conn-2').classList.toggle('done',n>2);
+  document.getElementById('step-card-wrap').scrollIntoView({behavior:'smooth',block:'start'});
 }
 // Start in single-view Setup
 document.getElementById('main-grid').classList.add('single-view','show-setup');
+goToStep(1);
 // Left/Right arrow keys switch between Setup and Results (ignored while typing or on overlay pages)
 document.addEventListener('keydown',e=>{
   if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
