@@ -2457,44 +2457,51 @@ async function buildPhaseMap(phase, routed, sp){
       attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:18
     }).addTo(pm.map);
   } else {
-    [...pm.shared,...pm.groups.flatMap(g=>[...g.lines,...g.markers])].forEach(l=>{ if(pm.map.hasLayer(l)) pm.map.removeLayer(l); });
+    [...pm.shared,...pm.groups.flatMap(g=>[...g.lines,...g.markers])].forEach(l=>{ try{ if(l&&pm.map.hasLayer(l)) pm.map.removeLayer(l); }catch(e){ console.error('buildPhaseMap: stale layer cleanup failed',e); } });
   }
   pm.shared=[]; pm.groups=[]; pm.filter='all';
 
   const allBounds=[];
 
   for(let ci=0;ci<routed.length;ci++){
-    const r=routed[ci], pal=CAR_PALETTE[ci%CAR_PALETTE.length], color=pal.bg;
-    const lines=[], markers=[], carBounds=[];
+    // Isolate each car: a bad/missing coordinate or a failed road-geometry fetch for one car
+    // must not abort the whole phase map — depot/refill markers and other cars still need to render.
+    try{
+      const r=routed[ci], pal=CAR_PALETTE[ci%CAR_PALETTE.length], color=pal.bg;
+      const lines=[], markers=[], carBounds=[];
 
-    // Phase-specific waypoints and hospital order
-    const order = phase===1 ? r.hospitals : (r.hospitals2||r.hospitals);
-    const carRefill=r.refill||getRefill();
-    const pts = phase===1 ? [sp,...order,carRefill] : [carRefill,...order,sp];
+      // Phase-specific waypoints and hospital order
+      const order = phase===1 ? r.hospitals : (r.hospitals2||r.hospitals);
+      const carRefill=r.refill||getRefill();
+      const pts = phase===1 ? [sp,...order,carRefill] : [carRefill,...order,sp];
 
-    let coords=null;
-    if(k) coords=await orsRoadGeometry(pts);
-    const line=L.polyline(coords||pts.map(p=>[p.lat,p.lng]),{color,weight:4,opacity:0.85}).addTo(pm.map);
-    lines.push(line);
-    pts.forEach(p=>{ carBounds.push([p.lat,p.lng]); allBounds.push([p.lat,p.lng]); });
+      let coords=null;
+      if(k){ try{ coords=await orsRoadGeometry(pts); }catch(e){ console.error('road geometry',phase,ci,e); } }
+      const line=L.polyline(coords||pts.map(p=>[p.lat,p.lng]),{color,weight:4,opacity:0.85}).addTo(pm.map);
+      lines.push(line);
+      pts.forEach(p=>{ carBounds.push([p.lat,p.lng]); allBounds.push([p.lat,p.lng]); });
 
-    order.forEach((h,si)=>{
-      // Offset markers that overlap the depot, refill, or another hospital so none get hidden underneath
-      const anchors=[sp,carRefill,...order];
-      const near=anchors.filter(o=>Math.abs(o.lat-h.lat)<0.0012&&Math.abs(o.lng-h.lng)<0.0012);
-      let mlat=h.lat, mlng=h.lng;
-      if(near.length>1){
-        const rank=Math.max(0,near.indexOf(h));
-        const ang=(2*Math.PI*(rank+1))/(near.length+1);
-        mlat=h.lat+0.0016*Math.cos(ang);
-        mlng=h.lng+0.0016*Math.sin(ang);
-      }
-      const icon=L.divIcon({className:'',html:`<div style="width:28px;height:28px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);font-family:'DM Mono',monospace;">${si+1}</div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-16]});
-      const marker=L.marker([mlat,mlng],{icon,zIndexOffset:500}).addTo(pm.map);
-      marker.bindPopup(`<div class="popup-name">${h.name}</div><div class="popup-sub">${h.district} · ${h.geocoded?'✓ geocoded':'~ approx'}</div><div class="popup-car" style="background:${pal.light};color:${pal.dark};">Car ${ci+1} · Stop ${si+1}</div>`);
-      markers.push(marker);
-    });
-    pm.groups.push({lines,markers,bounds:carBounds,pal});
+      order.forEach((h,si)=>{
+        // Offset markers that overlap the depot, refill, or another hospital so none get hidden underneath
+        const anchors=[sp,carRefill,...order];
+        const near=anchors.filter(o=>Math.abs(o.lat-h.lat)<0.0012&&Math.abs(o.lng-h.lng)<0.0012);
+        let mlat=h.lat, mlng=h.lng;
+        if(near.length>1){
+          const rank=Math.max(0,near.indexOf(h));
+          const ang=(2*Math.PI*(rank+1))/(near.length+1);
+          mlat=h.lat+0.0016*Math.cos(ang);
+          mlng=h.lng+0.0016*Math.sin(ang);
+        }
+        const icon=L.divIcon({className:'',html:`<div style="width:28px;height:28px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25);font-family:'DM Mono',monospace;">${si+1}</div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-16]});
+        const marker=L.marker([mlat,mlng],{icon,zIndexOffset:500}).addTo(pm.map);
+        marker.bindPopup(`<div class="popup-name">${h.name}</div><div class="popup-sub">${h.district} · ${h.geocoded?'✓ geocoded':'~ approx'}</div><div class="popup-car" style="background:${pal.light};color:${pal.dark};">Car ${ci+1} · Stop ${si+1}</div>`);
+        markers.push(marker);
+      });
+      pm.groups.push({lines,markers,bounds:carBounds,pal});
+    }catch(e){
+      console.error('buildPhaseMap: car',ci,'phase',phase,'failed to render',e);
+      pm.groups.push({lines:[],markers:[],bounds:[],pal:CAR_PALETTE[ci%CAR_PALETTE.length]});
+    }
   }
 
   // Depot marker
@@ -2531,8 +2538,9 @@ async function renderMap(routed, sp){
   mapSpRef=sp;
   const section=document.getElementById('map-section');
   section.style.display='block';
-  await buildPhaseMap(1,routed,sp);
-  await buildPhaseMap(2,routed,sp);
+  // Each phase map is independent — a failure building one must not stop the other from rendering.
+  try{ await buildPhaseMap(1,routed,sp); }catch(e){ console.error('renderMap: phase 1 failed',e); }
+  try{ await buildPhaseMap(2,routed,sp); }catch(e){ console.error('renderMap: phase 2 failed',e); }
   setTimeout(()=>section.scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
 </script>
