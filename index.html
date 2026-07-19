@@ -262,7 +262,8 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
 .cc-row.total .cc-val{color:var(--red);font-weight:700;font-size:14px;}
 .cc-row.rate{background:var(--red-light);margin:0 -20px;padding:8px 20px;}
 .cc-row.rate:first-of-type{margin-top:8px;}
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem;}
+@media(max-width:640px){.stats-row{grid-template-columns:repeat(2,1fr);}}
 .stat-box{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm);transition:all 0.2s;animation:fadeUp 0.3s ease both;}
 .stat-box:hover{box-shadow:var(--shadow);transform:translateY(-1px);}
 .stat-val{font-family:var(--mono);font-size:28px;font-weight:500;color:var(--ink);line-height:1;letter-spacing:-0.02em;}
@@ -715,6 +716,11 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
             <div class="form-group"><label data-i18n="cc_oneWayDistanceKm">One-way distance (km)</label><input type="text" id="cc-oneWayDistanceKm" inputmode="decimal" oninput="recalcCostCalc()"/></div>
             <div class="form-group"><label data-i18n="cc_operatingDaysPerYear">Operating days / year</label><input type="text" id="cc-operatingDaysPerYear" inputmode="decimal" oninput="recalcCostCalc()"/></div>
           </div>
+          <div style="display:flex;align-items:center;gap:8px;margin:8px 0 4px;flex-wrap:wrap;">
+            <select id="cc-route-car-select" style="flex:1;min-width:150px;font-size:12px;padding:6px 10px;"></select>
+            <button type="button" class="btn btn-outline btn-sm" id="cc-fill-route-btn" onclick="fillDistanceFromRoute()" data-i18n="cc_fill_route">↻ Fill from optimized route</button>
+          </div>
+          <div class="field-help" style="margin-top:0;" data-i18n="cc_fill_route_hint">Uses the actual round-trip road distance from your last optimized route instead of a straight-line guess.</div>
           <div class="form-row">
             <div class="form-group"><label data-i18n="cc_avgSpeedKmh">Avg. driving speed (km/h)</label><input type="text" id="cc-avgSpeedKmh" inputmode="decimal" oninput="recalcCostCalc()"/></div>
             <div class="form-group"></div>
@@ -955,6 +961,10 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
           <div class="stat-val" id="s-depot" style="font-size:13px;padding-top:6px;line-height:1.4;">—</div>
           <div class="stat-lbl" data-i18n="s_depot">Starting depot</div>
         </div>
+        <div class="stat-box" style="animation-delay:0.2s;">
+          <div class="stat-val red" id="s-totalcost">—</div>
+          <div class="stat-lbl" data-i18n="s_totalcost">Total cost</div>
+        </div>
       </div>
       <div id="result-area">
         <div class="empty-state" style="background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);padding:4.5rem 2rem;box-shadow:var(--shadow-sm);">
@@ -1066,7 +1076,7 @@ const I18N={
     opt_btn_reason:'Add at least one hospital to calculate a route.',
     saved_lists:'— Saved lists —',
     // stats
-    s_hosp:'Hospitals today', s_cars:'Cars needed', s_depot:'Starting depot',
+    s_hosp:'Hospitals today', s_cars:'Cars needed', s_depot:'Starting depot', s_totalcost:'Total cost',
     // empty
     empty_msg:'Add hospitals and press <strong>Optimize routes</strong> to begin.',
     // settings modal
@@ -1101,7 +1111,7 @@ const I18N={
     tn_name_hosp:'Name this hospital:',
     tn_routes_done:'Routes optimized — {n} cars',
     // card / results
-    c_stops:'stops', c_total:'total', c_collect:'collect', c_deliver:'deliver',
+    c_stops:'stops', c_total:'total', c_cost_total:'cost', c_collect:'collect', c_deliver:'deliver',
     c_straight:'straight-line est.', c_open_gmaps:'🗺️ Open full route in Google Maps',
     ph1:'Phase 1 · Collect', ph2:'Phase 2 · Deliver',
     res_depot:'▶ Depot', res_refill:'🩸 Refill: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย',
@@ -1119,6 +1129,9 @@ const I18N={
     cc_usefulLifeYears:'Useful life (years)', cc_resaleValue:'Expected resale value (฿)',
     cc_resale_hint:"Leave at 0 if the vehicle won't be resold — depreciation then runs on the full price.",
     cc_oneWayDistanceKm:'One-way distance (km)', cc_operatingDaysPerYear:'Operating days / year',
+    cc_fill_route:'↻ Fill from optimized route',
+    cc_fill_route_hint:"Uses the actual round-trip road distance from your last optimized route instead of a straight-line guess.",
+    cc_no_route:'Optimize a route first', cc_roundtrip:'round trip', cc_filled:'Distance filled from route',
     cc_avgSpeedKmh:'Avg. driving speed (km/h)',
     cc_speed_hint:'Used only to estimate driving hours, for the Cost per hour figure below.',
     cc_insuranceAnnual:'Insurance (฿/year)', cc_maintenanceRatePerKm:'Maintenance (฿/km)',
@@ -1198,7 +1211,7 @@ const I18N={
     p_list:'รายการโรงพยาบาล', hosp_count:'{n} โรงพยาบาล', save_list:`${ICONS.save} บันทึก`, opt_btn:`${ICONS.play} คำนวณเส้นทางที่ดีที่สุด`,
     opt_btn_reason:'เพิ่มโรงพยาบาลอย่างน้อยหนึ่งแห่งเพื่อคำนวณเส้นทาง',
     saved_lists:'— รายการที่บันทึก —',
-    s_hosp:'โรงพยาบาลวันนี้', s_cars:'รถที่ต้องใช้', s_depot:'จุดเริ่มต้น',
+    s_hosp:'โรงพยาบาลวันนี้', s_cars:'รถที่ต้องใช้', s_depot:'จุดเริ่มต้น', s_totalcost:'ต้นทุนรวม',
     empty_msg:'เพิ่มโรงพยาบาลแล้วกด <strong>จัดเส้นทาง</strong> เพื่อเริ่ม',
     set_title:'ตั้งค่า', set_key:'คีย์ API ของ OpenRouteService',
     set_stop:'เวลาต่อโรงพยาบาล (นาที)', set_max:'จำนวนโรงพยาบาลสูงสุดต่อรถ',
@@ -1229,7 +1242,7 @@ const I18N={
     tn_del_confirm:'ลบรายการ "{name}"? การลบนี้ไม่สามารถย้อนกลับได้',
     tn_name_hosp:'ตั้งชื่อโรงพยาบาลนี้:',
     tn_routes_done:'จัดเส้นทางเรียบร้อย — {n} คัน',
-    c_stops:'จุด', c_total:'รวม', c_collect:'เก็บภาชนะ', c_deliver:'ส่งเลือด',
+    c_stops:'จุด', c_total:'รวม', c_cost_total:'ต้นทุน', c_collect:'เก็บภาชนะ', c_deliver:'ส่งเลือด',
     c_straight:'ประมาณเส้นตรง', c_open_gmaps:'🗺️ เปิดเส้นทางเต็มใน Google Maps',
     ph1:'เฟส 1 · เก็บภาชนะ', ph2:'เฟส 2 · ส่งเลือด',
     res_depot:'▶ จุดเริ่มต้น', res_refill:'🩸 เติมเลือด: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย',
@@ -1246,6 +1259,9 @@ const I18N={
     cc_usefulLifeYears:'อายุการใช้งาน (ปี)', cc_resaleValue:'มูลค่าขายต่อที่คาดไว้ (฿)',
     cc_resale_hint:'ปล่อยเป็น 0 หากไม่ขายต่อรถ — ค่าเสื่อมราคาจะคิดจากราคาเต็ม',
     cc_oneWayDistanceKm:'ระยะทางเที่ยวเดียว (กม.)', cc_operatingDaysPerYear:'วันที่ให้บริการ / ปี',
+    cc_fill_route:'↻ ดึงจากเส้นทางที่จัดแล้ว',
+    cc_fill_route_hint:'ใช้ระยะทางถนนไป-กลับจริงจากเส้นทางที่จัดล่าสุด แทนการเดาระยะเส้นตรง',
+    cc_no_route:'จัดเส้นทางก่อน', cc_roundtrip:'ไป-กลับ', cc_filled:'กรอกระยะทางจากเส้นทางแล้ว',
     cc_avgSpeedKmh:'ความเร็วเฉลี่ย (กม./ชม.)',
     cc_speed_hint:'ใช้เพื่อประมาณชั่วโมงขับรถสำหรับคำนวณต้นทุนต่อชั่วโมงด้านล่างเท่านั้น',
     cc_insuranceAnnual:'ประกันภัย (฿/ปี)', cc_maintenanceRatePerKm:'ค่าบำรุงรักษา (฿/กม.)',
@@ -1422,7 +1438,36 @@ function openCostCalc(){
   const vals=loadCCInputs();
   CC_FIELDS.forEach(k=>{const el=document.getElementById('cc-'+k);if(el)el.value=vals[k];});
   recalcCostCalc();
+  populateRouteCarSelect();
   document.getElementById('cost-calc-page').classList.add('open');
+}
+/* Populate the "fill from optimized route" car picker with cars from the last optimize run
+   (window._lastRouted, set by renderResults) — disabled with an explanatory option when none exists. */
+function populateRouteCarSelect(){
+  const sel=document.getElementById('cc-route-car-select'),btn=document.getElementById('cc-fill-route-btn');
+  const routed=(window._lastRouted||[]).filter(r=>r.useRoad&&r.totalKm!=null&&r.totalKm2!=null);
+  if(!sel||!btn)return;
+  if(!routed.length){
+    sel.innerHTML=`<option value="">${t('cc_no_route')}</option>`;
+    sel.disabled=true;btn.disabled=true;
+    return;
+  }
+  sel.disabled=false;btn.disabled=false;
+  sel.innerHTML=routed.map((r,ci)=>`<option value="${ci}">${t('map_car')} ${ci+1} — ${r.hospitals.length} ${t('c_stops')} (${(parseFloat(r.totalKm)+parseFloat(r.totalKm2)).toFixed(1)} km ${t('cc_roundtrip')})</option>`).join('');
+}
+/* Sets one-way distance from a real optimized car's round-trip distance (Phase 1 + Phase 2 road
+   km), halved to fit this calculator's oneWayDistanceKm×2 mileage model — more accurate than a
+   straight-line guess since it reflects the actual multi-stop route the car drives. */
+function fillDistanceFromRoute(){
+  const routed=(window._lastRouted||[]).filter(r=>r.useRoad&&r.totalKm!=null&&r.totalKm2!=null);
+  const sel=document.getElementById('cc-route-car-select');
+  const ci=+sel.value;
+  const r=routed[ci];
+  if(!r)return;
+  const roundTrip=parseFloat(r.totalKm)+parseFloat(r.totalKm2);
+  document.getElementById('cc-oneWayDistanceKm').value=(roundTrip/2).toFixed(1);
+  recalcCostCalc();
+  toast(t('cc_filled'),'success',2500);
 }
 function closeCostCalc(){document.getElementById('cost-calc-page').classList.remove('open');}
 function fmtTHB(n){return '฿'+Math.round(n).toLocaleString();}
@@ -1998,7 +2043,7 @@ async function chooseAutoStart(located,candidates,shared){
       for(const grp of groups){
         const r=await routeCar(grp,depotHosp,candidates,sc);
         if(r.useRoad){
-          cost+=getCostPerKm()*(parseFloat(r.totalKm)+parseFloat(r.totalKm2))+getCostPerHour()*(parseFloat(r.totalMin)+parseFloat(r.totalMin2))/60;
+          cost+=r.cost1+r.cost2;
           time+=parseFloat(r.totalMin)+parseFloat(r.totalMin2);
           dist+=parseFloat(r.totalKm)+parseFloat(r.totalKm2);
         }
@@ -2081,6 +2126,8 @@ async function runOptimize(){
 async function renderResults(routed,sp){
   window._lastRouted=routed;window._lastSp=sp;
   document.getElementById('s-cars').textContent=routed.length;
+  const fleetCost=routed.reduce((sum,r)=>sum+(r.useRoad?(r.cost1||0)+(r.cost2||0):0),0);
+  document.getElementById('s-totalcost').textContent=routed.some(r=>r.useRoad)?fmtTHB(fleetCost):'—';
   window._cardData={};
   const departStr=getDepartTime();
   const stopMin=getStopMin();
@@ -2123,8 +2170,9 @@ async function renderResults(routed,sp){
       return nm?encodeURIComponent(nm):`${p.lat},${p.lng}`;
     };
     const gmapsUrl='https://www.google.com/maps/dir/'+journey.map(gStop).join('/');
-    const p1metric=r.useRoad&&r.totalMin?`~${r.totalMin} min · ${r.totalKm} km`:t('c_straight');
-    const p2metric=r.useRoad&&r.totalMin2?`~${r.totalMin2} min · ${r.totalKm2} km`:t('c_straight');
+    const p1metric=r.useRoad&&r.totalMin?`~${r.totalMin} min · ${r.totalKm} km · ${fmtTHB(r.cost1)}`:t('c_straight');
+    const p2metric=r.useRoad&&r.totalMin2?`~${r.totalMin2} min · ${r.totalKm2} km · ${fmtTHB(r.cost2)}`:t('c_straight');
+    const carCost=r.useRoad?fmtTHB((r.cost1||0)+(r.cost2||0)):null;
     const depotShort=sp.name.length>14?sp.name.slice(0,12)+'…':sp.name;
     const refillName=carRefill.name;const refillShort='🩸 '+(refillName.length>12?refillName.slice(0,11)+'…':refillName);
     window._cardData[ci]={stops1,stops2,p1metric,p2metric,depot:depotShort,refill:refillShort,light:pal.light,dark:pal.dark,bg:pal.bg};
@@ -2133,7 +2181,7 @@ async function renderResults(routed,sp){
         <div style="width:36px;height:36px;border-radius:10px;background:${pal.bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 2px 8px ${pal.bg}44;">🚗</div>
         <div style="flex:1;min-width:0;">
           <div style="font-weight:600;font-size:14px;color:${pal.dark};">Car ${ci+1}</div>
-          <div style="font-size:11px;font-family:var(--mono);color:${pal.dark};opacity:0.75;margin-top:1px;">${r.hospitals.length} ${t('c_stops')}${tripStr?` · ${tripStr} ${t('c_total')}`:''}</div>
+          <div style="font-size:11px;font-family:var(--mono);color:${pal.dark};opacity:0.75;margin-top:1px;">${r.hospitals.length} ${t('c_stops')}${tripStr?` · ${tripStr} ${t('c_total')}`:''}${carCost?` · ${carCost} ${t('c_cost_total')}`:''}</div>
         </div>
       </div>
       <div style="padding:14px 16px 16px;">
@@ -2229,7 +2277,7 @@ function mkPhaseMetrics(depotKm,depotT,refillKm,refillT,kmMat,tMat,costPerKm,cos
 }
 async function routeCar(grp,sp,candidates,shared){
   candidates=candidates||getRefillCandidates();
-  const base={hospitals:grp,hospitals2:grp,totalKm:null,totalKm2:null,totalMin:null,totalMin2:null,legs1:null,legs2:null,useRoad:false,refill:candidates[0]};
+  const base={hospitals:grp,hospitals2:grp,totalKm:null,totalKm2:null,totalMin:null,totalMin2:null,cost1:null,cost2:null,legs1:null,legs2:null,useRoad:false,refill:candidates[0]};
   if(!grp.length)return {...base,hospitals2:[]};
   const costPerKm=getCostPerKm(),costPerHour=getCostPerHour();
   const UNREACHABLE=1e9;
@@ -2249,6 +2297,7 @@ async function routeCar(grp,sp,candidates,shared){
           hospitals:p1.order,hospitals2:p2.order,
           totalMin:(p1.time/60).toFixed(0),totalKm:p1.distance.toFixed(1),
           totalMin2:(p2.time/60).toFixed(0),totalKm2:p2.distance.toFixed(1),
+          cost1:p1.cost,cost2:p2.cost,
           legs1:p1.order.map((h,i)=>(i===0?metrics1.time.s[grp.indexOf(h)]:metrics1.time.m[grp.indexOf(p1.order[i-1])][grp.indexOf(h)])/60),
           legs2:p2.order.map((h,i)=>(i===0?metrics2.time.s[grp.indexOf(h)]:metrics2.time.m[grp.indexOf(p2.order[i-1])][grp.indexOf(h)])/60),
           useRoad:true};
