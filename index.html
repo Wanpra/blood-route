@@ -695,7 +695,7 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
     <button class="modal-close" onclick="closeCostCalc()" aria-label="Close cost calculator">×</button>
   </div>
   <div class="cc-body">
-    <p class="field-help" style="margin-top:0;margin-bottom:20px;" data-i18n="cc_intro">Work out the true monthly/annual cost of running a vehicle — including depreciation — and optionally apply the result as this app's Cost per km / Cost per hour.</p>
+    <p class="field-help" style="margin-top:0;margin-bottom:20px;" data-i18n="cc_intro">Work out the true monthly cost of running each car — including depreciation — using the actual distance from your last optimized route. Each car gets its own figure since each drives a different distance.</p>
     <div class="cc-grid">
       <div>
         <div class="cc-section">
@@ -711,24 +711,15 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
           <div class="field-help" data-i18n="cc_resale_hint">Leave at 0 if the vehicle won't be resold — depreciation then runs on the full price.</div>
         </div>
         <div class="cc-section">
-          <h3 data-i18n="cc_sec_route">Route &amp; schedule</h3>
+          <h3 data-i18n="cc_sec_route">Schedule</h3>
           <div class="form-row">
-            <div class="form-group"><label data-i18n="cc_oneWayDistanceKm">One-way distance (km)</label><input type="text" id="cc-oneWayDistanceKm" inputmode="decimal" oninput="recalcCostCalc()"/></div>
             <div class="form-group"><label data-i18n="cc_operatingDaysPerYear">Operating days / year</label><input type="text" id="cc-operatingDaysPerYear" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;margin:8px 0 4px;flex-wrap:wrap;">
-            <select id="cc-route-car-select" style="flex:1;min-width:150px;font-size:12px;padding:6px 10px;"></select>
-            <button type="button" class="btn btn-outline btn-sm" id="cc-fill-route-btn" onclick="fillDistanceFromRoute()" data-i18n="cc_fill_route">↻ Fill from optimized route</button>
-          </div>
-          <div class="field-help" style="margin-top:0;" data-i18n="cc_fill_route_hint">Uses the actual round-trip road distance from your last optimized route instead of a straight-line guess.</div>
-          <div class="form-row">
             <div class="form-group"><label data-i18n="cc_avgSpeedKmh">Avg. driving speed (km/h)</label><input type="text" id="cc-avgSpeedKmh" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-            <div class="form-group"></div>
           </div>
-          <div class="field-help" data-i18n="cc_speed_hint">Used only to estimate driving hours, for the Cost per hour figure below.</div>
+          <div class="field-help" data-i18n="cc_dist_auto_hint">Distance is no longer entered by hand — each car's daily round-trip distance comes straight from its last optimized route (Phase 1 + Phase 2 road km), so mileage naturally varies car to car.</div>
         </div>
         <div class="cc-section">
-          <h3 data-i18n="cc_sec_opex">Operating costs</h3>
+          <h3 data-i18n="cc_sec_opex">Operating costs (per vehicle)</h3>
           <div class="form-row">
             <div class="form-group"><label data-i18n="cc_insuranceAnnual">Insurance (฿/year)</label><input type="text" id="cc-insuranceAnnual" inputmode="decimal" oninput="recalcCostCalc()"/></div>
             <div class="form-group"><label data-i18n="cc_maintenanceRatePerKm">Maintenance (฿/km)</label><input type="text" id="cc-maintenanceRatePerKm" inputmode="decimal" oninput="recalcCostCalc()"/></div>
@@ -744,21 +735,8 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
         </div>
       </div>
       <div class="cc-results">
-        <div class="cc-row"><span class="cc-label" data-i18n="cc_r_gross">Gross investment</span><span class="cc-val" id="cc-r-grossInvestment">—</span></div>
-        <div class="cc-row"><span class="cc-label" data-i18n="cc_r_depreciable">Depreciable amount</span><span class="cc-val" id="cc-r-depreciableAmount">—</span></div>
-        <div class="cc-row"><span class="cc-label" data-i18n="cc_r_dep">Monthly depreciation</span><span class="cc-val" id="cc-r-monthlyDepreciation">—</span></div>
-        <div class="cc-row"><span class="cc-label" data-i18n="cc_r_mileage">Annual mileage</span><span class="cc-val" id="cc-r-annualMileage">—</span></div>
-        <div class="cc-row"><span class="cc-label" data-i18n="cc_r_maint">Maintenance / year</span><span class="cc-val" id="cc-r-maintenanceCost">—</span></div>
-        <div class="cc-row"><span class="cc-label" data-i18n="cc_r_fuel">Fuel / year</span><span class="cc-val" id="cc-r-fuelCost">—</span></div>
-        <div class="cc-row"><span class="cc-label" data-i18n="cc_r_toll">Toll / year</span><span class="cc-val" id="cc-r-tollCost">—</span></div>
-        <div class="cc-row"><span class="cc-label" data-i18n="cc_r_driver">Driver / year</span><span class="cc-val" id="cc-r-driverCost">—</span></div>
-        <div class="cc-row"><span class="cc-label" data-i18n="cc_r_annualExp">Annual expense</span><span class="cc-val" id="cc-r-annualExpense">—</span></div>
-        <div class="cc-row"><span class="cc-label" data-i18n="cc_r_monthlyExp">Monthly expense</span><span class="cc-val" id="cc-r-monthlyExpense">—</span></div>
-        <div class="cc-row total"><span class="cc-label" data-i18n="cc_r_monthlyCost">Monthly total cost</span><span class="cc-val" id="cc-r-monthlyCost">—</span></div>
-        <div class="cc-row total"><span class="cc-label" data-i18n="cc_r_annualCost">Annual total cost</span><span class="cc-val" id="cc-r-annualCost">—</span></div>
-        <div class="cc-row rate"><span class="cc-label" data-i18n="cc_r_perKm">→ Cost per km</span><span class="cc-val" id="cc-r-costPerKm">—</span></div>
-        <div class="cc-row rate"><span class="cc-label" data-i18n="cc_r_perHour">→ Cost per hour</span><span class="cc-val" id="cc-r-costPerHour">—</span></div>
-        <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="applyCostCalcToSettings()" data-i18n="cc_apply">Apply to Cost per km/hour</button>
+        <div id="cc-results-body"><div class="field-help" style="margin:0;" data-i18n="cc_need_route">Optimize a route in Setup first — vehicle cost is calculated per car from its actual route distance.</div></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="applyCostCalcToSettings()" data-i18n="cc_apply">Apply fleet rate to Cost per km/hour</button>
       </div>
     </div>
   </div>
@@ -1123,26 +1101,21 @@ const I18N={
     // vehicle cost calculator
     cc_open_btn:'🚚 Open Vehicle Cost Calculator',
     cc_title:'Vehicle Cost Calculator',
-    cc_intro:"Work out the true monthly/annual cost of running a vehicle — including depreciation — and optionally apply the result as this app's Cost per km / Cost per hour.",
-    cc_sec_vehicle:'Vehicle & investment', cc_sec_route:'Route & schedule', cc_sec_opex:'Operating costs',
+    cc_intro:'Work out the true monthly cost of running each car — including depreciation — using the actual distance from your last optimized route. Each car gets its own figure since each drives a different distance.',
+    cc_sec_vehicle:'Vehicle & investment', cc_sec_route:'Schedule', cc_sec_opex:'Operating costs (per vehicle)',
     cc_vehiclePrice:'Vehicle price (฿)', cc_conversionCost:'Conversion / fit-out cost (฿)',
     cc_usefulLifeYears:'Useful life (years)', cc_resaleValue:'Expected resale value (฿)',
     cc_resale_hint:"Leave at 0 if the vehicle won't be resold — depreciation then runs on the full price.",
-    cc_oneWayDistanceKm:'One-way distance (km)', cc_operatingDaysPerYear:'Operating days / year',
-    cc_fill_route:'↻ Fill from optimized route',
-    cc_fill_route_hint:"Uses the actual round-trip road distance from your last optimized route instead of a straight-line guess.",
-    cc_no_route:'Optimize a route first', cc_roundtrip:'round trip', cc_filled:'Distance filled from route',
-    cc_avgSpeedKmh:'Avg. driving speed (km/h)',
-    cc_speed_hint:'Used only to estimate driving hours, for the Cost per hour figure below.',
+    cc_operatingDaysPerYear:'Operating days / year', cc_avgSpeedKmh:'Avg. driving speed (km/h)',
+    cc_dist_auto_hint:"Distance is no longer entered by hand — each car's daily round-trip distance comes straight from its last optimized route (Phase 1 + Phase 2 road km), so mileage naturally varies car to car.",
     cc_insuranceAnnual:'Insurance (฿/year)', cc_maintenanceRatePerKm:'Maintenance (฿/km)',
     cc_fuelPricePerLiter:'Fuel price (฿/liter)', cc_fuelEfficiencyKmPerL:'Fuel efficiency (km/liter)',
     cc_tollFeePerDay:'Toll fee (฿/day)', cc_driverSalaryMonthly:'Driver salary (฿/month)',
-    cc_r_gross:'Gross investment', cc_r_depreciable:'Depreciable amount', cc_r_dep:'Monthly depreciation',
-    cc_r_mileage:'Annual mileage', cc_r_maint:'Maintenance / year', cc_r_fuel:'Fuel / year',
-    cc_r_toll:'Toll / year', cc_r_driver:'Driver / year', cc_r_annualExp:'Annual expense',
-    cc_r_monthlyExp:'Monthly expense', cc_r_monthlyCost:'Monthly total cost', cc_r_annualCost:'Annual total cost',
-    cc_r_perKm:'→ Cost per km', cc_r_perHour:'→ Cost per hour',
-    cc_apply:'Apply to Cost per km/hour', cc_applied:'Applied to Cost per km / Cost per hour',
+    cc_need_route:'Optimize a route in Setup first — vehicle cost is calculated per car from its actual route distance.',
+    cc_fleet:'fleet total', cc_year_abbr:'yr', cc_month_abbr:'mo',
+    cc_r_monthlyCost:'Monthly total cost', cc_r_perKm:'→ Cost per km', cc_r_perHour:'→ Cost per hour',
+    cc_apply:'Apply fleet rate to Cost per km/hour', cc_applied:'Applied to Cost per km / Cost per hour',
+    c_vehcost:'Vehicle cost:',
     ac_setkey:'Set an ORS key in Settings to enable suggestions',
     ac_searching:'Searching…', ac_nomatch:'No matches',
     ac_setkey_map:'Set an ORS key to search — or just drag the map',
@@ -1253,26 +1226,21 @@ const I18N={
     set_notice_cost:'💰 เส้นทางจะถูกจัดอันดับตามต้นทุนรวมก่อน (ระยะทาง×ต้นทุนต่อกม. + เวลา×ต้นทุนต่อชม.) จากนั้นตามเวลา และตามระยะทางเพื่อตัดสินกรณีเสมอกัน',
     cc_open_btn:'🚚 เปิดเครื่องคำนวณต้นทุนรถ',
     cc_title:'เครื่องคำนวณต้นทุนรถ',
-    cc_intro:'คำนวณต้นทุนรายเดือน/รายปีที่แท้จริงของการใช้งานรถ — รวมค่าเสื่อมราคา — และสามารถนำผลลัพธ์ไปตั้งเป็นต้นทุนต่อกม. / ต้นทุนต่อชม. ของแอปได้',
-    cc_sec_vehicle:'รถและเงินลงทุน', cc_sec_route:'เส้นทางและตารางงาน', cc_sec_opex:'ต้นทุนดำเนินงาน',
+    cc_intro:'คำนวณต้นทุนรายเดือนที่แท้จริงของรถแต่ละคัน — รวมค่าเสื่อมราคา — โดยใช้ระยะทางจริงจากเส้นทางที่จัดล่าสุด แต่ละคันจะมีตัวเลขของตัวเองเพราะแต่ละคันวิ่งระยะทางไม่เท่ากัน',
+    cc_sec_vehicle:'รถและเงินลงทุน', cc_sec_route:'ตารางงาน', cc_sec_opex:'ต้นทุนดำเนินงาน (ต่อคัน)',
     cc_vehiclePrice:'ราคารถ (฿)', cc_conversionCost:'ค่าดัดแปลง/ติดตั้งอุปกรณ์ (฿)',
     cc_usefulLifeYears:'อายุการใช้งาน (ปี)', cc_resaleValue:'มูลค่าขายต่อที่คาดไว้ (฿)',
     cc_resale_hint:'ปล่อยเป็น 0 หากไม่ขายต่อรถ — ค่าเสื่อมราคาจะคิดจากราคาเต็ม',
-    cc_oneWayDistanceKm:'ระยะทางเที่ยวเดียว (กม.)', cc_operatingDaysPerYear:'วันที่ให้บริการ / ปี',
-    cc_fill_route:'↻ ดึงจากเส้นทางที่จัดแล้ว',
-    cc_fill_route_hint:'ใช้ระยะทางถนนไป-กลับจริงจากเส้นทางที่จัดล่าสุด แทนการเดาระยะเส้นตรง',
-    cc_no_route:'จัดเส้นทางก่อน', cc_roundtrip:'ไป-กลับ', cc_filled:'กรอกระยะทางจากเส้นทางแล้ว',
-    cc_avgSpeedKmh:'ความเร็วเฉลี่ย (กม./ชม.)',
-    cc_speed_hint:'ใช้เพื่อประมาณชั่วโมงขับรถสำหรับคำนวณต้นทุนต่อชั่วโมงด้านล่างเท่านั้น',
+    cc_operatingDaysPerYear:'วันที่ให้บริการ / ปี', cc_avgSpeedKmh:'ความเร็วเฉลี่ย (กม./ชม.)',
+    cc_dist_auto_hint:'ไม่ต้องกรอกระยะทางเองอีกต่อไป — ระยะทางไป-กลับต่อวันของแต่ละคันดึงมาจากเส้นทางที่จัดล่าสุดโดยตรง (ระยะทางถนนเฟส 1 + เฟส 2) ทำให้แต่ละคันมีระยะทางไม่เท่ากันตามจริง',
     cc_insuranceAnnual:'ประกันภัย (฿/ปี)', cc_maintenanceRatePerKm:'ค่าบำรุงรักษา (฿/กม.)',
     cc_fuelPricePerLiter:'ราคาน้ำมัน (฿/ลิตร)', cc_fuelEfficiencyKmPerL:'อัตราสิ้นเปลือง (กม./ลิตร)',
     cc_tollFeePerDay:'ค่าทางด่วน (฿/วัน)', cc_driverSalaryMonthly:'เงินเดือนคนขับ (฿/เดือน)',
-    cc_r_gross:'เงินลงทุนรวม', cc_r_depreciable:'มูลค่าที่คิดค่าเสื่อม', cc_r_dep:'ค่าเสื่อมราคาต่อเดือน',
-    cc_r_mileage:'ระยะทางต่อปี', cc_r_maint:'ค่าบำรุงรักษา/ปี', cc_r_fuel:'ค่าน้ำมัน/ปี',
-    cc_r_toll:'ค่าทางด่วน/ปี', cc_r_driver:'ค่าคนขับ/ปี', cc_r_annualExp:'ค่าใช้จ่ายต่อปี',
-    cc_r_monthlyExp:'ค่าใช้จ่ายต่อเดือน', cc_r_monthlyCost:'ต้นทุนรวมต่อเดือน', cc_r_annualCost:'ต้นทุนรวมต่อปี',
-    cc_r_perKm:'→ ต้นทุนต่อกม.', cc_r_perHour:'→ ต้นทุนต่อชม.',
-    cc_apply:'นำไปใช้เป็นต้นทุนต่อกม./ชม.', cc_applied:'นำไปใช้เป็นต้นทุนต่อกม. / ต้นทุนต่อชม. แล้ว',
+    cc_need_route:'จัดเส้นทางในหน้าตั้งค่าก่อน — ต้นทุนรถจะคำนวณต่อคันจากระยะทางจริงของเส้นทางนั้น',
+    cc_fleet:'รวมทั้งฟลีท', cc_year_abbr:'ปี', cc_month_abbr:'เดือน',
+    cc_r_monthlyCost:'ต้นทุนรวมต่อเดือน', cc_r_perKm:'→ ต้นทุนต่อกม.', cc_r_perHour:'→ ต้นทุนต่อชม.',
+    cc_apply:'นำอัตราฟลีทไปใช้เป็นต้นทุนต่อกม./ชม.', cc_applied:'นำไปใช้เป็นต้นทุนต่อกม. / ต้นทุนต่อชม. แล้ว',
+    c_vehcost:'ต้นทุนรถ:',
     ac_setkey:'ตั้งคีย์ ORS ในการตั้งค่าเพื่อเปิดใช้คำแนะนำ',
     ac_searching:'กำลังค้นหา…', ac_nomatch:'ไม่พบผลลัพธ์',
     ac_setkey_map:'ตั้งคีย์ ORS เพื่อค้นหา — หรือเลื่อนแผนที่เอง',
@@ -1395,12 +1363,13 @@ function saveKeys(){
   updateApiIndicator();closeSettings();renderList();toast(t('settings_saved'),'success',2500);
   if(window._lastRouted&&window._lastSp)renderResults(window._lastRouted,window._lastSp);
 }
-/* ── Vehicle cost calculator: works out true monthly/annual cost of running a vehicle
-   (including depreciation net of resale value), and can push a derived Cost per km /
-   Cost per hour into the main route-cost settings above. ── */
+/* ── Vehicle cost calculator: works out true monthly cost of running each car — including
+   depreciation net of resale value — using that car's OWN actual round-trip road distance from
+   the last optimized route (no manual distance entry: mileage varies car to car by design).
+   Can also push a fleet-wide derived Cost per km / Cost per hour into the route-cost settings. ── */
 const CC_DEFAULTS={
   vehiclePrice:487200,conversionCost:320540,usefulLifeYears:8,resaleValue:146160,
-  oneWayDistanceKm:35,operatingDaysPerYear:365,avgSpeedKmh:40,
+  operatingDaysPerYear:365,avgSpeedKmh:40,
   insuranceAnnual:44000,maintenanceRatePerKm:0.8,fuelPricePerLiter:33,fuelEfficiencyKmPerL:14.29,
   tollFeePerDay:200,driverSalaryMonthly:13000
 };
@@ -1410,12 +1379,14 @@ function loadCCInputs(){
 }
 function saveCCInputs(vals){localStorage.setItem('cost_calc_inputs',JSON.stringify(vals));}
 /* resaleValue defaults to 0 above the call site (never here) — depreciableAmount = grossInvestment
-   - resaleValue handles both the "no resale" and "resale expected" cases through one formula. */
+   - resaleValue handles both the "no resale" and "resale expected" cases through one formula.
+   annualMileage is passed in directly by the caller (computed per car from its real route
+   distance) rather than derived from a manual one-way-distance figure. */
 function calcVehicleCost(inp){
   const grossInvestment=inp.vehiclePrice+inp.conversionCost;
   const depreciableAmount=grossInvestment-inp.resaleValue;
   const monthlyDepreciation=depreciableAmount/inp.usefulLifeYears/12;
-  const annualMileage=inp.oneWayDistanceKm*2*inp.operatingDaysPerYear;
+  const annualMileage=inp.annualMileage;
   const maintenanceCost=inp.maintenanceRatePerKm*annualMileage;
   const fuelCost=(inp.fuelPricePerLiter/inp.fuelEfficiencyKmPerL)*annualMileage;
   const tollCost=inp.tollFeePerDay*inp.operatingDaysPerYear;
@@ -1424,77 +1395,59 @@ function calcVehicleCost(inp){
   const monthlyExpense=annualExpense/12;
   const monthlyCost=monthlyDepreciation+monthlyExpense;
   const annualCost=monthlyCost*12;
-  // Derived rates for this app's cost formula (distance×cost-per-km + time×cost-per-hour):
-  // distance-linked costs (fuel+wear) become cost-per-km; time-linked fixed costs
-  // (driver, insurance, toll, depreciation) become cost-per-hour via estimated annual driving hours.
   const annualHours=inp.avgSpeedKmh>0?annualMileage/inp.avgSpeedKmh:0;
-  const costPerKm=annualMileage>0?(fuelCost+maintenanceCost)/annualMileage:0;
-  const fixedAnnual=inp.insuranceAnnual+tollCost+driverCost+monthlyDepreciation*12;
-  const costPerHour=annualHours>0?fixedAnnual/annualHours:0;
-  return {grossInvestment,depreciableAmount,monthlyDepreciation,annualMileage,maintenanceCost,fuelCost,tollCost,driverCost,annualExpense,monthlyExpense,monthlyCost,annualCost,annualHours,costPerKm,costPerHour};
+  return {grossInvestment,depreciableAmount,monthlyDepreciation,annualMileage,maintenanceCost,fuelCost,tollCost,driverCost,annualExpense,monthlyExpense,monthlyCost,annualCost,annualHours};
+}
+/* Real per-car daily round-trip road distance (Phase 1 + Phase 2 km) from the last optimize run —
+   the single source of truth for mileage everywhere in the calculator and the Results cards. */
+function routedCarsWithDistance(){
+  return (window._lastRouted||[]).filter(r=>r.useRoad&&r.totalKm!=null&&r.totalKm2!=null)
+    .map((r,ci)=>({r,ci,dailyRoundTripKm:parseFloat(r.totalKm)+parseFloat(r.totalKm2)}));
 }
 function openCostCalc(){
   closeSettings();
   const vals=loadCCInputs();
   CC_FIELDS.forEach(k=>{const el=document.getElementById('cc-'+k);if(el)el.value=vals[k];});
   recalcCostCalc();
-  populateRouteCarSelect();
   document.getElementById('cost-calc-page').classList.add('open');
-}
-/* Populate the "fill from optimized route" car picker with cars from the last optimize run
-   (window._lastRouted, set by renderResults) — disabled with an explanatory option when none exists. */
-function populateRouteCarSelect(){
-  const sel=document.getElementById('cc-route-car-select'),btn=document.getElementById('cc-fill-route-btn');
-  const routed=(window._lastRouted||[]).filter(r=>r.useRoad&&r.totalKm!=null&&r.totalKm2!=null);
-  if(!sel||!btn)return;
-  if(!routed.length){
-    sel.innerHTML=`<option value="">${t('cc_no_route')}</option>`;
-    sel.disabled=true;btn.disabled=true;
-    return;
-  }
-  sel.disabled=false;btn.disabled=false;
-  sel.innerHTML=routed.map((r,ci)=>`<option value="${ci}">${t('map_car')} ${ci+1} — ${r.hospitals.length} ${t('c_stops')} (${(parseFloat(r.totalKm)+parseFloat(r.totalKm2)).toFixed(1)} km ${t('cc_roundtrip')})</option>`).join('');
-}
-/* Sets one-way distance from a real optimized car's round-trip distance (Phase 1 + Phase 2 road
-   km), halved to fit this calculator's oneWayDistanceKm×2 mileage model — more accurate than a
-   straight-line guess since it reflects the actual multi-stop route the car drives. */
-function fillDistanceFromRoute(){
-  const routed=(window._lastRouted||[]).filter(r=>r.useRoad&&r.totalKm!=null&&r.totalKm2!=null);
-  const sel=document.getElementById('cc-route-car-select');
-  const ci=+sel.value;
-  const r=routed[ci];
-  if(!r)return;
-  const roundTrip=parseFloat(r.totalKm)+parseFloat(r.totalKm2);
-  document.getElementById('cc-oneWayDistanceKm').value=(roundTrip/2).toFixed(1);
-  recalcCostCalc();
-  toast(t('cc_filled'),'success',2500);
 }
 function closeCostCalc(){document.getElementById('cost-calc-page').classList.remove('open');}
 function fmtTHB(n){return '฿'+Math.round(n).toLocaleString();}
+/* Computes calcVehicleCost() per car (using that car's own real mileage) plus a fleet-wide
+   variable/fixed cost split for the derived Cost per km / Cost per hour "Apply" rates, and
+   renders it all into the results panel. Returns null (and shows a hint) if no route exists yet. */
 function recalcCostCalc(){
   const vals={};
   CC_FIELDS.forEach(k=>{const el=document.getElementById('cc-'+k);const v=el?parseFloat(el.value):NaN;vals[k]=isNaN(v)?0:v;});
   saveCCInputs(vals);
-  const r=calcVehicleCost(vals);
-  document.getElementById('cc-r-grossInvestment').textContent=fmtTHB(r.grossInvestment);
-  document.getElementById('cc-r-depreciableAmount').textContent=fmtTHB(r.depreciableAmount);
-  document.getElementById('cc-r-monthlyDepreciation').textContent=fmtTHB(r.monthlyDepreciation);
-  document.getElementById('cc-r-annualMileage').textContent=Math.round(r.annualMileage).toLocaleString()+' km';
-  document.getElementById('cc-r-maintenanceCost').textContent=fmtTHB(r.maintenanceCost);
-  document.getElementById('cc-r-fuelCost').textContent=fmtTHB(r.fuelCost);
-  document.getElementById('cc-r-tollCost').textContent=fmtTHB(r.tollCost);
-  document.getElementById('cc-r-driverCost').textContent=fmtTHB(r.driverCost);
-  document.getElementById('cc-r-annualExpense').textContent=fmtTHB(r.annualExpense);
-  document.getElementById('cc-r-monthlyExpense').textContent=fmtTHB(r.monthlyExpense);
-  document.getElementById('cc-r-monthlyCost').textContent=fmtTHB(r.monthlyCost);
-  document.getElementById('cc-r-annualCost').textContent=fmtTHB(r.annualCost);
-  document.getElementById('cc-r-costPerKm').textContent='฿'+r.costPerKm.toFixed(2);
-  document.getElementById('cc-r-costPerHour').textContent='฿'+r.costPerHour.toFixed(2);
-  window._ccLast=r;
-  return r;
+  const body=document.getElementById('cc-results-body');
+  const cars=routedCarsWithDistance();
+  if(!cars.length){
+    body.innerHTML=`<div class="field-help" style="margin:0;">${t('cc_need_route')}</div>`;
+    window._ccLast=null;
+    return null;
+  }
+  const perCar=cars.map(({r,ci,dailyRoundTripKm})=>{
+    const annualMileage=dailyRoundTripKm*vals.operatingDaysPerYear;
+    return {ci,dailyRoundTripKm,...calcVehicleCost({...vals,annualMileage})};
+  });
+  const fleetVariableAnnual=perCar.reduce((s,c)=>s+c.maintenanceCost+c.fuelCost,0);
+  const fleetFixedAnnual=perCar.reduce((s,c)=>s+vals.insuranceAnnual+c.tollCost+c.driverCost+c.monthlyDepreciation*12,0);
+  const fleetAnnualMileage=perCar.reduce((s,c)=>s+c.annualMileage,0);
+  const fleetAnnualHours=perCar.reduce((s,c)=>s+c.annualHours,0);
+  const costPerKm=fleetAnnualMileage>0?fleetVariableAnnual/fleetAnnualMileage:0;
+  const costPerHour=fleetAnnualHours>0?fleetFixedAnnual/fleetAnnualHours:0;
+  const fleetMonthlyCost=perCar.reduce((s,c)=>s+c.monthlyCost,0);
+  body.innerHTML=perCar.map(c=>`<div class="cc-row"><span class="cc-label">${t('map_car')} ${c.ci+1} — ${Math.round(c.annualMileage).toLocaleString()} km/${t('cc_year_abbr')}</span><span class="cc-val">${fmtTHB(c.monthlyCost)}/${t('cc_month_abbr')}</span></div>`).join('')
+    +`<div class="cc-row total"><span class="cc-label">${t('cc_r_monthlyCost')} (${t('cc_fleet')})</span><span class="cc-val">${fmtTHB(fleetMonthlyCost)}</span></div>`
+    +`<div class="cc-row rate"><span class="cc-label">${t('cc_r_perKm')}</span><span class="cc-val">฿${costPerKm.toFixed(2)}</span></div>`
+    +`<div class="cc-row rate"><span class="cc-label">${t('cc_r_perHour')}</span><span class="cc-val">฿${costPerHour.toFixed(2)}</span></div>`;
+  window._ccLast={perCar,costPerKm,costPerHour,fleetMonthlyCost};
+  return window._ccLast;
 }
 function applyCostCalcToSettings(){
   const r=window._ccLast||recalcCostCalc();
+  if(!r){toast(t('cc_need_route'),'warn',4000);return;}
   localStorage.setItem('cost_per_km',r.costPerKm.toFixed(2));
   localStorage.setItem('cost_per_hour',r.costPerHour.toFixed(2));
   toast(t('cc_applied'),'success',3000);
@@ -2128,6 +2081,7 @@ async function renderResults(routed,sp){
   document.getElementById('s-cars').textContent=routed.length;
   const fleetCost=routed.reduce((sum,r)=>sum+(r.useRoad?(r.cost1||0)+(r.cost2||0):0),0);
   document.getElementById('s-totalcost').textContent=routed.some(r=>r.useRoad)?fmtTHB(fleetCost):'—';
+  const ccVals=loadCCInputs();
   window._cardData={};
   const departStr=getDepartTime();
   const stopMin=getStopMin();
@@ -2173,6 +2127,16 @@ async function renderResults(routed,sp){
     const p1metric=r.useRoad&&r.totalMin?`~${r.totalMin} min · ${r.totalKm} km · ${fmtTHB(r.cost1)}`:t('c_straight');
     const p2metric=r.useRoad&&r.totalMin2?`~${r.totalMin2} min · ${r.totalKm2} km · ${fmtTHB(r.cost2)}`:t('c_straight');
     const carCost=r.useRoad?fmtTHB((r.cost1||0)+(r.cost2||0)):null;
+    // Full vehicle-ownership economics for this car specifically — its own daily round-trip
+    // distance (Phase 1 + Phase 2 road km) drives its own annual mileage, so this varies car to
+    // car even though every car shares the same vehicle/driver assumptions from the calculator.
+    let vehCostLine='';
+    if(r.useRoad&&r.totalKm!=null&&r.totalKm2!=null){
+      const dailyRoundTripKm=parseFloat(r.totalKm)+parseFloat(r.totalKm2);
+      const annualMileage=dailyRoundTripKm*ccVals.operatingDaysPerYear;
+      const veh=calcVehicleCost({...ccVals,annualMileage});
+      vehCostLine=`<div style="font-size:10.5px;font-family:var(--mono);color:${pal.dark};opacity:0.65;margin-top:2px;">🚚 ${t('c_vehcost')} ${fmtTHB(veh.monthlyCost)}/${t('cc_month_abbr')} <span style="opacity:0.75;">(${Math.round(annualMileage).toLocaleString()} km/${t('cc_year_abbr')})</span></div>`;
+    }
     const depotShort=sp.name.length>14?sp.name.slice(0,12)+'…':sp.name;
     const refillName=carRefill.name;const refillShort='🩸 '+(refillName.length>12?refillName.slice(0,11)+'…':refillName);
     window._cardData[ci]={stops1,stops2,p1metric,p2metric,depot:depotShort,refill:refillShort,light:pal.light,dark:pal.dark,bg:pal.bg};
@@ -2182,6 +2146,7 @@ async function renderResults(routed,sp){
         <div style="flex:1;min-width:0;">
           <div style="font-weight:600;font-size:14px;color:${pal.dark};">Car ${ci+1}</div>
           <div style="font-size:11px;font-family:var(--mono);color:${pal.dark};opacity:0.75;margin-top:1px;">${r.hospitals.length} ${t('c_stops')}${tripStr?` · ${tripStr} ${t('c_total')}`:''}${carCost?` · ${carCost} ${t('c_cost_total')}`:''}</div>
+          ${vehCostLine}
         </div>
       </div>
       <div style="padding:14px 16px 16px;">
