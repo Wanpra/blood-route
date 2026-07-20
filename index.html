@@ -244,12 +244,7 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
 .guide-phase{display:flex;align-items:flex-start;gap:10px;margin:8px 0;font-size:13.5px;color:var(--ink-2);line-height:1.6;}
 .ph-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:5px;}
 .guide-tip{margin-top:30px;padding:16px 18px;border-radius:var(--radius-sm);background:var(--blue-light);border:1.5px solid var(--blue);color:var(--blue-dark);font-size:13.5px;line-height:1.7;}
-/* ── Vehicle cost calculator page ── */
-#cost-calc-page{position:fixed;inset:0;z-index:8000;background:var(--surface);display:none;flex-direction:column;}
-#cost-calc-page.open{display:flex;}
-.cc-header{padding:14px 24px;background:rgba(255,255,255,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
-[data-theme="dark"] .cc-header{background:rgba(31,31,35,0.85);}
-.cc-body{flex:1;overflow-y:auto;max-width:980px;width:100%;margin:0 auto;padding:28px 24px 60px;}
+/* ── Vehicle cost calculator (lives in Results → Cost tab) ── */
 .cc-grid{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;}
 @media (max-width:800px){.cc-grid{grid-template-columns:1fr;}}
 .cc-section{margin-bottom:22px;}
@@ -310,9 +305,6 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
 .progress-log{background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius-sm);padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-top:14px;max-height:150px;overflow-y:auto;line-height:1.9;text-align:left;}
 .progress-log::-webkit-scrollbar{width:4px;}
 .progress-log::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
-.notice{padding:11px 14px;border-radius:var(--radius-sm);border:1px solid;font-size:12px;font-family:var(--mono);margin-top:10px;line-height:1.6;}
-.notice.neutral{border-color:var(--rule);background:var(--surface);color:var(--ink-3);}
-.notice.info{border-color:#BFDBFE;background:var(--blue-light);color:var(--blue-dark);}
 *::-webkit-scrollbar{width:5px;height:5px;}
 *::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
@@ -640,10 +632,6 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
           <input type="text" id="cost-per-hour" placeholder="100" inputmode="decimal"/>
         </div>
       </div>
-      <button type="button" class="btn btn-outline btn-sm" style="width:100%;margin-top:12px;" onclick="openCostCalc()" data-i18n="cc_open_btn">🚚 Open Vehicle Cost Calculator</button>
-      <div class="notice neutral" style="margin-top:14px;" data-i18n="set_notice_cost">💰 Routes are ranked by total cost first (distance×cost-per-km + time×cost-per-hour), then by time, then by distance, to break ties.</div>
-      <div class="notice neutral" data-i18n="set_notice_priv">🔒 Key &amp; settings stored in your browser's localStorage. Never sent anywhere except ORS directly.</div>
-      <div class="notice info" data-i18n="set_notice_nokey">ℹ Without an ORS key the app still works using straight-line distances as fallback.</div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeSettings()" data-i18n="set_cancel">Cancel</button>
@@ -689,63 +677,6 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
   </div>
 </div>
 
-<div id="cost-calc-page">
-  <div class="cc-header">
-    <span class="modal-title" data-i18n="cc_title">Vehicle Cost Calculator</span>
-    <button class="modal-close" onclick="closeCostCalc()" aria-label="Close cost calculator">×</button>
-  </div>
-  <div class="cc-body">
-    <p class="field-help" style="margin-top:0;margin-bottom:14px;" data-i18n="cc_intro">Work out the true monthly cost of running each car — including depreciation — using the actual distance from your last optimized route. Each car has its own vehicle, tax, and running costs — pick a car below to edit its numbers.</p>
-    <div class="cc-car-tabs" id="cc-car-tabs" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:18px;"></div>
-    <div class="cc-grid">
-      <div>
-        <div class="cc-section">
-          <h3 data-i18n="cc_sec_vehicle">Vehicle &amp; investment</h3>
-          <div class="form-row">
-            <div class="form-group"><label data-i18n="cc_vehiclePrice">Vehicle price (฿)</label><input type="text" id="cc-vehiclePrice" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-            <div class="form-group"><label data-i18n="cc_conversionCost">Conversion / fit-out cost (฿)</label><input type="text" id="cc-conversionCost" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-          </div>
-          <div class="form-row">
-            <div class="form-group"><label data-i18n="cc_usefulLifeYears">Useful life (years)</label><input type="text" id="cc-usefulLifeYears" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-            <div class="form-group"><label data-i18n="cc_resaleValue">Expected resale value (฿)</label><input type="text" id="cc-resaleValue" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-          </div>
-          <div class="field-help" data-i18n="cc_resale_hint">Leave at 0 if the vehicle won't be resold — depreciation then runs on the full price.</div>
-        </div>
-        <div class="cc-section">
-          <h3 data-i18n="cc_sec_route">Schedule</h3>
-          <div class="form-row">
-            <div class="form-group"><label data-i18n="cc_operatingDaysPerYear">Operating days / year</label><input type="text" id="cc-operatingDaysPerYear" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-            <div class="form-group"><label data-i18n="cc_avgSpeedKmh">Avg. driving speed (km/h)</label><input type="text" id="cc-avgSpeedKmh" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-          </div>
-          <div class="field-help" data-i18n="cc_dist_auto_hint">Distance is no longer entered by hand — each car's daily round-trip distance comes straight from its last optimized route (Phase 1 + Phase 2 road km), so mileage naturally varies car to car.</div>
-        </div>
-        <div class="cc-section">
-          <h3 data-i18n="cc_sec_opex">Operating costs (per vehicle)</h3>
-          <div class="form-row">
-            <div class="form-group"><label data-i18n="cc_insuranceAnnual">Insurance (฿/year)</label><input type="text" id="cc-insuranceAnnual" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-            <div class="form-group"><label data-i18n="cc_maintenanceRatePerKm">Maintenance (฿/km)</label><input type="text" id="cc-maintenanceRatePerKm" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-          </div>
-          <div class="form-row">
-            <div class="form-group"><label data-i18n="cc_fuelPricePerLiter">Fuel price (฿/liter)</label><input type="text" id="cc-fuelPricePerLiter" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-            <div class="form-group"><label data-i18n="cc_fuelEfficiencyKmPerL">Fuel efficiency (km/liter)</label><input type="text" id="cc-fuelEfficiencyKmPerL" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-          </div>
-          <div class="form-row">
-            <div class="form-group"><label data-i18n="cc_tollFeePerDay">Toll fee (฿/day)</label><input type="text" id="cc-tollFeePerDay" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-            <div class="form-group"><label data-i18n="cc_driverSalaryMonthly">Driver salary (฿/month)</label><input type="text" id="cc-driverSalaryMonthly" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-          </div>
-          <div class="form-row">
-            <div class="form-group"><label data-i18n="cc_annualTax">Annual car tax (฿/year)</label><input type="text" id="cc-annualTax" inputmode="decimal" oninput="recalcCostCalc()"/></div>
-          </div>
-        </div>
-      </div>
-      <div class="cc-results">
-        <div id="cc-results-body"><div class="field-help" style="margin:0;" data-i18n="cc_need_route">Optimize a route in Setup first — vehicle cost is calculated per car from its actual route distance.</div></div>
-        <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="applyCarRateToSettings()" data-i18n="cc_apply">Apply this car's rate</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <header>
   <div class="logo">
     <div class="logo-mark">
@@ -785,9 +716,14 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
           <span class="wiz-label" data-i18n="stab_refill">Refill</span>
         </button>
         <span class="wiz-connector" id="wiz-conn-1" aria-hidden="true"></span>
-        <button type="button" class="wiz-step" id="wiz-btn-hosp" onclick="goToStep(2)">
-          <span class="wiz-circle" id="wiz-circle-hosp">2</span>
-          <span class="wiz-label" data-i18n="stab_hosp">Hospitals &amp; Start</span>
+        <button type="button" class="wiz-step" id="wiz-btn-start" onclick="goToStep(2)">
+          <span class="wiz-circle" id="wiz-circle-start">2</span>
+          <span class="wiz-label" data-i18n="stab_start">Start</span>
+        </button>
+        <span class="wiz-connector" id="wiz-conn-2" aria-hidden="true"></span>
+        <button type="button" class="wiz-step" id="wiz-btn-hosp" onclick="goToStep(3)">
+          <span class="wiz-circle" id="wiz-circle-hosp">3</span>
+          <span class="wiz-label" data-i18n="stab_hosp">Hospitals</span>
         </button>
       </nav>
 
@@ -833,7 +769,59 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
           </div>
         </div>
         <div class="step-card-footer end">
-          <button class="btn btn-continue" onclick="goToStep(2)" data-i18n="stab_next_hosp">Continue to Hospitals &amp; Start →</button>
+          <button class="btn btn-continue" onclick="goToStep(2)" data-i18n="stab_next_hosp">Continue to Start →</button>
+        </div>
+      </div>
+
+      <div class="setup-tab-content step-card" id="stab-start">
+        <div class="step-card-head">
+          <h2 data-i18n="start_section_title">Starting point</h2>
+          <p data-i18n="start_section_desc">Where the delivery vehicles begin each day — pick one of your hospitals, or set a custom location below.</p>
+        </div>
+        <div class="step-card-body">
+          <div class="form-group" id="start-hosp-picker">
+            <label for="start-hosp-select" data-i18n="start_pick_hosp">Choose one of your hospitals</label>
+            <select id="start-hosp-select" onchange="onStartHospitalSelect()">
+              <option value="" data-i18n="start_pick_hosp_ph">— Select a hospital —</option>
+            </select>
+          </div>
+          <div class="field-help" style="margin:10px 0 6px;" data-i18n="start_or_coords">…or enter a custom location:</div>
+          <div class="form-group" style="margin-bottom:0;position:relative;">
+            <div id="depot-coord-inline" class="coord-inline" style="margin-top:0;">
+              <div class="form-group">
+                <label for="depot-name-inline" data-i18n="l_name_opt">Name (optional)</label>
+                <input type="text" id="depot-name-inline" autocomplete="off" placeholder="e.g. Warehouse, Main depot..." data-i18n-ph="depot_name_ph"/>
+              </div>
+              <div class="form-row">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="depot-lat-inline" data-i18n="coord_lat">Latitude</label>
+                  <input type="text" id="depot-lat-inline" inputmode="decimal" placeholder="13.7367" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label for="depot-lng-inline" data-i18n="coord_lng">Longitude</label>
+                  <input type="text" id="depot-lng-inline" inputmode="decimal" placeholder="100.5344" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
+                </div>
+              </div>
+              <div class="field-help" data-i18n="depot_hint">Leave all fields blank to use the Thai Red Cross National Blood Centre as your starting point.</div>
+              <div id="depot-coord-error" class="continue-reason" style="display:none;text-align:left;color:var(--red-dark);" role="alert"></div>
+              <div style="margin-top:10px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="saveDepotCoordInline()" data-i18n="coord_set_location">Set location</button>
+              </div>
+            </div>
+            <div id="pinned-depot-chip" class="confirm-card" style="display:none;">
+              <div class="confirm-card-name">📍 <span id="pinned-depot-name">Custom point</span></div>
+              <div class="confirm-card-addr" id="pinned-depot-addr"></div>
+              <div class="confirm-card-coords" id="pinned-depot-coords"></div>
+              <div class="confirm-card-actions">
+                <button type="button" onclick="editPinnedDepot()" data-i18n="edit_location">Edit</button>
+                <button type="button" onclick="clearPinnedDepot()" data-i18n="clear_location">Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step-card-footer">
+          <button class="btn btn-back" onclick="goToStep(1)" data-i18n="stab_back_refill">← Back: Refill</button>
+          <button class="btn btn-continue" onclick="goToStep(3)" data-i18n="stab_next_hosp2">Continue to Hospitals →</button>
         </div>
       </div>
 
@@ -867,59 +855,9 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
               <div class="empty-state"><p><span data-i18n="empty_list">No hospitals added yet.</span><br><span data-i18n="empty_list_sub">Add manually or load defaults.</span></p></div>
             </div>
           </div>
-
-          <div style="border-top:1px solid var(--rule-soft);margin-top:18px;padding-top:16px;">
-            <h3 style="font-size:14px;margin:0 0 4px;" data-i18n="start_section_title">Starting point</h3>
-            <p class="field-help" style="margin-top:2px;" data-i18n="start_section_desc">Where the delivery vehicles begin. By default, we test each hospital in your list as the starting point and pick whichever gives the lowest overall cost.</p>
-            <label style="display:flex;align-items:center;gap:8px;margin:10px 0;cursor:pointer;">
-              <input type="checkbox" id="auto-start-toggle" checked onchange="onAutoStartToggle()"/>
-              <span data-i18n="auto_start_label">Auto-select the best starting hospital</span>
-            </label>
-            <div id="start-manual-section" style="display:none;">
-              <div class="form-group" id="start-hosp-picker">
-                <label for="start-hosp-select" data-i18n="start_pick_hosp">Choose one of your hospitals</label>
-                <select id="start-hosp-select" onchange="onStartHospitalSelect()">
-                  <option value="" data-i18n="start_pick_hosp_ph">— Select a hospital —</option>
-                </select>
-              </div>
-              <div class="field-help" style="margin:10px 0 6px;" data-i18n="start_or_coords">…or enter a custom location:</div>
-              <div class="form-group" style="margin-bottom:0;position:relative;">
-                <div id="depot-coord-inline" class="coord-inline" style="margin-top:0;">
-                  <div class="form-group">
-                    <label for="depot-name-inline" data-i18n="l_name_opt">Name (optional)</label>
-                    <input type="text" id="depot-name-inline" autocomplete="off" placeholder="e.g. Warehouse, Main depot..." data-i18n-ph="depot_name_ph"/>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group" style="margin-bottom:0;">
-                      <label for="depot-lat-inline" data-i18n="coord_lat">Latitude</label>
-                      <input type="text" id="depot-lat-inline" inputmode="decimal" placeholder="13.7367" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                      <label for="depot-lng-inline" data-i18n="coord_lng">Longitude</label>
-                      <input type="text" id="depot-lng-inline" inputmode="decimal" placeholder="100.5344" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
-                    </div>
-                  </div>
-                  <div class="field-help" data-i18n="depot_hint">Leave all fields blank to use the Thai Red Cross National Blood Centre as your starting point.</div>
-                  <div id="depot-coord-error" class="continue-reason" style="display:none;text-align:left;color:var(--red-dark);" role="alert"></div>
-                  <div style="margin-top:10px;">
-                    <button type="button" class="btn btn-outline btn-sm" onclick="saveDepotCoordInline()" data-i18n="coord_set_location">Set location</button>
-                  </div>
-                </div>
-                <div id="pinned-depot-chip" class="confirm-card" style="display:none;">
-                  <div class="confirm-card-name">📍 <span id="pinned-depot-name">Custom point</span></div>
-                  <div class="confirm-card-addr" id="pinned-depot-addr"></div>
-                  <div class="confirm-card-coords" id="pinned-depot-coords"></div>
-                  <div class="confirm-card-actions">
-                    <button type="button" onclick="editPinnedDepot()" data-i18n="edit_location">Edit</button>
-                    <button type="button" onclick="clearPinnedDepot()" data-i18n="clear_location">Clear</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
         <div class="step-card-footer">
-          <button class="btn btn-back" onclick="goToStep(1)" data-i18n="stab_back_refill">← Back: Refill</button>
+          <button class="btn btn-back" onclick="goToStep(2)" data-i18n="stab_back_start">← Back: Start</button>
           <div style="text-align:right;">
             <button class="btn btn-continue" onclick="runOptimize()" id="opt-btn" disabled data-i18n="opt_btn">Calculate optimal route</button>
             <div class="continue-reason" id="opt-btn-reason" style="display:none;" data-i18n="opt_btn_reason">Add at least one hospital to calculate a route.</div>
@@ -995,7 +933,55 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
       </div>
       </div>
 
-      <div id="result-tab-cost" style="display:none;"></div>
+      <div id="result-tab-cost" style="display:none;">
+        <div id="cc-summary-cards"></div>
+        <div class="cc-car-tabs" id="cc-car-tabs" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:16px 0;"></div>
+        <div class="cc-grid">
+          <div>
+            <div class="cc-section">
+              <h3 data-i18n="cc_sec_vehicle">Vehicle &amp; investment</h3>
+              <div class="form-row">
+                <div class="form-group"><label data-i18n="cc_vehiclePrice">Vehicle price (฿)</label><input type="text" id="cc-vehiclePrice" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+                <div class="form-group"><label data-i18n="cc_conversionCost">Conversion / fit-out cost (฿)</label><input type="text" id="cc-conversionCost" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label data-i18n="cc_usefulLifeYears">Useful life (years)</label><input type="text" id="cc-usefulLifeYears" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+                <div class="form-group"><label data-i18n="cc_resaleValue">Expected resale value (฿)</label><input type="text" id="cc-resaleValue" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+              </div>
+              <div class="field-help" data-i18n="cc_resale_hint">Leave at 0 if the vehicle won't be resold — depreciation then runs on the full price.</div>
+            </div>
+            <div class="cc-section">
+              <h3 data-i18n="cc_sec_route">Schedule</h3>
+              <div class="form-row">
+                <div class="form-group"><label data-i18n="cc_operatingDaysPerYear">Operating days / year</label><input type="text" id="cc-operatingDaysPerYear" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+                <div class="form-group"><label data-i18n="cc_avgSpeedKmh">Avg. driving speed (km/h)</label><input type="text" id="cc-avgSpeedKmh" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+              </div>
+            </div>
+            <div class="cc-section">
+              <h3 data-i18n="cc_sec_opex">Operating costs (per vehicle)</h3>
+              <div class="form-row">
+                <div class="form-group"><label data-i18n="cc_insuranceAnnual">Insurance (฿/year)</label><input type="text" id="cc-insuranceAnnual" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+                <div class="form-group"><label data-i18n="cc_maintenanceRatePerKm">Maintenance (฿/km)</label><input type="text" id="cc-maintenanceRatePerKm" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label data-i18n="cc_fuelPricePerLiter">Fuel price (฿/liter)</label><input type="text" id="cc-fuelPricePerLiter" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+                <div class="form-group"><label data-i18n="cc_fuelEfficiencyKmPerL">Fuel efficiency (km/liter)</label><input type="text" id="cc-fuelEfficiencyKmPerL" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label data-i18n="cc_tollFeePerDay">Toll fee (฿/day)</label><input type="text" id="cc-tollFeePerDay" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+                <div class="form-group"><label data-i18n="cc_driverSalaryMonthly">Driver salary (฿/month)</label><input type="text" id="cc-driverSalaryMonthly" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label data-i18n="cc_annualTax">Annual car tax (฿/year)</label><input type="text" id="cc-annualTax" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+              </div>
+            </div>
+          </div>
+          <div class="cc-results">
+            <div id="cc-rate-body"></div>
+            <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="applyCarRateToSettings()" data-i18n="cc_apply">Apply this car's rate</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1039,14 +1025,13 @@ const I18N={
     vt_setup:`${ICONS.settings} Setup`, vt_results:`${ICONS.chart} Results`,
     rt_route:'🗺️ Route', rt_cost:'💰 Cost',
     wiz_title:'Create delivery route',
-    wiz_desc:"Pick refill locations, add hospitals, and we'll pick the best starting point for you (or choose it yourself).",
+    wiz_desc:"Pick refill locations, choose a starting point, and add hospitals.",
     wiz_back:'Back', wiz_step_done:'completed', wiz_step_current:'current step',
     step1_title:'Starting depot', step1_desc:'Select where the delivery vehicles begin.',
     step2_title:'Refill locations', step2_desc:'Add or remove the blood-refill points used when calculating routes.',
     step3_title:'Hospitals', step3_desc:"Add the hospitals to include in today's route.",
     start_section_title:'Starting point',
-    start_section_desc:'Where the delivery vehicles begin. By default, we test each hospital in your list as the starting point and pick whichever gives the lowest overall cost.',
-    auto_start_label:'Auto-select the best starting hospital',
+    start_section_desc:'Where the delivery vehicles begin each day — pick one of your hospitals, or set a custom location below.',
     start_pick_hosp:'Choose one of your hospitals', start_pick_hosp_ph:'— Select a hospital —',
     start_or_coords:'…or enter a custom location:',
     // trcs bar
@@ -1085,8 +1070,9 @@ const I18N={
     coord_hint:'Tip: paste "lat, lng" (e.g. copied from Google Maps) into either box.',
     coord_cancel:'Cancel', coord_save:'Save location', coord_name:'Name',
     coord_title_new:'Add hospital by coordinates', coord_title_depot:'Set starting point by coordinates', coord_title_refill:'Add refill point by coordinates',
-    stab_start:'Starting', stab_refill:'Refill', stab_hosp:'Hospitals & Start',
-    stab_next_hosp:'Continue to Hospitals & Start →', stab_back_refill:'← Back: Refill',
+    stab_start:'Start', stab_refill:'Refill', stab_hosp:'Hospitals',
+    stab_next_hosp:'Continue to Start →', stab_next_hosp2:'Continue to Hospitals →',
+    stab_back_refill:'← Back: Refill', stab_back_start:'← Back: Start',
     depot_pin_label:'Custom starting point',
     depot_name_prompt:'Name this starting point:',
     depot_set:'Starting point set',
@@ -1112,26 +1098,19 @@ const I18N={
     res_depot:'▶ Depot', res_refill:'🩸 Refill: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย',
     key_missing:'Missing', key_set:'✓ Set',
     set_keyhint:'Free at <a href="https://openrouteservice.org/dev/#/signup" target="_blank">openrouteservice.org</a> → Sign up → Dashboard → Request token.<br>Used for: real geocoding of hospital names + actual road distances between stops.',
-    set_notice_priv:'🔒 Key &amp; settings stored in your browser\'s localStorage. Never sent anywhere except ORS directly.',
-    set_notice_nokey:'ℹ Without an ORS key the app still works using straight-line distances as fallback.',
-    set_notice_cost:'💰 Routes are ranked by total cost first (distance×cost-per-km + time×cost-per-hour), then by time, then by distance, to break ties.',
-    // vehicle cost calculator
-    cc_open_btn:'🚚 Open Vehicle Cost Calculator',
-    cc_title:'Vehicle Cost Calculator',
-    cc_intro:'Work out the true monthly cost of running each car — including depreciation — using the actual distance from your last optimized route. Each car has its own vehicle, tax, and running costs — pick a car below to edit its numbers.',
+    // vehicle cost calculator (lives in Results → Cost tab)
     cc_sec_vehicle:'Vehicle & investment', cc_sec_route:'Schedule', cc_sec_opex:'Operating costs (per vehicle)',
     cc_vehiclePrice:'Vehicle price (฿)', cc_conversionCost:'Conversion / fit-out cost (฿)',
     cc_usefulLifeYears:'Useful life (years)', cc_resaleValue:'Expected resale value (฿)',
     cc_resale_hint:"Leave at 0 if the vehicle won't be resold — depreciation then runs on the full price.",
     cc_operatingDaysPerYear:'Operating days / year', cc_avgSpeedKmh:'Avg. driving speed (km/h)',
-    cc_dist_auto_hint:"Distance is no longer entered by hand — each car's daily round-trip distance comes straight from its last optimized route (Phase 1 + Phase 2 road km), so mileage naturally varies car to car.",
     cc_insuranceAnnual:'Insurance (฿/year)', cc_maintenanceRatePerKm:'Maintenance (฿/km)',
     cc_fuelPricePerLiter:'Fuel price (฿/liter)', cc_fuelEfficiencyKmPerL:'Fuel efficiency (km/liter)',
     cc_tollFeePerDay:'Toll fee (฿/day)', cc_driverSalaryMonthly:'Driver salary (฿/month)',
     cc_annualTax:'Annual car tax (฿/year)',
     cc_need_route:'Optimize a route in Setup first — vehicle cost is calculated per car from its actual route distance.',
     cc_fleet:'fleet total', cc_year_abbr:'yr', cc_month_abbr:'mo',
-    cc_r_monthlyCost:'Monthly total cost', cc_r_perKm:'→ Cost per km', cc_r_perHour:'→ Cost per hour',
+    cc_r_perKm:'→ Cost per km', cc_r_perHour:'→ Cost per hour',
     cc_apply:"Apply this car's rate", cc_applied:'Applied to this car\'s Cost per km / Cost per hour',
     c_vehcost:'Vehicle cost:',
     ac_setkey:'Set an ORS key in Settings to enable suggestions',
@@ -1175,14 +1154,13 @@ const I18N={
     vt_setup:`${ICONS.settings} ตั้งค่าข้อมูล`, vt_results:`${ICONS.chart} ผลลัพธ์`,
     rt_route:'🗺️ เส้นทาง', rt_cost:'💰 ต้นทุน',
     wiz_title:'สร้างเส้นทางส่งเลือด',
-    wiz_desc:'เลือกจุดเติมเลือดและเพิ่มโรงพยาบาล แล้วเราจะเลือกจุดเริ่มต้นที่ดีที่สุดให้ (หรือเลือกเองก็ได้)',
+    wiz_desc:'เลือกจุดเติมเลือด กำหนดจุดเริ่มต้น แล้วเพิ่มโรงพยาบาล',
     wiz_back:'ย้อนกลับ', wiz_step_done:'เสร็จแล้ว', wiz_step_current:'ขั้นตอนปัจจุบัน',
     step1_title:'จุดเริ่มต้น', step1_desc:'เลือกจุดที่รถส่งเลือดจะเริ่มออกเดินทาง',
     step2_title:'จุดเติมเลือด', step2_desc:'เพิ่มหรือลบจุดเติมเลือดที่ใช้ในการคำนวณเส้นทาง',
     step3_title:'โรงพยาบาล', step3_desc:'เพิ่มโรงพยาบาลที่จะรวมอยู่ในเส้นทางวันนี้',
     start_section_title:'จุดเริ่มต้น',
-    start_section_desc:'จุดที่รถส่งเลือดจะเริ่มออกเดินทาง โดยค่าเริ่มต้นเราจะลองใช้โรงพยาบาลแต่ละแห่งในรายการของคุณเป็นจุดเริ่มต้น แล้วเลือกแห่งที่ให้ต้นทุนรวมต่ำที่สุด',
-    auto_start_label:'เลือกโรงพยาบาลเริ่มต้นที่ดีที่สุดอัตโนมัติ',
+    start_section_desc:'จุดที่รถส่งเลือดจะเริ่มออกเดินทางในแต่ละวัน — เลือกโรงพยาบาลแห่งหนึ่งของคุณ หรือกำหนดตำแหน่งเองด้านล่าง',
     start_pick_hosp:'เลือกโรงพยาบาลแห่งหนึ่งของคุณ', start_pick_hosp_ph:'— เลือกโรงพยาบาล —',
     start_or_coords:'...หรือกรอกตำแหน่งกำหนดเอง:',
     trcs_bar:'เติมเลือดที่: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย ถนนอังรีดูนังต์ เสมอ',
@@ -1214,8 +1192,9 @@ const I18N={
     coord_hint:'เคล็ดลับ: วาง "lat, lng" (คัดลอกจาก Google Maps) ลงในช่องใดก็ได้',
     coord_cancel:'ยกเลิก', coord_save:'บันทึกตำแหน่ง', coord_name:'ชื่อ',
     coord_title_new:'เพิ่มโรงพยาบาลด้วยพิกัด', coord_title_depot:'ตั้งจุดเริ่มต้นด้วยพิกัด', coord_title_refill:'เพิ่มจุดเติมเลือดด้วยพิกัด',
-    stab_start:'จุดเริ่มต้น', stab_refill:'เติมเลือด', stab_hosp:'โรงพยาบาล & จุดเริ่มต้น',
-    stab_next_hosp:'ไปต่อ: โรงพยาบาล & จุดเริ่มต้น →', stab_back_refill:'← ย้อนกลับ: เติมเลือด',
+    stab_start:'จุดเริ่มต้น', stab_refill:'เติมเลือด', stab_hosp:'โรงพยาบาล',
+    stab_next_hosp:'ไปต่อ: จุดเริ่มต้น →', stab_next_hosp2:'ไปต่อ: โรงพยาบาล →',
+    stab_back_refill:'← ย้อนกลับ: เติมเลือด', stab_back_start:'← ย้อนกลับ: จุดเริ่มต้น',
     depot_pin_label:'จุดเริ่มต้นที่กำหนดเอง',
     depot_name_prompt:'ตั้งชื่อจุดเริ่มต้นนี้:',
     depot_set:'ตั้งจุดเริ่มต้นแล้ว',
@@ -1239,25 +1218,18 @@ const I18N={
     res_depot:'▶ จุดเริ่มต้น', res_refill:'🩸 เติมเลือด: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย',
     key_missing:'ยังไม่ได้ตั้ง', key_set:'✓ ตั้งแล้ว',
     set_keyhint:'ขอฟรีที่ <a href="https://openrouteservice.org/dev/#/signup" target="_blank">openrouteservice.org</a> → สมัคร → Dashboard → ขอ token<br>ใช้สำหรับ: ค้นหาพิกัดจริงของชื่อโรงพยาบาล และระยะทางตามถนนจริงระหว่างจุด',
-    set_notice_priv:'🔒 คีย์และการตั้งค่าถูกเก็บใน localStorage ของเบราว์เซอร์คุณ ไม่ถูกส่งไปที่ใดนอกจาก ORS โดยตรง',
-    set_notice_nokey:'ℹ หากไม่มีคีย์ ORS แอปยังทำงานได้โดยใช้ระยะเส้นตรงแทน',
-    set_notice_cost:'💰 เส้นทางจะถูกจัดอันดับตามต้นทุนรวมก่อน (ระยะทาง×ต้นทุนต่อกม. + เวลา×ต้นทุนต่อชม.) จากนั้นตามเวลา และตามระยะทางเพื่อตัดสินกรณีเสมอกัน',
-    cc_open_btn:'🚚 เปิดเครื่องคำนวณต้นทุนรถ',
-    cc_title:'เครื่องคำนวณต้นทุนรถ',
-    cc_intro:'คำนวณต้นทุนรายเดือนที่แท้จริงของรถแต่ละคัน — รวมค่าเสื่อมราคา — โดยใช้ระยะทางจริงจากเส้นทางที่จัดล่าสุด แต่ละคันมีรถ ภาษี และต้นทุนการเดินรถของตัวเอง — เลือกรถด้านล่างเพื่อแก้ไขตัวเลขของคันนั้น',
     cc_sec_vehicle:'รถและเงินลงทุน', cc_sec_route:'ตารางงาน', cc_sec_opex:'ต้นทุนดำเนินงาน (ต่อคัน)',
     cc_vehiclePrice:'ราคารถ (฿)', cc_conversionCost:'ค่าดัดแปลง/ติดตั้งอุปกรณ์ (฿)',
     cc_usefulLifeYears:'อายุการใช้งาน (ปี)', cc_resaleValue:'มูลค่าขายต่อที่คาดไว้ (฿)',
     cc_resale_hint:'ปล่อยเป็น 0 หากไม่ขายต่อรถ — ค่าเสื่อมราคาจะคิดจากราคาเต็ม',
     cc_operatingDaysPerYear:'วันที่ให้บริการ / ปี', cc_avgSpeedKmh:'ความเร็วเฉลี่ย (กม./ชม.)',
-    cc_dist_auto_hint:'ไม่ต้องกรอกระยะทางเองอีกต่อไป — ระยะทางไป-กลับต่อวันของแต่ละคันดึงมาจากเส้นทางที่จัดล่าสุดโดยตรง (ระยะทางถนนเฟส 1 + เฟส 2) ทำให้แต่ละคันมีระยะทางไม่เท่ากันตามจริง',
     cc_insuranceAnnual:'ประกันภัย (฿/ปี)', cc_maintenanceRatePerKm:'ค่าบำรุงรักษา (฿/กม.)',
     cc_fuelPricePerLiter:'ราคาน้ำมัน (฿/ลิตร)', cc_fuelEfficiencyKmPerL:'อัตราสิ้นเปลือง (กม./ลิตร)',
     cc_tollFeePerDay:'ค่าทางด่วน (฿/วัน)', cc_driverSalaryMonthly:'เงินเดือนคนขับ (฿/เดือน)',
     cc_annualTax:'ภาษีรถยนต์ประจำปี (฿/ปี)',
     cc_need_route:'จัดเส้นทางในหน้าตั้งค่าก่อน — ต้นทุนรถจะคำนวณต่อคันจากระยะทางจริงของเส้นทางนั้น',
     cc_fleet:'รวมทั้งฟลีท', cc_year_abbr:'ปี', cc_month_abbr:'เดือน',
-    cc_r_monthlyCost:'ต้นทุนรวมต่อเดือน', cc_r_perKm:'→ ต้นทุนต่อกม.', cc_r_perHour:'→ ต้นทุนต่อชม.',
+    cc_r_perKm:'→ ต้นทุนต่อกม.', cc_r_perHour:'→ ต้นทุนต่อชม.',
     cc_apply:'นำอัตราของรถคันนี้ไปใช้', cc_applied:'นำไปใช้เป็นต้นทุนต่อกม. / ต้นทุนต่อชม. ของรถคันนี้แล้ว',
     c_vehcost:'ต้นทุนรถ:',
     ac_setkey:'ตั้งคีย์ ORS ในการตั้งค่าเพื่อเปิดใช้คำแนะนำ',
@@ -1339,15 +1311,6 @@ function savePerCarRate(ci,rate){
   let arr=[];try{arr=JSON.parse(localStorage.getItem('per_car_rates')||'[]');if(!Array.isArray(arr))arr=[];}catch(e){arr=[];}
   arr[ci]=rate;localStorage.setItem('per_car_rates',JSON.stringify(arr));
 }
-/* ── Auto-select starting point (default on): pick whichever hospital in the list, used as the
-   start/end depot, gives the lowest overall cost — see chooseAutoStart(). ── */
-function getAutoStart(){return localStorage.getItem('auto_start')!=='0';}
-function setAutoStart(v){localStorage.setItem('auto_start',v?'1':'0');}
-function onAutoStartToggle(){
-  const on=document.getElementById('auto-start-toggle').checked;
-  setAutoStart(on);
-  document.getElementById('start-manual-section').style.display=on?'none':'block';
-}
 /* Manual "pick one of your added hospitals as the starting point" dropdown — reuses the existing
    pinnedDepot mechanism so resolveDepot() picks it up exactly like a hand-typed coordinate. */
 function refreshStartHospitalOptions(){
@@ -1402,6 +1365,7 @@ function saveKeys(){
   const costChanged=getCostPerKm()!==oldCk||getCostPerHour()!==oldCh||getNumCars()!==oldNc;
   if(costChanged&&window._lastRouted&&window._lastRouted.length) runOptimize();
   else if(window._lastRouted&&window._lastSp) renderResults(window._lastRouted,window._lastSp);
+  else renderCostTab(); // no route yet — still keep the Cost tab's car-tab count in sync
 }
 /* ── Vehicle cost calculator: works out true monthly cost of running each car — including
    depreciation net of resale value — using that car's OWN actual round-trip road distance from
@@ -1442,69 +1406,79 @@ function calcVehicleCost(inp){
   const annualHours=inp.avgSpeedKmh>0?annualMileage/inp.avgSpeedKmh:0;
   return {grossInvestment,depreciableAmount,monthlyDepreciation,annualMileage,maintenanceCost,fuelCost,tollCost,driverCost,annualExpense,monthlyExpense,monthlyCost,annualCost,annualHours};
 }
-/* Real per-car daily round-trip road distance (Phase 1 + Phase 2 km) from the last optimize run —
-   the single source of truth for mileage everywhere in the calculator and the Results cards.
-   `routed` is always exactly numCars long (see buildGroups/runOptimize), so ci here is the real,
-   stable car index — no filter-then-index mismatch. */
-function allCarsWithDistance(numCars){
-  const routed=window._lastRouted||[];
-  return Array.from({length:numCars},(_,ci)=>{
-    const r=routed[ci];
-    const dailyRoundTripKm=(r&&r.useRoad&&r.totalKm!=null&&r.totalKm2!=null)?parseFloat(r.totalKm)+parseFloat(r.totalKm2):0;
-    return {ci,dailyRoundTripKm};
-  });
-}
+function fmtTHB(n){return '฿'+Math.round(n).toLocaleString();}
+/* The per-car cost editor lives directly in the Results → Cost tab now (no separate calculator
+   modal). `renderCostTab()` (re)builds the car-tab bar and loads the active car's saved inputs
+   into the always-present form; `recalcCostCalc()` runs on every keystroke but only touches the
+   summary/rate display elements, never the form inputs themselves, so typing doesn't lose focus. */
 let _ccPerCar=[],_ccActiveCar=0;
-function openCostCalc(){
-  closeSettings();
+function renderCostTab(){
   const numCars=getNumCars();
   _ccPerCar=loadPerCarCCInputs(numCars);
+  if(_ccActiveCar>=numCars)_ccActiveCar=0;
   document.getElementById('cc-car-tabs').innerHTML=Array.from({length:numCars},(_,ci)=>{
     const pal=CAR_PALETTE[ci%CAR_PALETTE.length];
-    return `<button class="map-car-tab" data-car="${ci}" onclick="selectCCCar(${ci})" style="background:${pal.light};color:${pal.dark};border-color:${pal.bg};">🚚 ${t('map_car')} ${ci+1}</button>`;
+    return `<button class="map-car-tab${ci===_ccActiveCar?'':' inactive'}" data-car="${ci}" onclick="selectCCCar(${ci})" style="background:${pal.light};color:${pal.dark};border-color:${pal.bg};">🚚 ${t('map_car')} ${ci+1}</button>`;
   }).join('');
-  selectCCCar(0);
-  document.getElementById('cost-calc-page').classList.add('open');
+  CC_FIELDS.forEach(k=>{const el=document.getElementById('cc-'+k);if(el)el.value=_ccPerCar[_ccActiveCar][k];});
+  recalcCostCalc();
 }
 function selectCCCar(ci){
   _ccActiveCar=ci;
-  CC_FIELDS.forEach(k=>{const el=document.getElementById('cc-'+k);if(el)el.value=_ccPerCar[ci][k];});
   document.querySelectorAll('#cc-car-tabs .map-car-tab').forEach(btn=>btn.classList.toggle('inactive',+btn.dataset.car!==ci));
+  CC_FIELDS.forEach(k=>{const el=document.getElementById('cc-'+k);if(el)el.value=_ccPerCar[ci][k];});
   recalcCostCalc();
 }
-function closeCostCalc(){document.getElementById('cost-calc-page').classList.remove('open');}
-function fmtTHB(n){return '฿'+Math.round(n).toLocaleString();}
-/* Computes calcVehicleCost() for every car using that car's OWN saved inputs and OWN real
-   mileage, renders the per-car breakdown, and derives the active tab's car's own
-   Cost-per-km/hour (for its "Apply this car's rate" button). Returns null (and shows a hint)
-   if no route exists yet. */
+/* Saves the active car's field values, then refreshes two independent display areas: the
+   per-car route+vehicle cost summary cards (all cars), and the active car's derived
+   Cost-per-km/hour (for the "Apply this car's rate" button) — never the form itself. */
 function recalcCostCalc(){
-  const numCars=getNumCars();
   CC_FIELDS.forEach(k=>{const el=document.getElementById('cc-'+k);const v=el?parseFloat(el.value):NaN;_ccPerCar[_ccActiveCar][k]=isNaN(v)?0:v;});
   savePerCarCCInputs(_ccPerCar);
-  const body=document.getElementById('cc-results-body');
-  if(!window._lastRouted||!window._lastRouted.length){
-    body.innerHTML=`<div class="field-help" style="margin:0;">${t('cc_need_route')}</div>`;
+  const routed=window._lastRouted||[];
+  const summaryEl=document.getElementById('cc-summary-cards');
+  const rateEl=document.getElementById('cc-rate-body');
+  if(!routed.length){
+    summaryEl.innerHTML=`<div class="field-help" style="margin:0 0 14px;">${t('cc_need_route')}</div>`;
+    rateEl.innerHTML='';
     window._ccLast=null;
     return null;
   }
-  const cars=allCarsWithDistance(numCars);
-  const perCar=cars.map(({ci,dailyRoundTripKm})=>{
-    const vals=_ccPerCar[ci];
-    const annualMileage=dailyRoundTripKm*vals.operatingDaysPerYear;
-    return {ci,dailyRoundTripKm,...calcVehicleCost({...vals,annualMileage})};
-  });
-  const fleetMonthlyCost=perCar.reduce((s,c)=>s+c.monthlyCost,0);
-  const active=perCar[_ccActiveCar],activeVals=_ccPerCar[_ccActiveCar];
-  const variableAnnual=active.maintenanceCost+active.fuelCost;
-  const fixedAnnual=activeVals.insuranceAnnual+activeVals.annualTax+active.tollCost+active.driverCost+active.monthlyDepreciation*12;
-  const costPerKm=active.annualMileage>0?variableAnnual/active.annualMileage:0;
-  const costPerHour=active.annualHours>0?fixedAnnual/active.annualHours:0;
-  body.innerHTML=perCar.map(c=>`<div class="cc-row"><span class="cc-label">${t('map_car')} ${c.ci+1} — ${Math.round(c.annualMileage).toLocaleString()} km/${t('cc_year_abbr')}</span><span class="cc-val">${fmtTHB(c.monthlyCost)}/${t('cc_month_abbr')}</span></div>`).join('')
-    +`<div class="cc-row total"><span class="cc-label">${t('cc_r_monthlyCost')} (${t('cc_fleet')})</span><span class="cc-val">${fmtTHB(fleetMonthlyCost)}</span></div>`
-    +`<div class="cc-row rate"><span class="cc-label">${t('cc_r_perKm')} (${t('map_car')} ${_ccActiveCar+1})</span><span class="cc-val">฿${costPerKm.toFixed(2)}</span></div>`
+  const fleetCost=routed.reduce((s,r)=>s+(r.useRoad?(r.cost1||0)+(r.cost2||0):0),0);
+  const rows=routed.map((r,ci)=>{
+    const pal=CAR_PALETTE[ci%CAR_PALETTE.length];
+    const routeCost=r.useRoad?fmtTHB((r.cost1||0)+(r.cost2||0)):t('c_straight');
+    let vehLine='';
+    if(r.useRoad&&r.totalKm!=null&&r.totalKm2!=null){
+      const vals=_ccPerCar[ci];
+      const dailyRoundTripKm=parseFloat(r.totalKm)+parseFloat(r.totalKm2);
+      const annualMileage=dailyRoundTripKm*vals.operatingDaysPerYear;
+      const veh=calcVehicleCost({...vals,annualMileage});
+      vehLine=`<div class="cc-row"><span class="cc-label">🚚 ${t('c_vehcost')}</span><span class="cc-val">${fmtTHB(veh.monthlyCost)}/${t('cc_month_abbr')} <span style="opacity:0.6;">(${Math.round(annualMileage).toLocaleString()} km/${t('cc_year_abbr')})</span></span></div>`;
+    }
+    return `<div class="car-card" style="padding:14px 16px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <div style="width:30px;height:30px;border-radius:8px;background:${pal.bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">🚗</div>
+        <div style="font-weight:600;font-size:14px;color:${pal.dark};">${t('map_car')} ${ci+1}</div>
+      </div>
+      <div class="cc-row"><span class="cc-label">${t('c_cost_total')} (${t('ph1')}+${t('ph2')})</span><span class="cc-val">${routeCost}</span></div>
+      ${vehLine}
+    </div>`;
+  }).join('');
+  const fleetLine=routed.some(r=>r.useRoad)?`<div class="car-card" style="padding:14px 16px;margin-top:12px;"><div class="cc-row total"><span class="cc-label">${t('s_totalcost')} (${t('cc_fleet')})</span><span class="cc-val">${fmtTHB(fleetCost)}</span></div></div>`:'';
+  summaryEl.innerHTML=`<div class="car-grid">${rows}</div>${fleetLine}`;
+  const r=routed[_ccActiveCar];
+  const dailyRoundTripKm=(r&&r.useRoad&&r.totalKm!=null&&r.totalKm2!=null)?parseFloat(r.totalKm)+parseFloat(r.totalKm2):0;
+  const vals=_ccPerCar[_ccActiveCar];
+  const annualMileage=dailyRoundTripKm*vals.operatingDaysPerYear;
+  const veh=calcVehicleCost({...vals,annualMileage});
+  const variableAnnual=veh.maintenanceCost+veh.fuelCost;
+  const fixedAnnual=vals.insuranceAnnual+vals.annualTax+veh.tollCost+veh.driverCost+veh.monthlyDepreciation*12;
+  const costPerKm=veh.annualMileage>0?variableAnnual/veh.annualMileage:0;
+  const costPerHour=veh.annualHours>0?fixedAnnual/veh.annualHours:0;
+  rateEl.innerHTML=`<div class="cc-row rate"><span class="cc-label">${t('cc_r_perKm')} (${t('map_car')} ${_ccActiveCar+1})</span><span class="cc-val">฿${costPerKm.toFixed(2)}</span></div>`
     +`<div class="cc-row rate"><span class="cc-label">${t('cc_r_perHour')} (${t('map_car')} ${_ccActiveCar+1})</span><span class="cc-val">฿${costPerHour.toFixed(2)}</span></div>`;
-  window._ccLast={ci:_ccActiveCar,perCar,costPerKm,costPerHour,fleetMonthlyCost};
+  window._ccLast={ci:_ccActiveCar,costPerKm,costPerHour};
   return window._ccLast;
 }
 function applyCarRateToSettings(){
@@ -1512,7 +1486,6 @@ function applyCarRateToSettings(){
   if(!r){toast(t('cc_need_route'),'warn',4000);return;}
   savePerCarRate(r.ci,{costPerKm:r.costPerKm,costPerHour:r.costPerHour});
   toast(t('cc_applied'),'success',3000);
-  closeCostCalc();
   // This car's rate just changed — re-optimize so routing/assignment picks it up.
   if(window._lastRouted&&window._lastRouted.length) runOptimize();
 }
@@ -2074,46 +2047,6 @@ async function buildSharedMatrices(sp,candidates,located){
   const idOf=new Map();located.forEach((h,i)=>idOf.set(h.id,1+candidates.length+i));
   return {km,time,cost,idOf,depotIdx:0,refillIdx:ci=>1+ci,UNREACHABLE};
 }
-/* Auto-select the starting point: try every hospital in the list as the depot — excluded from
-   its own candidate group since the car is already there at the start, so it doesn't also count
-   as a numbered stop — and keep whichever gives the lowest total cost (then time, then distance)
-   across all cars. Reuses one shared road-network matrix built over candidates+located — no
-   extra ORS calls, since swapping depots is just re-pointing depotIdx into the same tables.
-   Candidates are tested in canonical (lat,lng) order, not list-entry order, so that an exact tie
-   between two equally-good starting hospitals resolves the same way regardless of what order the
-   hospitals were added/loaded in — otherwise identical hospital lists entered in a different
-   order could silently pick different starting points on different machines. */
-async function chooseAutoStart(located,candidates,shared){
-  const ordered=[...located].sort((a,b)=>a.lat-b.lat||a.lng-b.lng);
-  if(shared){
-    let bestHosp=null,bestTriple=null;
-    for(const depotHosp of ordered){
-      const rest=located.filter(h=>h!==depotHosp);
-      const sc={...shared,depotIdx:shared.idOf.get(depotHosp.id)};
-      const groups=buildGroups(rest,sc);
-      let cost=0,time=0,dist=0;
-      for(const grp of groups){
-        const r=await routeCar(grp,depotHosp,candidates,sc);
-        if(r.useRoad){
-          cost+=r.cost1+r.cost2;
-          time+=parseFloat(r.totalMin)+parseFloat(r.totalMin2);
-          dist+=parseFloat(r.totalKm)+parseFloat(r.totalKm2);
-        }
-      }
-      const triple={cost,time,dist};
-      if(!bestTriple||tripleBetter(triple,bestTriple)){bestTriple=triple;bestHosp=depotHosp;}
-    }
-    return bestHosp;
-  }
-  // no road-network matrix available — straight-line heuristic: the hospital with the smallest
-  // sum of Euclidean distances to all the others is the best proxy for a central starting point.
-  let bestHosp=ordered[0],bestSum=Infinity;
-  ordered.forEach(h=>{
-    const s=located.reduce((acc,o)=>o===h?acc:acc+eDist(h,o),0);
-    if(s<bestSum){bestSum=s;bestHosp=h;}
-  });
-  return bestHosp;
-}
 async function runOptimize(){
   if(!hospitals.length)return;
   document.getElementById('opt-btn').disabled=true;
@@ -2131,30 +2064,14 @@ async function runOptimize(){
   if(flagged.length){log(`⚠ ${flagged.length} hospital(s) flagged (far from group / district mismatch) — included but verify with 📍 Fix.`);toast(t('tn_flagged_inc',{n:flagged.length}),'warn',5500);}
   log(`✓ ${located.filter(h=>h.geocoded).length}/${located.length} hospitals have real coordinates`);
   const candidates=getRefillCandidates();
-  const autoStart=getAutoStart()&&located.length>1;
-  let sp,shared=null;
-  if(autoStart){
-    if(getORS()){
-      log('🌐 Fetching road-network matrix for clustering + routing...');
-      shared=await buildSharedMatrices(located[0],candidates,located);
-      if(shared)log(`✓ Matrix ready (${located.length} hospitals + ${candidates.length} refill point(s))`);
-      else log('⚠ Bulk matrix request failed (e.g. too many locations for this plan) — falling back to straight-line estimate for starting-point choice.');
-    }
-    log('🧭 Testing each hospital as the starting point...');
-    sp=await chooseAutoStart(located,candidates,shared);
-    if(shared)shared={...shared,depotIdx:shared.idOf.get(sp.id)};
-    located=located.filter(h=>h.id!==sp.id); // the start point isn't also counted as a stop
-    document.getElementById('s-depot').textContent=sp.name;
-    log(`✓ Starting point: ${sp.name} (auto-selected — lowest overall cost)`);
-  } else {
-    log('📍 Resolving starting depot...');sp=await resolveDepot();document.getElementById('s-depot').textContent=sp.name;log(`✓ Depot: ${sp.name}`);
-    if(sp.id!=null)located=located.filter(h=>h.id!==sp.id); // manually picked one of the hospitals as the start point
-    if(getORS()){
-      log('🌐 Fetching road-network matrix for clustering + routing...');
-      shared=await buildSharedMatrices(sp,candidates,located);
-      if(shared)log(`✓ Matrix ready (${located.length} hospitals + depot + ${candidates.length} refill point(s))`);
-      else log('⚠ Bulk matrix request failed (e.g. too many locations for this plan) — falling back to per-car road queries.');
-    }
+  let shared=null;
+  log('📍 Resolving starting depot...');const sp=await resolveDepot();document.getElementById('s-depot').textContent=sp.name;log(`✓ Depot: ${sp.name}`);
+  if(sp.id!=null)located=located.filter(h=>h.id!==sp.id); // manually picked one of the hospitals as the start point
+  if(getORS()){
+    log('🌐 Fetching road-network matrix for clustering + routing...');
+    shared=await buildSharedMatrices(sp,candidates,located);
+    if(shared)log(`✓ Matrix ready (${located.length} hospitals + depot + ${candidates.length} refill point(s))`);
+    else log('⚠ Bulk matrix request failed (e.g. too many locations for this plan) — falling back to per-car road queries.');
   }
   setBusy(true,'Clustering & routing…');
   const numCars=getNumCars();
@@ -2215,7 +2132,6 @@ async function renderResults(routed,sp){
   document.getElementById('s-cars').textContent=routed.length;
   const fleetCost=routed.reduce((sum,r)=>sum+(r.useRoad?(r.cost1||0)+(r.cost2||0):0),0);
   document.getElementById('s-totalcost').textContent=routed.some(r=>r.useRoad)?fmtTHB(fleetCost):'—';
-  const ccPerCar=loadPerCarCCInputs(routed.length);
   window._cardData={};
   const departStr=getDepartTime();
   const stopMin=getStopMin();
@@ -2291,35 +2207,7 @@ async function renderResults(routed,sp){
   const refillTag=cand.length>1?`🩸 ${t('res_refill_lbl')}: ${cand.length} ${t('refill_points_n')}`:`🩸 ${t('res_refill_lbl')}: ${cand[0].name}`;
   document.getElementById('result-area').innerHTML=`<div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px;"><span class="info-tag" style="background:var(--ink);color:var(--white);border-color:var(--ink);">${t('res_depot')}: ${sp.name}</span><span class="info-tag" style="background:var(--red-light);color:var(--red-dark);border-color:var(--red-mid);">${refillTag}</span></div>${routed.length>1?`<div style="font-size:11.5px;color:var(--ink-4);font-family:var(--mono);margin-bottom:10px;">${t('drag_hint')}</div>`:''}<div class="car-grid">${cards}</div>`;
   await renderMap(routed,sp);
-  renderCostTab(routed,ccPerCar,fleetCost);
-}
-/* Every ฿ figure for Results lives here instead of on the route cards: each car's route cost
-   (phase 1 + phase 2, under its own rate), its vehicle-ownership monthly cost (tax, insurance,
-   depreciation, etc. from its own Vehicle Cost Calculator tab), and the fleet total. */
-function renderCostTab(routed,ccPerCar,fleetCost){
-  const rows=routed.map((r,ci)=>{
-    const pal=CAR_PALETTE[ci%CAR_PALETTE.length];
-    const routeCost=r.useRoad?fmtTHB((r.cost1||0)+(r.cost2||0)):null;
-    let vehLine='',vehCost=0;
-    if(r.useRoad&&r.totalKm!=null&&r.totalKm2!=null){
-      const ccVals=ccPerCar[ci];
-      const dailyRoundTripKm=parseFloat(r.totalKm)+parseFloat(r.totalKm2);
-      const annualMileage=dailyRoundTripKm*ccVals.operatingDaysPerYear;
-      const veh=calcVehicleCost({...ccVals,annualMileage});
-      vehCost=veh.monthlyCost;
-      vehLine=`<div class="cc-row"><span class="cc-label">🚚 ${t('c_vehcost')}</span><span class="cc-val">${fmtTHB(veh.monthlyCost)}/${t('cc_month_abbr')} <span style="opacity:0.6;">(${Math.round(annualMileage).toLocaleString()} km/${t('cc_year_abbr')})</span></span></div>`;
-    }
-    return `<div class="car-card" style="padding:14px 16px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-        <div style="width:30px;height:30px;border-radius:8px;background:${pal.bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">🚗</div>
-        <div style="font-weight:600;font-size:14px;color:${pal.dark};">${t('map_car')} ${ci+1}</div>
-      </div>
-      <div class="cc-row"><span class="cc-label">${t('c_cost_total')} (${t('ph1')}+${t('ph2')})</span><span class="cc-val">${routeCost?routeCost:t('c_straight')}</span></div>
-      ${vehLine}
-    </div>`;
-  }).join('');
-  const fleetLine=routed.some(r=>r.useRoad)?`<div class="cc-row total"><span class="cc-label">${t('s_totalcost')} (${t('cc_fleet')})</span><span class="cc-val">${fmtTHB(fleetCost)}</span></div>`:'';
-  document.getElementById('result-tab-cost').innerHTML=`<div class="car-grid">${rows}</div>${fleetLine?`<div class="car-card" style="padding:14px 16px;margin-top:12px;">${fleetLine}</div>`:''}<button class="btn btn-outline btn-sm" style="width:100%;margin-top:14px;" onclick="openCostCalc()">${t('cc_open_btn')}</button>`;
+  renderCostTab();
 }
 function switchCardPhase(ci,phase){
   const d=window._cardData&&window._cardData[ci];if(!d)return;
@@ -2469,7 +2357,7 @@ renderList();
 refreshListDropdown();
 restorePinnedDepot();
 restoreRefills();
-{const autoOn=getAutoStart();document.getElementById('auto-start-toggle').checked=autoOn;document.getElementById('start-manual-section').style.display=autoOn?'none':'block';}
+renderCostTab();
 
 /* ── Setup / Results view toggle ── */
 function switchView(view){
@@ -2510,7 +2398,7 @@ function switchResultTab(tab){
    Steps stay fully populated in the DOM while hidden, so nothing entered is ever lost when
    navigating between them — this only toggles which card + stepper state is shown. ── */
 let setupStep=1;
-const WIZ_STEPS=['refill','hosp'];
+const WIZ_STEPS=['refill','start','hosp'];
 function goToStep(n){
   setupStep=n;
   WIZ_STEPS.forEach((k,i)=>{
@@ -2518,12 +2406,13 @@ function goToStep(n){
     const done=stepNum<n;
     btn.classList.toggle('active',stepNum===n);
     btn.classList.toggle('done',done);
-    btn.setAttribute('aria-label',(k==='refill'?t('stab_refill'):t('stab_hosp'))+(done?' — '+t('wiz_step_done'):stepNum===n?' — '+t('wiz_step_current'):''));
+    btn.setAttribute('aria-label',t('stab_'+k)+(done?' — '+t('wiz_step_done'):stepNum===n?' — '+t('wiz_step_current'):''));
     circle.innerHTML=done?'✓':String(stepNum);
     if(stepNum===n)btn.setAttribute('aria-current','step');else btn.removeAttribute('aria-current');
     document.getElementById('stab-'+k).classList.toggle('active',stepNum===n);
   });
   document.getElementById('wiz-conn-1').classList.toggle('done',n>1);
+  document.getElementById('wiz-conn-2').classList.toggle('done',n>2);
   document.getElementById('step-card-wrap').scrollIntoView({behavior:'smooth',block:'start'});
 }
 // Start in single-view Setup
@@ -2536,7 +2425,6 @@ document.addEventListener('keydown',e=>{
   if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable))return;
   // don't hijack when an overlay (guide / coordinate box / settings) is open
   if(document.getElementById('guide-page').classList.contains('open'))return;
-  if(document.getElementById('cost-calc-page').classList.contains('open'))return;
   if(document.getElementById('coord-modal').style.display==='flex')return;
   if(document.getElementById('settings-modal').style.display==='flex')return;
   switchView(e.key==='ArrowRight'?'results':'setup');
