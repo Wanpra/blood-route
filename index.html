@@ -2109,13 +2109,20 @@ async function runOptimize(){
   const routeResults=[];
   for(let gi=0;gi<numCars;gi++)routeResults.push(await routeCar(groups[gi],sp,candidates,shared,refRate));
   // Cost is exactly linear in total distance/time (no cross terms), so re-deriving it from each
-  // route's own totalKm/totalMin under a different rate is exact, not an approximation — as long
-  // as the route didn't need the road-network fallback (see routeCar's straight-line branch).
+  // route's own distance/time under a different rate is exact, not an approximation — as long as
+  // the route didn't need the road-network fallback (see routeCar's straight-line branch). Uses
+  // the UNROUNDED per-leg data (legsKm1/legs1 + endKm1/endMin1), not the rounded totalKm/totalMin
+  // display strings — otherwise this total wouldn't exactly match the per-hospital cost breakdown
+  // in the Cost tab, which sums those same unrounded legs.
+  function preciseTotals(r){
+    const km1=r.legsKm1.reduce((s,v)=>s+v,0)+r.endKm1, min1=r.legs1.reduce((s,v)=>s+v,0)+r.endMin1;
+    const km2=r.legsKm2.reduce((s,v)=>s+v,0)+r.endKm2, min2=r.legs2.reduce((s,v)=>s+v,0)+r.endMin2;
+    return {km1,min1,km2,min2};
+  }
   function repriceRoute(r,rate){
     if(!r.useRoad)return 0;
-    const km=(parseFloat(r.totalKm)||0)+(parseFloat(r.totalKm2)||0);
-    const hrs=((parseFloat(r.totalMin)||0)+(parseFloat(r.totalMin2)||0))/60;
-    return km*rate.costPerKm+hrs*rate.costPerHour;
+    const {km1,min1,km2,min2}=preciseTotals(r);
+    return (km1+km2)*rate.costPerKm+((min1+min2)/60)*rate.costPerHour;
   }
   const costMatrix=routeResults.map(r=>rates.map(rate=>repriceRoute(r,rate)));
   const assignment=hungarianAssign(costMatrix); // assignment[gi] = ci
@@ -2125,10 +2132,11 @@ async function runOptimize(){
     const r=routeResults[gi];
     const rate=rates[ci];
     // Re-price this car's own cost1/cost2 under its own rate (same linearity as above, split by phase).
-    const final=r.useRoad?{...r,
-      cost1:parseFloat(r.totalKm)*rate.costPerKm+(parseFloat(r.totalMin)/60)*rate.costPerHour,
-      cost2:parseFloat(r.totalKm2)*rate.costPerKm+(parseFloat(r.totalMin2)/60)*rate.costPerHour
-    }:r;
+    let final=r;
+    if(r.useRoad){
+      const {km1,min1,km2,min2}=preciseTotals(r);
+      final={...r,cost1:km1*rate.costPerKm+(min1/60)*rate.costPerHour,cost2:km2*rate.costPerKm+(min2/60)*rate.costPerHour};
+    }
     routed[ci]=final;
     if(!grp.length)return;
     if(final.useRoad){
