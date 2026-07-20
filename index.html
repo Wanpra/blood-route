@@ -597,7 +597,6 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
       <div class="form-group">
         <label><span data-i18n="set_key">OpenRouteService API Key</span> <span class="key-status missing" id="ors-status">Missing</span></label>
         <input type="password" id="ors-key" placeholder="Paste your ORS API key here" oninput="onKeyInput()"/>
-        <div class="key-hint" data-i18n="set_keyhint">Free at <a href="https://openrouteservice.org/dev/#/signup" target="_blank">openrouteservice.org</a> → Sign up → Dashboard → Request token.<br>Used for: real geocoding of hospital names + actual road distances between stops.</div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -1097,7 +1096,6 @@ const I18N={
     ph1:'Phase 1 · Collect', ph2:'Phase 2 · Deliver',
     res_depot:'▶ Depot', res_refill:'🩸 Refill: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย',
     key_missing:'Missing', key_set:'✓ Set',
-    set_keyhint:'Free at <a href="https://openrouteservice.org/dev/#/signup" target="_blank">openrouteservice.org</a> → Sign up → Dashboard → Request token.<br>Used for: real geocoding of hospital names + actual road distances between stops.',
     // vehicle cost calculator (lives in Results → Cost tab)
     cc_sec_vehicle:'Vehicle & investment', cc_sec_route:'Schedule', cc_sec_opex:'Operating costs (per vehicle)',
     cc_vehiclePrice:'Vehicle price (฿)', cc_conversionCost:'Conversion / fit-out cost (฿)',
@@ -1114,7 +1112,6 @@ const I18N={
     cc_apply:"Apply this car's rate", cc_applied:'Applied to this car\'s Cost per km / Cost per hour',
     c_vehcost:'Vehicle cost:',
     c_perhosp_show:'▼ Cost per hospital', c_perhosp_hide:'▲ Hide cost per hospital',
-    c_perhosp_hint:"Cost of the leg used to reach each hospital (collect + deliver) — farther hospitals cost more. Doesn't include the final return leg to the refill point/depot.",
     ac_setkey:'Set an ORS key in Settings to enable suggestions',
     ac_searching:'Searching…', ac_nomatch:'No matches',
     ac_setkey_map:'Set an ORS key to search — or just drag the map',
@@ -1219,7 +1216,6 @@ const I18N={
     ph1:'เฟส 1 · เก็บภาชนะ', ph2:'เฟส 2 · ส่งเลือด',
     res_depot:'▶ จุดเริ่มต้น', res_refill:'🩸 เติมเลือด: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย',
     key_missing:'ยังไม่ได้ตั้ง', key_set:'✓ ตั้งแล้ว',
-    set_keyhint:'ขอฟรีที่ <a href="https://openrouteservice.org/dev/#/signup" target="_blank">openrouteservice.org</a> → สมัคร → Dashboard → ขอ token<br>ใช้สำหรับ: ค้นหาพิกัดจริงของชื่อโรงพยาบาล และระยะทางตามถนนจริงระหว่างจุด',
     cc_sec_vehicle:'รถและเงินลงทุน', cc_sec_route:'ตารางงาน', cc_sec_opex:'ต้นทุนดำเนินงาน (ต่อคัน)',
     cc_vehiclePrice:'ราคารถ (฿)', cc_conversionCost:'ค่าดัดแปลง/ติดตั้งอุปกรณ์ (฿)',
     cc_usefulLifeYears:'อายุการใช้งาน (ปี)', cc_resaleValue:'มูลค่าขายต่อที่คาดไว้ (฿)',
@@ -1235,7 +1231,6 @@ const I18N={
     cc_apply:'นำอัตราของรถคันนี้ไปใช้', cc_applied:'นำไปใช้เป็นต้นทุนต่อกม. / ต้นทุนต่อชม. ของรถคันนี้แล้ว',
     c_vehcost:'ต้นทุนรถ:',
     c_perhosp_show:'▼ ต้นทุนต่อโรงพยาบาล', c_perhosp_hide:'▲ ซ่อนต้นทุนต่อโรงพยาบาล',
-    c_perhosp_hint:'ต้นทุนของเส้นทางที่ใช้ไปถึงโรงพยาบาลแต่ละแห่ง (เก็บ + ส่ง) — โรงพยาบาลที่ไกลกว่าจะมีต้นทุนสูงกว่า ไม่รวมเส้นทางขากลับสุดท้ายไปยังจุดเติมเลือด/จุดเริ่มต้น',
     ac_setkey:'ตั้งคีย์ ORS ในการตั้งค่าเพื่อเปิดใช้คำแนะนำ',
     ac_searching:'กำลังค้นหา…', ac_nomatch:'ไม่พบผลลัพธ์',
     ac_setkey_map:'ตั้งคีย์ ORS เพื่อค้นหา — หรือเลื่อนแผนที่เอง',
@@ -1483,7 +1478,6 @@ function recalcCostCalc(){
     if(perHosp.length){
       const toggleLabel=expanded?t('c_perhosp_hide'):t('c_perhosp_show');
       const list=expanded?`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--rule-soft);">
-        <div style="font-size:10.5px;color:var(--ink-4);margin-bottom:4px;">${t('c_perhosp_hint')}</div>
         ${perHosp.map(h=>`<div class="cc-row" style="padding:3px 0;"><span class="cc-label" style="font-size:11.5px;">${h.name}</span><span class="cc-val" style="font-size:11.5px;">${fmtTHB(h.cost)} <span style="opacity:0.55;">(${h.km.toFixed(1)} km)</span></span></div>`).join('')}
       </div>`:'';
       hospBlock=`<div style="font-size:10.5px;color:var(--ink-3);margin-top:6px;">${toggleLabel}</div>${list}`;
