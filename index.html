@@ -613,8 +613,8 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
           <input type="text" id="stop-min" placeholder="10" inputmode="numeric"/>
         </div>
         <div class="form-group">
-          <label data-i18n="set_max">Max hospitals per car</label>
-          <input type="text" id="max-per-car" placeholder="5" inputmode="numeric"/>
+          <label data-i18n="set_numcars">Number of cars</label>
+          <input type="text" id="num-cars" placeholder="3" inputmode="numeric"/>
         </div>
       </div>
       <div class="form-row">
@@ -695,7 +695,8 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
     <button class="modal-close" onclick="closeCostCalc()" aria-label="Close cost calculator">×</button>
   </div>
   <div class="cc-body">
-    <p class="field-help" style="margin-top:0;margin-bottom:20px;" data-i18n="cc_intro">Work out the true monthly cost of running each car — including depreciation — using the actual distance from your last optimized route. Each car gets its own figure since each drives a different distance.</p>
+    <p class="field-help" style="margin-top:0;margin-bottom:14px;" data-i18n="cc_intro">Work out the true monthly cost of running each car — including depreciation — using the actual distance from your last optimized route. Each car has its own vehicle, tax, and running costs — pick a car below to edit its numbers.</p>
+    <div class="cc-car-tabs" id="cc-car-tabs" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:18px;"></div>
     <div class="cc-grid">
       <div>
         <div class="cc-section">
@@ -732,11 +733,14 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
             <div class="form-group"><label data-i18n="cc_tollFeePerDay">Toll fee (฿/day)</label><input type="text" id="cc-tollFeePerDay" inputmode="decimal" oninput="recalcCostCalc()"/></div>
             <div class="form-group"><label data-i18n="cc_driverSalaryMonthly">Driver salary (฿/month)</label><input type="text" id="cc-driverSalaryMonthly" inputmode="decimal" oninput="recalcCostCalc()"/></div>
           </div>
+          <div class="form-row">
+            <div class="form-group"><label data-i18n="cc_annualTax">Annual car tax (฿/year)</label><input type="text" id="cc-annualTax" inputmode="decimal" oninput="recalcCostCalc()"/></div>
+          </div>
         </div>
       </div>
       <div class="cc-results">
         <div id="cc-results-body"><div class="field-help" style="margin:0;" data-i18n="cc_need_route">Optimize a route in Setup first — vehicle cost is calculated per car from its actual route distance.</div></div>
-        <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="applyCostCalcToSettings()" data-i18n="cc_apply">Apply fleet rate to Cost per km/hour</button>
+        <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="applyCarRateToSettings()" data-i18n="cc_apply">Apply this car's rate</button>
       </div>
     </div>
   </div>
@@ -944,6 +948,12 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
           <div class="stat-lbl" data-i18n="s_totalcost">Total cost</div>
         </div>
       </div>
+      <div class="view-toggle" style="margin:0 0 1.25rem;">
+        <button class="vt-btn active" id="rt-route" onclick="switchResultTab('route')" data-i18n="rt_route">Route</button>
+        <button class="vt-btn" id="rt-cost" onclick="switchResultTab('cost')" data-i18n="rt_cost">Cost</button>
+      </div>
+
+      <div id="result-tab-route">
       <div id="result-area">
         <div class="empty-state" style="background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);padding:4.5rem 2rem;box-shadow:var(--shadow-sm);">
           <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:14px;opacity:0.2;display:block;margin-left:auto;margin-right:auto;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
@@ -983,6 +993,9 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
 
         </div>
       </div>
+      </div>
+
+      <div id="result-tab-cost" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -1021,6 +1034,7 @@ const I18N={
     nav_guide:`${ICONS.help} Guide`, nav_settings:`${ICONS.settings} Settings`,
     api_set:'✓ ORS connected', api_unset:'⚠ ORS key not set',
     vt_setup:`${ICONS.settings} Setup`, vt_results:`${ICONS.chart} Results`,
+    rt_route:'🗺️ Route', rt_cost:'💰 Cost',
     wiz_title:'Create delivery route',
     wiz_desc:"Pick refill locations, add hospitals, and we'll pick the best starting point for you (or choose it yourself).",
     wiz_back:'Back', wiz_step_done:'completed', wiz_step_current:'current step',
@@ -1059,7 +1073,7 @@ const I18N={
     empty_msg:'Add hospitals and press <strong>Optimize routes</strong> to begin.',
     // settings modal
     set_title:'Settings', set_key:'OpenRouteService API Key',
-    set_stop:'Stop time per hospital (min)', set_max:'Max hospitals per car',
+    set_stop:'Stop time per hospital (min)', set_numcars:'Number of cars',
     set_depart:'Departure time', set_balance:'Workload balancing',
     bal_time:'By cost → time → distance', bal_count:'By hospital count',
     set_cost_km:'Cost per km', set_cost_hr:'Cost per hour',
@@ -1101,7 +1115,7 @@ const I18N={
     // vehicle cost calculator
     cc_open_btn:'🚚 Open Vehicle Cost Calculator',
     cc_title:'Vehicle Cost Calculator',
-    cc_intro:'Work out the true monthly cost of running each car — including depreciation — using the actual distance from your last optimized route. Each car gets its own figure since each drives a different distance.',
+    cc_intro:'Work out the true monthly cost of running each car — including depreciation — using the actual distance from your last optimized route. Each car has its own vehicle, tax, and running costs — pick a car below to edit its numbers.',
     cc_sec_vehicle:'Vehicle & investment', cc_sec_route:'Schedule', cc_sec_opex:'Operating costs (per vehicle)',
     cc_vehiclePrice:'Vehicle price (฿)', cc_conversionCost:'Conversion / fit-out cost (฿)',
     cc_usefulLifeYears:'Useful life (years)', cc_resaleValue:'Expected resale value (฿)',
@@ -1111,10 +1125,11 @@ const I18N={
     cc_insuranceAnnual:'Insurance (฿/year)', cc_maintenanceRatePerKm:'Maintenance (฿/km)',
     cc_fuelPricePerLiter:'Fuel price (฿/liter)', cc_fuelEfficiencyKmPerL:'Fuel efficiency (km/liter)',
     cc_tollFeePerDay:'Toll fee (฿/day)', cc_driverSalaryMonthly:'Driver salary (฿/month)',
+    cc_annualTax:'Annual car tax (฿/year)',
     cc_need_route:'Optimize a route in Setup first — vehicle cost is calculated per car from its actual route distance.',
     cc_fleet:'fleet total', cc_year_abbr:'yr', cc_month_abbr:'mo',
     cc_r_monthlyCost:'Monthly total cost', cc_r_perKm:'→ Cost per km', cc_r_perHour:'→ Cost per hour',
-    cc_apply:'Apply fleet rate to Cost per km/hour', cc_applied:'Applied to Cost per km / Cost per hour',
+    cc_apply:"Apply this car's rate", cc_applied:'Applied to this car\'s Cost per km / Cost per hour',
     c_vehcost:'Vehicle cost:',
     ac_setkey:'Set an ORS key in Settings to enable suggestions',
     ac_searching:'Searching…', ac_nomatch:'No matches',
@@ -1123,7 +1138,6 @@ const I18N={
     optimizing:'Optimizing routes…',
     map_allcars:'All cars', map_depot:'Depot', map_trcs:'TRCS', map_car:'Car',
     new_hospital:'new hospital',
-    reassign_full:'That car is full (max {n}) — remove one first or raise the limit in Settings',
     reassign_reopt:'Re-optimizing affected cars…',
     reassign_done:'Hospital reassigned & routes updated',
     drag_hint:'💡 Tip: drag a hospital onto another car to reassign it',
@@ -1156,6 +1170,7 @@ const I18N={
     nav_guide:`${ICONS.help} คู่มือ`, nav_settings:`${ICONS.settings} ตั้งค่า`,
     api_set:'✓ เชื่อมต่อ ORS แล้ว', api_unset:'⚠ ยังไม่ได้ตั้งคีย์ ORS',
     vt_setup:`${ICONS.settings} ตั้งค่าข้อมูล`, vt_results:`${ICONS.chart} ผลลัพธ์`,
+    rt_route:'🗺️ เส้นทาง', rt_cost:'💰 ต้นทุน',
     wiz_title:'สร้างเส้นทางส่งเลือด',
     wiz_desc:'เลือกจุดเติมเลือดและเพิ่มโรงพยาบาล แล้วเราจะเลือกจุดเริ่มต้นที่ดีที่สุดให้ (หรือเลือกเองก็ได้)',
     wiz_back:'ย้อนกลับ', wiz_step_done:'เสร็จแล้ว', wiz_step_current:'ขั้นตอนปัจจุบัน',
@@ -1187,7 +1202,7 @@ const I18N={
     s_hosp:'โรงพยาบาลวันนี้', s_cars:'รถที่ต้องใช้', s_depot:'จุดเริ่มต้น', s_totalcost:'ต้นทุนรวม',
     empty_msg:'เพิ่มโรงพยาบาลแล้วกด <strong>จัดเส้นทาง</strong> เพื่อเริ่ม',
     set_title:'ตั้งค่า', set_key:'คีย์ API ของ OpenRouteService',
-    set_stop:'เวลาต่อโรงพยาบาล (นาที)', set_max:'จำนวนโรงพยาบาลสูงสุดต่อรถ',
+    set_stop:'เวลาต่อโรงพยาบาล (นาที)', set_numcars:'จำนวนรถ',
     set_depart:'เวลาออกเดินทาง', set_balance:'การกระจายงาน',
     bal_time:'ตามต้นทุน → เวลา → ระยะทาง', bal_count:'ตามจำนวนโรงพยาบาล',
     set_cost_km:'ต้นทุนต่อกิโลเมตร', set_cost_hr:'ต้นทุนต่อชั่วโมง',
@@ -1226,7 +1241,7 @@ const I18N={
     set_notice_cost:'💰 เส้นทางจะถูกจัดอันดับตามต้นทุนรวมก่อน (ระยะทาง×ต้นทุนต่อกม. + เวลา×ต้นทุนต่อชม.) จากนั้นตามเวลา และตามระยะทางเพื่อตัดสินกรณีเสมอกัน',
     cc_open_btn:'🚚 เปิดเครื่องคำนวณต้นทุนรถ',
     cc_title:'เครื่องคำนวณต้นทุนรถ',
-    cc_intro:'คำนวณต้นทุนรายเดือนที่แท้จริงของรถแต่ละคัน — รวมค่าเสื่อมราคา — โดยใช้ระยะทางจริงจากเส้นทางที่จัดล่าสุด แต่ละคันจะมีตัวเลขของตัวเองเพราะแต่ละคันวิ่งระยะทางไม่เท่ากัน',
+    cc_intro:'คำนวณต้นทุนรายเดือนที่แท้จริงของรถแต่ละคัน — รวมค่าเสื่อมราคา — โดยใช้ระยะทางจริงจากเส้นทางที่จัดล่าสุด แต่ละคันมีรถ ภาษี และต้นทุนการเดินรถของตัวเอง — เลือกรถด้านล่างเพื่อแก้ไขตัวเลขของคันนั้น',
     cc_sec_vehicle:'รถและเงินลงทุน', cc_sec_route:'ตารางงาน', cc_sec_opex:'ต้นทุนดำเนินงาน (ต่อคัน)',
     cc_vehiclePrice:'ราคารถ (฿)', cc_conversionCost:'ค่าดัดแปลง/ติดตั้งอุปกรณ์ (฿)',
     cc_usefulLifeYears:'อายุการใช้งาน (ปี)', cc_resaleValue:'มูลค่าขายต่อที่คาดไว้ (฿)',
@@ -1236,10 +1251,11 @@ const I18N={
     cc_insuranceAnnual:'ประกันภัย (฿/ปี)', cc_maintenanceRatePerKm:'ค่าบำรุงรักษา (฿/กม.)',
     cc_fuelPricePerLiter:'ราคาน้ำมัน (฿/ลิตร)', cc_fuelEfficiencyKmPerL:'อัตราสิ้นเปลือง (กม./ลิตร)',
     cc_tollFeePerDay:'ค่าทางด่วน (฿/วัน)', cc_driverSalaryMonthly:'เงินเดือนคนขับ (฿/เดือน)',
+    cc_annualTax:'ภาษีรถยนต์ประจำปี (฿/ปี)',
     cc_need_route:'จัดเส้นทางในหน้าตั้งค่าก่อน — ต้นทุนรถจะคำนวณต่อคันจากระยะทางจริงของเส้นทางนั้น',
     cc_fleet:'รวมทั้งฟลีท', cc_year_abbr:'ปี', cc_month_abbr:'เดือน',
     cc_r_monthlyCost:'ต้นทุนรวมต่อเดือน', cc_r_perKm:'→ ต้นทุนต่อกม.', cc_r_perHour:'→ ต้นทุนต่อชม.',
-    cc_apply:'นำอัตราฟลีทไปใช้เป็นต้นทุนต่อกม./ชม.', cc_applied:'นำไปใช้เป็นต้นทุนต่อกม. / ต้นทุนต่อชม. แล้ว',
+    cc_apply:'นำอัตราของรถคันนี้ไปใช้', cc_applied:'นำไปใช้เป็นต้นทุนต่อกม. / ต้นทุนต่อชม. ของรถคันนี้แล้ว',
     c_vehcost:'ต้นทุนรถ:',
     ac_setkey:'ตั้งคีย์ ORS ในการตั้งค่าเพื่อเปิดใช้คำแนะนำ',
     ac_searching:'กำลังค้นหา…', ac_nomatch:'ไม่พบผลลัพธ์',
@@ -1248,7 +1264,6 @@ const I18N={
     optimizing:'กำลังจัดเส้นทาง…',
     map_allcars:'ทุกคัน', map_depot:'จุดเริ่มต้น', map_trcs:'สภากาชาด', map_car:'รถ',
     new_hospital:'โรงพยาบาลใหม่',
-    reassign_full:'รถคันนั้นเต็มแล้ว (สูงสุด {n}) — เอาออกหนึ่งแห่งก่อน หรือเพิ่มขีดจำกัดในการตั้งค่า',
     reassign_reopt:'กำลังจัดเส้นทางรถที่เกี่ยวข้องใหม่…',
     reassign_done:'ย้ายโรงพยาบาลและอัปเดตเส้นทางแล้ว',
     drag_hint:'💡 เคล็ดลับ: ลากโรงพยาบาลไปยังรถอีกคันเพื่อย้าย',
@@ -1300,11 +1315,27 @@ const CAR_PALETTE=[{bg:'#2563EB',light:'#EFF6FF',dark:'#1E40AF'},{bg:'#059669',l
 let hospitals=[],nextId=0;
 /* ── Settings (with defaults) ── */
 function getStopMin(){return parseFloat(localStorage.getItem('stop_min'))||10;}
-function getMaxPerCar(){return parseInt(localStorage.getItem('max_per_car'))||5;}
+function getNumCars(){return parseInt(localStorage.getItem('num_cars'))||3;}
 function getBalanceMode(){return localStorage.getItem('balance_mode')||'time';}
 function getDepartTime(){return localStorage.getItem('depart_time')||'08:00';}
 function getCostPerKm(){return parseFloat(localStorage.getItem('cost_per_km'))||5;}
 function getCostPerHour(){return parseFloat(localStorage.getItem('cost_per_hour'))||100;}
+/* Per-car cost-per-km/hour rates (fall back to the fleet-wide rate above until the user sets a
+   car's own economics in the Vehicle Cost Calculator and applies it). Drives both clustering
+   (via the assignment step in runOptimize) and routing so each car's own rate actually matters,
+   not just the cost-calculator report. */
+function getPerCarRates(numCars){
+  let arr=[];try{arr=JSON.parse(localStorage.getItem('per_car_rates')||'[]');if(!Array.isArray(arr))arr=[];}catch(e){arr=[];}
+  const gk=getCostPerKm(),gh=getCostPerHour();
+  return Array.from({length:numCars},(_,i)=>({
+    costPerKm:(arr[i]&&isFinite(arr[i].costPerKm))?arr[i].costPerKm:gk,
+    costPerHour:(arr[i]&&isFinite(arr[i].costPerHour))?arr[i].costPerHour:gh
+  }));
+}
+function savePerCarRate(ci,rate){
+  let arr=[];try{arr=JSON.parse(localStorage.getItem('per_car_rates')||'[]');if(!Array.isArray(arr))arr=[];}catch(e){arr=[];}
+  arr[ci]=rate;localStorage.setItem('per_car_rates',JSON.stringify(arr));
+}
 /* ── Auto-select starting point (default on): pick whichever hospital in the list, used as the
    start/end depot, gives the lowest overall cost — see chooseAutoStart(). ── */
 function getAutoStart(){return localStorage.getItem('auto_start')!=='0';}
@@ -1344,7 +1375,7 @@ function getORS(){return localStorage.getItem('ors_key')||'';}
 function openSettings(){
   document.getElementById('ors-key').value=getORS();
   document.getElementById('stop-min').value=getStopMin();
-  document.getElementById('max-per-car').value=getMaxPerCar();
+  document.getElementById('num-cars').value=getNumCars();
   document.getElementById('balance-mode').value=getBalanceMode();
   document.getElementById('depart-time').value=getDepartTime();
   document.getElementById('cost-per-km').value=getCostPerKm();
@@ -1353,19 +1384,19 @@ function openSettings(){
 }
 function closeSettings(){document.getElementById('settings-modal').style.display='none';}
 function saveKeys(){
-  const oldCk=getCostPerKm(),oldCh=getCostPerHour();
+  const oldCk=getCostPerKm(),oldCh=getCostPerHour(),oldNc=getNumCars();
   const v=document.getElementById('ors-key').value.trim();if(v)localStorage.setItem('ors_key',v);else localStorage.removeItem('ors_key');
   const sm=parseFloat(document.getElementById('stop-min').value);localStorage.setItem('stop_min',(!isNaN(sm)&&sm>=0)?sm:10);
-  const mp=parseInt(document.getElementById('max-per-car').value);localStorage.setItem('max_per_car',(!isNaN(mp)&&mp>=1)?mp:5);
+  const nc=parseInt(document.getElementById('num-cars').value);localStorage.setItem('num_cars',(!isNaN(nc)&&nc>=1)?nc:3);
   localStorage.setItem('balance_mode',document.getElementById('balance-mode').value);
   const dt=document.getElementById('depart-time').value;if(dt)localStorage.setItem('depart_time',dt);
   const ck=parseFloat(document.getElementById('cost-per-km').value);localStorage.setItem('cost_per_km',(!isNaN(ck)&&ck>=0)?ck:5);
   const ch=parseFloat(document.getElementById('cost-per-hour').value);localStorage.setItem('cost_per_hour',(!isNaN(ch)&&ch>=0)?ch:100);
   updateApiIndicator();closeSettings();renderList();toast(t('settings_saved'),'success',2500);
-  // Cost per km/hour is baked into every route's stored cost the moment it's optimized — if either
-  // rate just changed and a route already exists, re-optimize so the displayed numbers stay current
-  // instead of silently going stale. Other settings just re-render with the existing route.
-  const costChanged=getCostPerKm()!==oldCk||getCostPerHour()!==oldCh;
+  // Cost per km/hour and the number of cars are baked into every route the moment it's optimized —
+  // if any of them just changed and a route already exists, re-optimize so the displayed numbers
+  // stay current instead of silently going stale. Other settings just re-render with the existing route.
+  const costChanged=getCostPerKm()!==oldCk||getCostPerHour()!==oldCh||getNumCars()!==oldNc;
   if(costChanged&&window._lastRouted&&window._lastRouted.length) runOptimize();
   else if(window._lastRouted&&window._lastSp) renderResults(window._lastRouted,window._lastSp);
 }
@@ -1377,13 +1408,17 @@ const CC_DEFAULTS={
   vehiclePrice:487200,conversionCost:320540,usefulLifeYears:8,resaleValue:146160,
   operatingDaysPerYear:365,avgSpeedKmh:40,
   insuranceAnnual:44000,maintenanceRatePerKm:0.8,fuelPricePerLiter:33,fuelEfficiencyKmPerL:14.29,
-  tollFeePerDay:200,driverSalaryMonthly:13000
+  tollFeePerDay:200,driverSalaryMonthly:13000,annualTax:1600
 };
 const CC_FIELDS=Object.keys(CC_DEFAULTS);
-function loadCCInputs(){
-  try{const v=JSON.parse(localStorage.getItem('cost_calc_inputs')||'null');return (v&&typeof v==='object')?{...CC_DEFAULTS,...v}:{...CC_DEFAULTS};}catch(e){return {...CC_DEFAULTS};}
+/* Per-car vehicle economics — one full CC_DEFAULTS-shaped set of inputs per car (tax, price,
+   insurance, etc. all vary car to car), stored as an array under one key, same
+   merge-with-defaults pattern as the old fleet-wide blob. */
+function loadPerCarCCInputs(numCars){
+  let arr=[];try{arr=JSON.parse(localStorage.getItem('per_car_cost_inputs')||'[]');if(!Array.isArray(arr))arr=[];}catch(e){arr=[];}
+  return Array.from({length:numCars},(_,i)=>({...CC_DEFAULTS,...(arr[i]||{})}));
 }
-function saveCCInputs(vals){localStorage.setItem('cost_calc_inputs',JSON.stringify(vals));}
+function savePerCarCCInputs(arr){localStorage.setItem('per_car_cost_inputs',JSON.stringify(arr));}
 /* resaleValue defaults to 0 above the call site (never here) — depreciableAmount = grossInvestment
    - resaleValue handles both the "no resale" and "resale expected" cases through one formula.
    annualMileage is passed in directly by the caller (computed per car from its real route
@@ -1397,7 +1432,7 @@ function calcVehicleCost(inp){
   const fuelCost=(inp.fuelPricePerLiter/inp.fuelEfficiencyKmPerL)*annualMileage;
   const tollCost=inp.tollFeePerDay*inp.operatingDaysPerYear;
   const driverCost=inp.driverSalaryMonthly*12;
-  const annualExpense=inp.insuranceAnnual+maintenanceCost+fuelCost+tollCost+driverCost;
+  const annualExpense=inp.insuranceAnnual+inp.annualTax+maintenanceCost+fuelCost+tollCost+driverCost;
   const monthlyExpense=annualExpense/12;
   const monthlyCost=monthlyDepreciation+monthlyExpense;
   const annualCost=monthlyCost*12;
@@ -1405,61 +1440,77 @@ function calcVehicleCost(inp){
   return {grossInvestment,depreciableAmount,monthlyDepreciation,annualMileage,maintenanceCost,fuelCost,tollCost,driverCost,annualExpense,monthlyExpense,monthlyCost,annualCost,annualHours};
 }
 /* Real per-car daily round-trip road distance (Phase 1 + Phase 2 km) from the last optimize run —
-   the single source of truth for mileage everywhere in the calculator and the Results cards. */
-function routedCarsWithDistance(){
-  return (window._lastRouted||[]).filter(r=>r.useRoad&&r.totalKm!=null&&r.totalKm2!=null)
-    .map((r,ci)=>({r,ci,dailyRoundTripKm:parseFloat(r.totalKm)+parseFloat(r.totalKm2)}));
+   the single source of truth for mileage everywhere in the calculator and the Results cards.
+   `routed` is always exactly numCars long (see buildGroups/runOptimize), so ci here is the real,
+   stable car index — no filter-then-index mismatch. */
+function allCarsWithDistance(numCars){
+  const routed=window._lastRouted||[];
+  return Array.from({length:numCars},(_,ci)=>{
+    const r=routed[ci];
+    const dailyRoundTripKm=(r&&r.useRoad&&r.totalKm!=null&&r.totalKm2!=null)?parseFloat(r.totalKm)+parseFloat(r.totalKm2):0;
+    return {ci,dailyRoundTripKm};
+  });
 }
+let _ccPerCar=[],_ccActiveCar=0;
 function openCostCalc(){
   closeSettings();
-  const vals=loadCCInputs();
-  CC_FIELDS.forEach(k=>{const el=document.getElementById('cc-'+k);if(el)el.value=vals[k];});
-  recalcCostCalc();
+  const numCars=getNumCars();
+  _ccPerCar=loadPerCarCCInputs(numCars);
+  document.getElementById('cc-car-tabs').innerHTML=Array.from({length:numCars},(_,ci)=>{
+    const pal=CAR_PALETTE[ci%CAR_PALETTE.length];
+    return `<button class="map-car-tab" data-car="${ci}" onclick="selectCCCar(${ci})" style="background:${pal.light};color:${pal.dark};border-color:${pal.bg};">🚚 ${t('map_car')} ${ci+1}</button>`;
+  }).join('');
+  selectCCCar(0);
   document.getElementById('cost-calc-page').classList.add('open');
+}
+function selectCCCar(ci){
+  _ccActiveCar=ci;
+  CC_FIELDS.forEach(k=>{const el=document.getElementById('cc-'+k);if(el)el.value=_ccPerCar[ci][k];});
+  document.querySelectorAll('#cc-car-tabs .map-car-tab').forEach(btn=>btn.classList.toggle('inactive',+btn.dataset.car!==ci));
+  recalcCostCalc();
 }
 function closeCostCalc(){document.getElementById('cost-calc-page').classList.remove('open');}
 function fmtTHB(n){return '฿'+Math.round(n).toLocaleString();}
-/* Computes calcVehicleCost() per car (using that car's own real mileage) plus a fleet-wide
-   variable/fixed cost split for the derived Cost per km / Cost per hour "Apply" rates, and
-   renders it all into the results panel. Returns null (and shows a hint) if no route exists yet. */
+/* Computes calcVehicleCost() for every car using that car's OWN saved inputs and OWN real
+   mileage, renders the per-car breakdown, and derives the active tab's car's own
+   Cost-per-km/hour (for its "Apply this car's rate" button). Returns null (and shows a hint)
+   if no route exists yet. */
 function recalcCostCalc(){
-  const vals={};
-  CC_FIELDS.forEach(k=>{const el=document.getElementById('cc-'+k);const v=el?parseFloat(el.value):NaN;vals[k]=isNaN(v)?0:v;});
-  saveCCInputs(vals);
+  const numCars=getNumCars();
+  CC_FIELDS.forEach(k=>{const el=document.getElementById('cc-'+k);const v=el?parseFloat(el.value):NaN;_ccPerCar[_ccActiveCar][k]=isNaN(v)?0:v;});
+  savePerCarCCInputs(_ccPerCar);
   const body=document.getElementById('cc-results-body');
-  const cars=routedCarsWithDistance();
-  if(!cars.length){
+  if(!window._lastRouted||!window._lastRouted.length){
     body.innerHTML=`<div class="field-help" style="margin:0;">${t('cc_need_route')}</div>`;
     window._ccLast=null;
     return null;
   }
-  const perCar=cars.map(({r,ci,dailyRoundTripKm})=>{
+  const cars=allCarsWithDistance(numCars);
+  const perCar=cars.map(({ci,dailyRoundTripKm})=>{
+    const vals=_ccPerCar[ci];
     const annualMileage=dailyRoundTripKm*vals.operatingDaysPerYear;
     return {ci,dailyRoundTripKm,...calcVehicleCost({...vals,annualMileage})};
   });
-  const fleetVariableAnnual=perCar.reduce((s,c)=>s+c.maintenanceCost+c.fuelCost,0);
-  const fleetFixedAnnual=perCar.reduce((s,c)=>s+vals.insuranceAnnual+c.tollCost+c.driverCost+c.monthlyDepreciation*12,0);
-  const fleetAnnualMileage=perCar.reduce((s,c)=>s+c.annualMileage,0);
-  const fleetAnnualHours=perCar.reduce((s,c)=>s+c.annualHours,0);
-  const costPerKm=fleetAnnualMileage>0?fleetVariableAnnual/fleetAnnualMileage:0;
-  const costPerHour=fleetAnnualHours>0?fleetFixedAnnual/fleetAnnualHours:0;
   const fleetMonthlyCost=perCar.reduce((s,c)=>s+c.monthlyCost,0);
+  const active=perCar[_ccActiveCar],activeVals=_ccPerCar[_ccActiveCar];
+  const variableAnnual=active.maintenanceCost+active.fuelCost;
+  const fixedAnnual=activeVals.insuranceAnnual+activeVals.annualTax+active.tollCost+active.driverCost+active.monthlyDepreciation*12;
+  const costPerKm=active.annualMileage>0?variableAnnual/active.annualMileage:0;
+  const costPerHour=active.annualHours>0?fixedAnnual/active.annualHours:0;
   body.innerHTML=perCar.map(c=>`<div class="cc-row"><span class="cc-label">${t('map_car')} ${c.ci+1} — ${Math.round(c.annualMileage).toLocaleString()} km/${t('cc_year_abbr')}</span><span class="cc-val">${fmtTHB(c.monthlyCost)}/${t('cc_month_abbr')}</span></div>`).join('')
     +`<div class="cc-row total"><span class="cc-label">${t('cc_r_monthlyCost')} (${t('cc_fleet')})</span><span class="cc-val">${fmtTHB(fleetMonthlyCost)}</span></div>`
-    +`<div class="cc-row rate"><span class="cc-label">${t('cc_r_perKm')}</span><span class="cc-val">฿${costPerKm.toFixed(2)}</span></div>`
-    +`<div class="cc-row rate"><span class="cc-label">${t('cc_r_perHour')}</span><span class="cc-val">฿${costPerHour.toFixed(2)}</span></div>`;
-  window._ccLast={perCar,costPerKm,costPerHour,fleetMonthlyCost};
+    +`<div class="cc-row rate"><span class="cc-label">${t('cc_r_perKm')} (${t('map_car')} ${_ccActiveCar+1})</span><span class="cc-val">฿${costPerKm.toFixed(2)}</span></div>`
+    +`<div class="cc-row rate"><span class="cc-label">${t('cc_r_perHour')} (${t('map_car')} ${_ccActiveCar+1})</span><span class="cc-val">฿${costPerHour.toFixed(2)}</span></div>`;
+  window._ccLast={ci:_ccActiveCar,perCar,costPerKm,costPerHour,fleetMonthlyCost};
   return window._ccLast;
 }
-function applyCostCalcToSettings(){
+function applyCarRateToSettings(){
   const r=window._ccLast||recalcCostCalc();
   if(!r){toast(t('cc_need_route'),'warn',4000);return;}
-  localStorage.setItem('cost_per_km',r.costPerKm.toFixed(2));
-  localStorage.setItem('cost_per_hour',r.costPerHour.toFixed(2));
+  savePerCarRate(r.ci,{costPerKm:r.costPerKm,costPerHour:r.costPerHour});
   toast(t('cc_applied'),'success',3000);
   closeCostCalc();
-  // Rates just changed — re-optimize so every route's cost is recomputed under the new rates
-  // instead of leaving the Results tab showing figures from the old ones.
+  // This car's rate just changed — re-optimize so routing/assignment picks it up.
   if(window._lastRouted&&window._lastRouted.length) runOptimize();
 }
 function onKeyInput(){updateKeyStatus();}
@@ -1795,7 +1846,7 @@ function deleteCurrentList(){
   refreshListDropdown();toast(t('tn_deleted',{name:name}),'info',2500);
 }
 function renderList(){
-  const n=hospitals.length,cap=getMaxPerCar();document.getElementById('hosp-count').textContent=t('hosp_count',{n:n});document.getElementById('opt-btn').disabled=n===0;document.getElementById('opt-btn-reason').style.display=n===0?'block':'none';document.getElementById('s-hosp').textContent=n;document.getElementById('s-cars').textContent=n?Math.ceil(n/cap):'—';
+  const n=hospitals.length;document.getElementById('hosp-count').textContent=t('hosp_count',{n:n});document.getElementById('opt-btn').disabled=n===0;document.getElementById('opt-btn-reason').style.display=n===0?'block':'none';document.getElementById('s-hosp').textContent=n;document.getElementById('s-cars').textContent=n?getNumCars():'—';
   refreshStartHospitalOptions();
   const list=document.getElementById('hosp-list');
   if(!n){list.innerHTML='<div class="empty-state"><p>'+t('empty_list')+'</p></div>';return;}
@@ -1827,40 +1878,76 @@ function groupTriple(g,shared){
   return {cost,time,dist};
 }
 function spread(arr){return Math.max(...arr)-Math.min(...arr);}
+/* Hungarian algorithm (Kuhn-Munkres, O(k^3)) for the square assignment problem: given
+   costMatrix[group][car], returns assignment[group]=car minimizing total cost. Used to bind
+   each hospital group to whichever car's own rate makes the fleet cheapest overall. */
+function hungarianAssign(costMatrix){
+  const n=costMatrix.length;
+  const INF=Infinity;
+  const u=new Array(n+1).fill(0),v=new Array(n+1).fill(0);
+  const p=new Array(n+1).fill(0),way=new Array(n+1).fill(0);
+  for(let i=1;i<=n;i++){
+    p[0]=i;let j0=0;
+    const minv=new Array(n+1).fill(INF),used=new Array(n+1).fill(false);
+    do{
+      used[j0]=true;
+      const i0=p[j0];let delta=INF,j1=-1;
+      for(let j=1;j<=n;j++){
+        if(!used[j]){
+          const cur=costMatrix[i0-1][j-1]-u[i0]-v[j];
+          if(cur<minv[j]){minv[j]=cur;way[j]=j0;}
+          if(minv[j]<delta){delta=minv[j];j1=j;}
+        }
+      }
+      for(let j=0;j<=n;j++){
+        if(used[j]){u[p[j]]+=delta;v[j]-=delta;}
+        else minv[j]-=delta;
+      }
+      j0=j1;
+    }while(p[j0]!==0);
+    do{const j1=way[j0];p[j0]=p[j1];j0=j1;}while(j0!==0);
+  }
+  const assignment=new Array(n).fill(0);
+  for(let j=1;j<=n;j++)if(p[j]>0)assignment[p[j]-1]=j-1;
+  return assignment;
+}
 /* buildGroups(hosps, shared): shared is the optional bulk road-network matrix from
    buildSharedMatrices — when present and balance mode is the workload one, groups are chosen
    to minimize the spread of total cost across cars first, tie-broken by time spread, then
    distance spread. Without it (no ORS key, or the bulk request failed), falls back to a
    straight-line centroid-distance proxy. */
 function buildGroups(hosps,shared){
-  const cap=getMaxPerCar();const n=hosps.length,k=Math.ceil(n/cap);if(k===1)return[hosps];
+  const numCars=getNumCars(),n=hosps.length;
+  if(n===0)return Array.from({length:numCars},()=>[]);
+  const k=Math.min(numCars,n);
   const mode=getBalanceMode();
   // Rough "time cost" proxy for a group = sum of distances from its centroid (more spread ⇒ more driving)
   function groupCostEuclid(g){if(g.length<2)return 0;const c=centroid(g);return g.reduce((s,p)=>s+eDist(p,c),0);}
   let best=null,bestScore=null;
-  for(let run=0;run<40;run++){
+  if(k===1){best=[hosps];}
+  else for(let run=0;run<40;run++){
     const assign=kMeans(hosps,k);
     const raw=Array.from({length:k},()=>[]);
     hosps.forEach((h,i)=>raw[assign[i]].push(h));
-    // enforce capacity: move overflow to the lightest group
-    const overflow=[];raw.forEach(g=>{while(g.length>cap)overflow.push(g.pop());});
-    overflow.forEach(h=>{const t=raw.reduce((a,b)=>a.length<=b.length?a:b);t.push(h);});
-    const groups=raw.filter(g=>g.length>0);
     let score,better;
     if(mode==='time'&&shared){
       // minimise spread of real cost across cars, tie-broken by time spread then distance spread
-      const triples=groups.map(g=>groupTriple(g,shared));
+      const triples=raw.map(g=>groupTriple(g,shared));
       score={cost:spread(triples.map(t=>t.cost)),time:spread(triples.map(t=>t.time)),dist:spread(triples.map(t=>t.dist))};
       better=bestScore===null||tripleBetter(score,bestScore);
     } else if(mode==='time'){
-      score=spread(groups.map(groupCostEuclid));
+      score=spread(raw.map(groupCostEuclid));
       better=bestScore===null||score<bestScore;
     } else {
-      score=spread(groups.map(g=>g.length));
+      score=spread(raw.map(g=>g.length));
       better=bestScore===null||score<bestScore;
     }
-    if(better){bestScore=score;best=groups;}
+    if(better){bestScore=score;best=raw;}
   }
+  // Always return exactly numCars slots (pad with idle/empty cars) so car identity stays
+  // stable downstream — an "extra" car with no hospitals that day is a valid outcome now
+  // that car count is a direct user setting rather than derived from hospital count.
+  while(best.length<numCars)best.push([]);
   return best;
 }
 function nnMatrix(pts,startIdx,matrix){const n=pts.length,visited=new Array(n).fill(false),order=[];let cur=startIdx;for(let s=0;s<n;s++){visited[cur]=true;order.push(pts[cur]);let best=-1,bd=Infinity;for(let j=0;j<n;j++){if(!visited[j]&&matrix[cur][j]<bd){bd=matrix[cur][j];best=j;}}if(best===-1)break;cur=best;}return order;}
@@ -2067,19 +2154,54 @@ async function runOptimize(){
     }
   }
   setBusy(true,'Clustering & routing…');
-  log('📊 Running K-means geographic clustering...');const groups=buildGroups([...located],shared);log(`✓ ${groups.length} group${groups.length!==1?'s':''} formed (≤${getMaxPerCar()} hospitals each)`);
+  const numCars=getNumCars();
+  log('📊 Running K-means geographic clustering...');const groups=buildGroups([...located],shared);
+  log(`✓ ${groups.filter(g=>g.length).length} of ${numCars} car(s) assigned hospitals`);
   if(candidates.length>1)log(`🩸 ${candidates.length} refill points available — each car will use its fastest.`);
-  const routed=[];
-  for(let gi=0;gi<groups.length;gi++){
-    const grp=groups[gi];log(`🚗 Car ${gi+1}: finding fastest visit order (${grp.length} hospitals)...`);
-    const r=await routeCar(grp,sp,candidates,shared);
-    if(r.useRoad){
-      log(`  ✓ Refill at ${r.refill.name} · Phase 1: ~${r.totalMin} min / ${r.totalKm} km · Phase 2: ~${r.totalMin2} min / ${r.totalKm2} km`);
-      if(r.unreachableCount)log(`  ⚠ ORS couldn't find a road route for ${r.unreachableCount} leg(s) in this car (e.g. across water with no bridge nearby) — those legs were excluded from optimization rather than treated as free, but double-check this car's order looks sane.`);
-    }
-    else log(`  ℹ Straight-line optimal (no ORS key or missing coords)`);
-    routed.push(r);
+  // Each car can have its own cost-per-km/hour (see the Vehicle Cost Calculator), so which
+  // hospital group a car should drive isn't just a geography question anymore — a cheaper car
+  // should get sent further. But cost is just km×costPerKm + hours×costPerHour, a linear function
+  // of distance/time — so the stop order/refill choice barely changes with the rate. Route each
+  // group ONCE (under a neutral reference rate, same as before) instead of once per car — this
+  // keeps ORS network calls at O(numCars) even in the per-car-query fallback path — then re-price
+  // that same route under every car's rate with plain arithmetic (no network calls) to build the
+  // cost matrix, and solve the assignment (Hungarian algorithm) that minimizes total fleet cost.
+  // This also makes `routed` a stable, always-numCars-long array indexed by car, instead of an
+  // anonymous array in whatever order groups were discovered.
+  const rates=getPerCarRates(numCars);
+  const refRate={costPerKm:getCostPerKm(),costPerHour:getCostPerHour()};
+  log('🚗 Finding each group\'s fastest visit order...');
+  const routeResults=[];
+  for(let gi=0;gi<numCars;gi++)routeResults.push(await routeCar(groups[gi],sp,candidates,shared,refRate));
+  // Cost is exactly linear in total distance/time (no cross terms), so re-deriving it from each
+  // route's own totalKm/totalMin under a different rate is exact, not an approximation — as long
+  // as the route didn't need the road-network fallback (see routeCar's straight-line branch).
+  function repriceRoute(r,rate){
+    if(!r.useRoad)return 0;
+    const km=(parseFloat(r.totalKm)||0)+(parseFloat(r.totalKm2)||0);
+    const hrs=((parseFloat(r.totalMin)||0)+(parseFloat(r.totalMin2)||0))/60;
+    return km*rate.costPerKm+hrs*rate.costPerHour;
   }
+  const costMatrix=routeResults.map(r=>rates.map(rate=>repriceRoute(r,rate)));
+  const assignment=hungarianAssign(costMatrix); // assignment[gi] = ci
+  const routed=new Array(numCars);
+  groups.forEach((grp,gi)=>{
+    const ci=assignment[gi];
+    const r=routeResults[gi];
+    const rate=rates[ci];
+    // Re-price this car's own cost1/cost2 under its own rate (same linearity as above, split by phase).
+    const final=r.useRoad?{...r,
+      cost1:parseFloat(r.totalKm)*rate.costPerKm+(parseFloat(r.totalMin)/60)*rate.costPerHour,
+      cost2:parseFloat(r.totalKm2)*rate.costPerKm+(parseFloat(r.totalMin2)/60)*rate.costPerHour
+    }:r;
+    routed[ci]=final;
+    if(!grp.length)return;
+    if(final.useRoad){
+      log(`  ✓ Car ${ci+1}: refill at ${final.refill.name} · Phase 1: ~${final.totalMin} min / ${final.totalKm} km · Phase 2: ~${final.totalMin2} min / ${final.totalKm2} km`);
+      if(final.unreachableCount)log(`  ⚠ ORS couldn't find a road route for ${final.unreachableCount} leg(s) for Car ${ci+1} (e.g. across water with no bridge nearby) — those legs were excluded from optimization rather than treated as free, but double-check this car's order looks sane.`);
+    }
+    else log(`  ℹ Car ${ci+1}: straight-line optimal (no ORS key or missing coords)`);
+  });
   log('✅ Done!');renderResults(routed,sp);document.getElementById('opt-btn').disabled=false;setBusy(false);
   switchView('results');
   if(getORS())toast(t('tn_routes_done',{n:routed.length}),'success',3000);
@@ -2090,7 +2212,7 @@ async function renderResults(routed,sp){
   document.getElementById('s-cars').textContent=routed.length;
   const fleetCost=routed.reduce((sum,r)=>sum+(r.useRoad?(r.cost1||0)+(r.cost2||0):0),0);
   document.getElementById('s-totalcost').textContent=routed.some(r=>r.useRoad)?fmtTHB(fleetCost):'—';
-  const ccVals=loadCCInputs();
+  const ccPerCar=loadPerCarCCInputs(routed.length);
   window._cardData={};
   const departStr=getDepartTime();
   const stopMin=getStopMin();
@@ -2133,19 +2255,8 @@ async function renderResults(routed,sp){
       return nm?encodeURIComponent(nm):`${p.lat},${p.lng}`;
     };
     const gmapsUrl='https://www.google.com/maps/dir/'+journey.map(gStop).join('/');
-    const p1metric=r.useRoad&&r.totalMin?`~${r.totalMin} min · ${r.totalKm} km · ${fmtTHB(r.cost1)}`:t('c_straight');
-    const p2metric=r.useRoad&&r.totalMin2?`~${r.totalMin2} min · ${r.totalKm2} km · ${fmtTHB(r.cost2)}`:t('c_straight');
-    const carCost=r.useRoad?fmtTHB((r.cost1||0)+(r.cost2||0)):null;
-    // Full vehicle-ownership economics for this car specifically — its own daily round-trip
-    // distance (Phase 1 + Phase 2 road km) drives its own annual mileage, so this varies car to
-    // car even though every car shares the same vehicle/driver assumptions from the calculator.
-    let vehCostLine='';
-    if(r.useRoad&&r.totalKm!=null&&r.totalKm2!=null){
-      const dailyRoundTripKm=parseFloat(r.totalKm)+parseFloat(r.totalKm2);
-      const annualMileage=dailyRoundTripKm*ccVals.operatingDaysPerYear;
-      const veh=calcVehicleCost({...ccVals,annualMileage});
-      vehCostLine=`<div style="font-size:10.5px;font-family:var(--mono);color:${pal.dark};opacity:0.65;margin-top:2px;">🚚 ${t('c_vehcost')} ${fmtTHB(veh.monthlyCost)}/${t('cc_month_abbr')} <span style="opacity:0.75;">(${Math.round(annualMileage).toLocaleString()} km/${t('cc_year_abbr')})</span></div>`;
-    }
+    const p1metric=r.useRoad&&r.totalMin?`~${r.totalMin} min · ${r.totalKm} km`:t('c_straight');
+    const p2metric=r.useRoad&&r.totalMin2?`~${r.totalMin2} min · ${r.totalKm2} km`:t('c_straight');
     const depotShort=sp.name.length>14?sp.name.slice(0,12)+'…':sp.name;
     const refillName=carRefill.name;const refillShort='🩸 '+(refillName.length>12?refillName.slice(0,11)+'…':refillName);
     window._cardData[ci]={stops1,stops2,p1metric,p2metric,depot:depotShort,refill:refillShort,light:pal.light,dark:pal.dark,bg:pal.bg};
@@ -2154,8 +2265,7 @@ async function renderResults(routed,sp){
         <div style="width:36px;height:36px;border-radius:10px;background:${pal.bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 2px 8px ${pal.bg}44;">🚗</div>
         <div style="flex:1;min-width:0;">
           <div style="font-weight:600;font-size:14px;color:${pal.dark};">Car ${ci+1}</div>
-          <div style="font-size:11px;font-family:var(--mono);color:${pal.dark};opacity:0.75;margin-top:1px;">${r.hospitals.length} ${t('c_stops')}${tripStr?` · ${tripStr} ${t('c_total')}`:''}${carCost?` · ${carCost} ${t('c_cost_total')}`:''}</div>
-          ${vehCostLine}
+          <div style="font-size:11px;font-family:var(--mono);color:${pal.dark};opacity:0.75;margin-top:1px;">${r.hospitals.length} ${t('c_stops')}${tripStr?` · ${tripStr} ${t('c_total')}`:''}</div>
         </div>
       </div>
       <div style="padding:14px 16px 16px;">
@@ -2178,6 +2288,35 @@ async function renderResults(routed,sp){
   const refillTag=cand.length>1?`🩸 ${t('res_refill_lbl')}: ${cand.length} ${t('refill_points_n')}`:`🩸 ${t('res_refill_lbl')}: ${cand[0].name}`;
   document.getElementById('result-area').innerHTML=`<div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px;"><span class="info-tag" style="background:var(--ink);color:var(--white);border-color:var(--ink);">${t('res_depot')}: ${sp.name}</span><span class="info-tag" style="background:var(--red-light);color:var(--red-dark);border-color:var(--red-mid);">${refillTag}</span></div>${routed.length>1?`<div style="font-size:11.5px;color:var(--ink-4);font-family:var(--mono);margin-bottom:10px;">${t('drag_hint')}</div>`:''}<div class="car-grid">${cards}</div>`;
   await renderMap(routed,sp);
+  renderCostTab(routed,ccPerCar,fleetCost);
+}
+/* Every ฿ figure for Results lives here instead of on the route cards: each car's route cost
+   (phase 1 + phase 2, under its own rate), its vehicle-ownership monthly cost (tax, insurance,
+   depreciation, etc. from its own Vehicle Cost Calculator tab), and the fleet total. */
+function renderCostTab(routed,ccPerCar,fleetCost){
+  const rows=routed.map((r,ci)=>{
+    const pal=CAR_PALETTE[ci%CAR_PALETTE.length];
+    const routeCost=r.useRoad?fmtTHB((r.cost1||0)+(r.cost2||0)):null;
+    let vehLine='',vehCost=0;
+    if(r.useRoad&&r.totalKm!=null&&r.totalKm2!=null){
+      const ccVals=ccPerCar[ci];
+      const dailyRoundTripKm=parseFloat(r.totalKm)+parseFloat(r.totalKm2);
+      const annualMileage=dailyRoundTripKm*ccVals.operatingDaysPerYear;
+      const veh=calcVehicleCost({...ccVals,annualMileage});
+      vehCost=veh.monthlyCost;
+      vehLine=`<div class="cc-row"><span class="cc-label">🚚 ${t('c_vehcost')}</span><span class="cc-val">${fmtTHB(veh.monthlyCost)}/${t('cc_month_abbr')} <span style="opacity:0.6;">(${Math.round(annualMileage).toLocaleString()} km/${t('cc_year_abbr')})</span></span></div>`;
+    }
+    return `<div class="car-card" style="padding:14px 16px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <div style="width:30px;height:30px;border-radius:8px;background:${pal.bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">🚗</div>
+        <div style="font-weight:600;font-size:14px;color:${pal.dark};">${t('map_car')} ${ci+1}</div>
+      </div>
+      <div class="cc-row"><span class="cc-label">${t('c_cost_total')} (${t('ph1')}+${t('ph2')})</span><span class="cc-val">${routeCost?routeCost:t('c_straight')}</span></div>
+      ${vehLine}
+    </div>`;
+  }).join('');
+  const fleetLine=routed.some(r=>r.useRoad)?`<div class="cc-row total"><span class="cc-label">${t('s_totalcost')} (${t('cc_fleet')})</span><span class="cc-val">${fmtTHB(fleetCost)}</span></div>`:'';
+  document.getElementById('result-tab-cost').innerHTML=`<div class="car-grid">${rows}</div>${fleetLine?`<div class="car-card" style="padding:14px 16px;margin-top:12px;">${fleetLine}</div>`:''}<button class="btn btn-outline btn-sm" style="width:100%;margin-top:14px;" onclick="openCostCalc()">${t('cc_open_btn')}</button>`;
 }
 function switchCardPhase(ci,phase){
   const d=window._cardData&&window._cardData[ci];if(!d)return;
@@ -2213,23 +2352,23 @@ async function onCarDrop(e,ci){
   document.querySelectorAll('.car-card.drop-target').forEach(c=>c.classList.remove('drop-target'));
   if(!dragData||dragData.car===ci)return;
   const routed=window._lastRouted,sp=window._lastSp;if(!routed)return;
-  const from=routed[dragData.car],to=routed[ci];if(!from||!to)return;
+  const fromCi=dragData.car;
+  const from=routed[fromCi],to=routed[ci];if(!from||!to)return;
   const idx=from.hospitals.findIndex(h=>h.id===dragData.hid);if(idx<0){dragData=null;return;}
   const moved=from.hospitals[idx];
-  if(to.hospitals.length>=getMaxPerCar()){toast(t('reassign_full',{n:getMaxPerCar()}),'warn',4000);dragData=null;return;}
   from.hospitals.splice(idx,1);
   to.hospitals.push(moved);
   dragData=null;
   setBusy(true,t('reassign_reopt'));
-  await reoptimizeCar(from,sp);
-  await reoptimizeCar(to,sp);
-  window._lastRouted=routed.filter(r=>r.hospitals.length>0);
+  const rates=getPerCarRates(routed.length);
+  await reoptimizeCar(from,sp,rates[fromCi]);
+  await reoptimizeCar(to,sp,rates[ci]);
   setBusy(false);
   renderResults(window._lastRouted,sp);
   toast(t('reassign_done'),'success',2500);
 }
-async function reoptimizeCar(r,sp){
-  const fresh=await routeCar(r.hospitals,sp);
+async function reoptimizeCar(r,sp,rate){
+  const fresh=await routeCar(r.hospitals,sp,undefined,undefined,rate);
   Object.assign(r,fresh);
 }
 /* Route one car's hospital group: tries every refill candidate, keeps the fastest total. */
@@ -2249,11 +2388,11 @@ function mkPhaseMetrics(depotKm,depotT,refillKm,refillT,kmMat,tMat,costPerKm,cos
     metrics2:{cost:{s:refillC,e:depotC,m:cMat},time:{s:refillT,e:depotT,m:tMat},dist:{s:refillKm,e:depotKm,m:kmMat}}
   };
 }
-async function routeCar(grp,sp,candidates,shared){
+async function routeCar(grp,sp,candidates,shared,rate){
   candidates=candidates||getRefillCandidates();
   const base={hospitals:grp,hospitals2:grp,totalKm:null,totalKm2:null,totalMin:null,totalMin2:null,cost1:null,cost2:null,legs1:null,legs2:null,useRoad:false,refill:candidates[0]};
   if(!grp.length)return {...base,hospitals2:[]};
-  const costPerKm=getCostPerKm(),costPerHour=getCostPerHour();
+  const costPerKm=rate?rate.costPerKm:getCostPerKm(),costPerHour=rate?rate.costPerHour:getCostPerHour();
   const UNREACHABLE=1e9;
 
   async function evalCandidates(buildForRefill){
@@ -2352,6 +2491,16 @@ function switchView(view){
   // maps need a redraw when their container becomes visible
   if(view==='results'){[1,2].forEach(p=>{if(phaseMaps[p]&&phaseMaps[p].map)setTimeout(()=>phaseMaps[p].map.invalidateSize(),60);});}
   window.scrollTo({top:0,behavior:'smooth'});
+}
+/* Results has its own Route/Cost sub-tabs — Route keeps the stop order + maps, Cost holds every
+   ฿ figure (route cost, vehicle ownership cost, fleet total) so the two concerns don't crowd the
+   same card. */
+function switchResultTab(tab){
+  document.getElementById('rt-route').classList.toggle('active',tab==='route');
+  document.getElementById('rt-cost').classList.toggle('active',tab==='cost');
+  document.getElementById('result-tab-route').style.display=tab==='route'?'':'none';
+  document.getElementById('result-tab-cost').style.display=tab==='cost'?'':'none';
+  if(tab==='route'){[1,2].forEach(p=>{if(phaseMaps[p]&&phaseMaps[p].map)setTimeout(()=>phaseMaps[p].map.invalidateSize(),60);});}
 }
 /* ── Setup step tabs: Starting → Refill → Hospitals (kept simple so beginners aren't shown everything at once) ── */
 /* ── Route setup wizard: Starting → Refill → Hospitals, one step visible at a time.
