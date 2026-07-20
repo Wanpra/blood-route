@@ -1113,6 +1113,8 @@ const I18N={
     cc_r_perKm:'→ Cost per km', cc_r_perHour:'→ Cost per hour',
     cc_apply:"Apply this car's rate", cc_applied:'Applied to this car\'s Cost per km / Cost per hour',
     c_vehcost:'Vehicle cost:',
+    c_perhosp_show:'▼ Cost per hospital', c_perhosp_hide:'▲ Hide cost per hospital',
+    c_perhosp_hint:"Cost of the leg used to reach each hospital (collect + deliver) — farther hospitals cost more. Doesn't include the final return leg to the refill point/depot.",
     ac_setkey:'Set an ORS key in Settings to enable suggestions',
     ac_searching:'Searching…', ac_nomatch:'No matches',
     ac_setkey_map:'Set an ORS key to search — or just drag the map',
@@ -1232,6 +1234,8 @@ const I18N={
     cc_r_perKm:'→ ต้นทุนต่อกม.', cc_r_perHour:'→ ต้นทุนต่อชม.',
     cc_apply:'นำอัตราของรถคันนี้ไปใช้', cc_applied:'นำไปใช้เป็นต้นทุนต่อกม. / ต้นทุนต่อชม. ของรถคันนี้แล้ว',
     c_vehcost:'ต้นทุนรถ:',
+    c_perhosp_show:'▼ ต้นทุนต่อโรงพยาบาล', c_perhosp_hide:'▲ ซ่อนต้นทุนต่อโรงพยาบาล',
+    c_perhosp_hint:'ต้นทุนของเส้นทางที่ใช้ไปถึงโรงพยาบาลแต่ละแห่ง (เก็บ + ส่ง) — โรงพยาบาลที่ไกลกว่าจะมีต้นทุนสูงกว่า ไม่รวมเส้นทางขากลับสุดท้ายไปยังจุดเติมเลือด/จุดเริ่มต้น',
     ac_setkey:'ตั้งคีย์ ORS ในการตั้งค่าเพื่อเปิดใช้คำแนะนำ',
     ac_searching:'กำลังค้นหา…', ac_nomatch:'ไม่พบผลลัพธ์',
     ac_setkey_map:'ตั้งคีย์ ORS เพื่อค้นหา — หรือเลื่อนแผนที่เอง',
@@ -1411,7 +1415,23 @@ function fmtTHB(n){return '฿'+Math.round(n).toLocaleString();}
    modal). `renderCostTab()` (re)builds the car-tab bar and loads the active car's saved inputs
    into the always-present form; `recalcCostCalc()` runs on every keystroke but only touches the
    summary/rate display elements, never the form inputs themselves, so typing doesn't lose focus. */
-let _ccPerCar=[],_ccActiveCar=0;
+let _ccPerCar=[],_ccActiveCar=0,_ccExpanded={};
+/* Per-hospital cost = the driving cost of the leg used to reach that hospital, in both the
+   collect (Phase 1) and deliver (Phase 2) legs, under the given rate — far hospitals sit at the
+   end of a long leg and cost more, close ones cost less. Matched by hospital id since Phase 2's
+   visiting order can differ from Phase 1's. Doesn't include the final leg back to the refill
+   point / depot, which isn't tied to any single hospital. */
+function perHospitalCosts(r,rate){
+  if(!r.useRoad||!r.legsKm1||!r.legsKm2)return [];
+  const idx2=new Map(r.hospitals2.map((h,i)=>[h.id,i]));
+  return r.hospitals.map((h,i1)=>{
+    const i2=idx2.get(h.id);
+    const cost1=r.legsKm1[i1]*rate.costPerKm+(r.legs1[i1]/60)*rate.costPerHour;
+    const cost2=(i2!=null)?r.legsKm2[i2]*rate.costPerKm+(r.legs2[i2]/60)*rate.costPerHour:0;
+    return {name:h.name,km:r.legsKm1[i1]+(i2!=null?r.legsKm2[i2]:0),cost:cost1+cost2};
+  }).sort((a,b)=>b.cost-a.cost);
+}
+function toggleCarCostDetail(ci){_ccExpanded[ci]=!_ccExpanded[ci];recalcCostCalc();}
 function renderCostTab(){
   const numCars=getNumCars();
   _ccPerCar=loadPerCarCCInputs(numCars);
@@ -1445,6 +1465,7 @@ function recalcCostCalc(){
     return null;
   }
   const fleetCost=routed.reduce((s,r)=>s+(r.useRoad?(r.cost1||0)+(r.cost2||0):0),0);
+  const rates=getPerCarRates(routed.length);
   const rows=routed.map((r,ci)=>{
     const pal=CAR_PALETTE[ci%CAR_PALETTE.length];
     const routeCost=r.useRoad?fmtTHB((r.cost1||0)+(r.cost2||0)):t('c_straight');
@@ -1456,13 +1477,25 @@ function recalcCostCalc(){
       const veh=calcVehicleCost({...vals,annualMileage});
       vehLine=`<div class="cc-row"><span class="cc-label">🚚 ${t('c_vehcost')}</span><span class="cc-val">${fmtTHB(veh.monthlyCost)}/${t('cc_month_abbr')} <span style="opacity:0.6;">(${Math.round(annualMileage).toLocaleString()} km/${t('cc_year_abbr')})</span></span></div>`;
     }
-    return `<div class="car-card" style="padding:14px 16px;">
+    const perHosp=r.useRoad?perHospitalCosts(r,rates[ci]):[];
+    const expanded=!!_ccExpanded[ci];
+    let hospBlock='';
+    if(perHosp.length){
+      const toggleLabel=expanded?t('c_perhosp_hide'):t('c_perhosp_show');
+      const list=expanded?`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--rule-soft);">
+        <div style="font-size:10.5px;color:var(--ink-4);margin-bottom:4px;">${t('c_perhosp_hint')}</div>
+        ${perHosp.map(h=>`<div class="cc-row" style="padding:3px 0;"><span class="cc-label" style="font-size:11.5px;">${h.name}</span><span class="cc-val" style="font-size:11.5px;">${fmtTHB(h.cost)} <span style="opacity:0.55;">(${h.km.toFixed(1)} km)</span></span></div>`).join('')}
+      </div>`:'';
+      hospBlock=`<div style="font-size:10.5px;color:var(--ink-3);margin-top:6px;">${toggleLabel}</div>${list}`;
+    }
+    return `<div class="car-card" style="padding:14px 16px;${perHosp.length?'cursor:pointer;':''}" ${perHosp.length?`onclick="toggleCarCostDetail(${ci})"`:''}>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
         <div style="width:30px;height:30px;border-radius:8px;background:${pal.bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">🚗</div>
         <div style="font-weight:600;font-size:14px;color:${pal.dark};">${t('map_car')} ${ci+1}</div>
       </div>
       <div class="cc-row"><span class="cc-label">${t('c_cost_total')} (${t('ph1')}+${t('ph2')})</span><span class="cc-val">${routeCost}</span></div>
       ${vehLine}
+      ${hospBlock}
     </div>`;
   }).join('');
   const fleetLine=routed.some(r=>r.useRoad)?`<div class="car-card" style="padding:14px 16px;margin-top:12px;"><div class="cc-row total"><span class="cc-label">${t('s_totalcost')} (${t('cc_fleet')})</span><span class="cc-val">${fmtTHB(fleetCost)}</span></div></div>`:'';
@@ -2281,7 +2314,7 @@ function mkPhaseMetrics(depotKm,depotT,refillKm,refillT,kmMat,tMat,costPerKm,cos
 }
 async function routeCar(grp,sp,candidates,shared,rate){
   candidates=candidates||getRefillCandidates();
-  const base={hospitals:grp,hospitals2:grp,totalKm:null,totalKm2:null,totalMin:null,totalMin2:null,cost1:null,cost2:null,legs1:null,legs2:null,useRoad:false,refill:candidates[0]};
+  const base={hospitals:grp,hospitals2:grp,totalKm:null,totalKm2:null,totalMin:null,totalMin2:null,cost1:null,cost2:null,legs1:null,legs2:null,legsKm1:null,legsKm2:null,useRoad:false,refill:candidates[0]};
   if(!grp.length)return {...base,hospitals2:[]};
   const costPerKm=rate?rate.costPerKm:getCostPerKm(),costPerHour=rate?rate.costPerHour:getCostPerHour();
   const UNREACHABLE=1e9;
@@ -2304,6 +2337,11 @@ async function routeCar(grp,sp,candidates,shared,rate){
           cost1:p1.cost,cost2:p2.cost,
           legs1:p1.order.map((h,i)=>(i===0?metrics1.time.s[grp.indexOf(h)]:metrics1.time.m[grp.indexOf(p1.order[i-1])][grp.indexOf(h)])/60),
           legs2:p2.order.map((h,i)=>(i===0?metrics2.time.s[grp.indexOf(h)]:metrics2.time.m[grp.indexOf(p2.order[i-1])][grp.indexOf(h)])/60),
+          // per-leg distance (km) to reach each stop — paired with legs1/legs2 (minutes) so the
+          // Cost tab can re-price "cost of the leg to this hospital" under any car's own rate,
+          // the same way cost1/cost2 get re-priced after the fleet assignment step.
+          legsKm1:p1.order.map((h,i)=>(i===0?metrics1.dist.s[grp.indexOf(h)]:metrics1.dist.m[grp.indexOf(p1.order[i-1])][grp.indexOf(h)])),
+          legsKm2:p2.order.map((h,i)=>(i===0?metrics2.dist.s[grp.indexOf(h)]:metrics2.dist.m[grp.indexOf(p2.order[i-1])][grp.indexOf(h)])),
           useRoad:true};
       }
     }
