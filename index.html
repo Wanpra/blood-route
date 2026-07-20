@@ -621,16 +621,6 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
           </select>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label data-i18n="set_cost_km">Cost per km</label>
-          <input type="text" id="cost-per-km" placeholder="5" inputmode="decimal"/>
-        </div>
-        <div class="form-group">
-          <label data-i18n="set_cost_hr">Cost per hour</label>
-          <input type="text" id="cost-per-hour" placeholder="100" inputmode="decimal"/>
-        </div>
-      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeSettings()" data-i18n="set_cancel">Cancel</button>
@@ -1063,7 +1053,6 @@ const I18N={
     set_stop:'Stop time per hospital (min)', set_numcars:'Number of cars',
     set_depart:'Departure time', set_balance:'Workload balancing',
     bal_time:'By cost → time → distance', bal_count:'By hospital count',
-    set_cost_km:'Cost per km', set_cost_hr:'Cost per hour',
     set_cancel:'Cancel', set_save:'Save settings',
     coord_title:'Set coordinates manually', coord_lat:'Latitude', coord_lng:'Longitude',
     coord_hint:'Tip: paste "lat, lng" (e.g. copied from Google Maps) into either box.',
@@ -1185,7 +1174,6 @@ const I18N={
     set_stop:'เวลาต่อโรงพยาบาล (นาที)', set_numcars:'จำนวนรถ',
     set_depart:'เวลาออกเดินทาง', set_balance:'การกระจายงาน',
     bal_time:'ตามต้นทุน → เวลา → ระยะทาง', bal_count:'ตามจำนวนโรงพยาบาล',
-    set_cost_km:'ต้นทุนต่อกิโลเมตร', set_cost_hr:'ต้นทุนต่อชั่วโมง',
     set_cancel:'ยกเลิก', set_save:'บันทึกการตั้งค่า',
     coord_title:'ตั้งพิกัดด้วยตนเอง', coord_lat:'ละติจูด', coord_lng:'ลองจิจูด',
     coord_hint:'เคล็ดลับ: วาง "lat, lng" (คัดลอกจาก Google Maps) ลงในช่องใดก็ได้',
@@ -1343,33 +1331,29 @@ function openSettings(){
   document.getElementById('num-cars').value=getNumCars();
   document.getElementById('balance-mode').value=getBalanceMode();
   document.getElementById('depart-time').value=getDepartTime();
-  document.getElementById('cost-per-km').value=getCostPerKm();
-  document.getElementById('cost-per-hour').value=getCostPerHour();
   updateKeyStatus();document.getElementById('settings-modal').style.display='flex';
 }
 function closeSettings(){document.getElementById('settings-modal').style.display='none';}
 function saveKeys(){
-  const oldCk=getCostPerKm(),oldCh=getCostPerHour(),oldNc=getNumCars();
+  const oldNc=getNumCars();
   const v=document.getElementById('ors-key').value.trim();if(v)localStorage.setItem('ors_key',v);else localStorage.removeItem('ors_key');
   const sm=parseFloat(document.getElementById('stop-min').value);localStorage.setItem('stop_min',(!isNaN(sm)&&sm>=0)?sm:10);
   const nc=parseInt(document.getElementById('num-cars').value);localStorage.setItem('num_cars',(!isNaN(nc)&&nc>=1)?nc:3);
   localStorage.setItem('balance_mode',document.getElementById('balance-mode').value);
   const dt=document.getElementById('depart-time').value;if(dt)localStorage.setItem('depart_time',dt);
-  const ck=parseFloat(document.getElementById('cost-per-km').value);localStorage.setItem('cost_per_km',(!isNaN(ck)&&ck>=0)?ck:5);
-  const ch=parseFloat(document.getElementById('cost-per-hour').value);localStorage.setItem('cost_per_hour',(!isNaN(ch)&&ch>=0)?ch:100);
   updateApiIndicator();closeSettings();renderList();toast(t('settings_saved'),'success',2500);
-  // Cost per km/hour and the number of cars are baked into every route the moment it's optimized —
-  // if any of them just changed and a route already exists, re-optimize so the displayed numbers
-  // stay current instead of silently going stale. Other settings just re-render with the existing route.
-  const costChanged=getCostPerKm()!==oldCk||getCostPerHour()!==oldCh||getNumCars()!==oldNc;
-  if(costChanged&&window._lastRouted&&window._lastRouted.length) runOptimize();
+  // The number of cars is baked into every route the moment it's optimized — if it just changed
+  // and a route already exists, re-optimize so the displayed numbers stay current instead of
+  // silently going stale. Other settings just re-render with the existing route.
+  const numCarsChanged=getNumCars()!==oldNc;
+  if(numCarsChanged&&window._lastRouted&&window._lastRouted.length) runOptimize();
   else if(window._lastRouted&&window._lastSp) renderResults(window._lastRouted,window._lastSp);
   else renderCostTab(); // no route yet — still keep the Cost tab's car-tab count in sync
 }
 /* ── Vehicle cost calculator: works out true monthly cost of running each car — including
    depreciation net of resale value — using that car's OWN actual round-trip road distance from
    the last optimized route (no manual distance entry: mileage varies car to car by design).
-   Can also push a fleet-wide derived Cost per km / Cost per hour into the route-cost settings. ── */
+   Can also push a car's own derived Cost per km / Cost per hour into its routing rate. ── */
 const CC_DEFAULTS={
   vehiclePrice:487200,conversionCost:320540,usefulLifeYears:8,resaleValue:146160,
   operatingDaysPerYear:365,avgSpeedKmh:40,
