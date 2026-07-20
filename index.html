@@ -1401,8 +1401,10 @@ let _ccPerCar=[],_ccActiveCar=0,_ccExpanded={};
    visiting order can differ from Phase 1's. The final leg of each phase (last hospital → refill
    point / last hospital → depot) has no natural owner, so its cost is split evenly across every
    hospital on this car's route and folded into each one's number below. `price` is what gets
-   billed to that hospital — a flat markup over cost. */
-const HOSPITAL_CHARGE_MARKUP=1.2;
+   billed to that hospital — cost with two markups stacked (1.08 x 1.1), applied one after the
+   other rather than combined into a single 1.188 factor so each is easy to change independently. */
+const HOSPITAL_CHARGE_MARKUP_1=1.08;
+const HOSPITAL_CHARGE_MARKUP_2=1.1;
 function perHospitalCosts(r,rate){
   if(!r.useRoad||!r.legsKm1||!r.legsKm2)return [];
   const idx2=new Map(r.hospitals2.map((h,i)=>[h.id,i]));
@@ -1414,7 +1416,7 @@ function perHospitalCosts(r,rate){
     const cost1=r.legsKm1[i1]*rate.costPerKm+(r.legs1[i1]/60)*rate.costPerHour;
     const cost2=(i2!=null)?r.legsKm2[i2]*rate.costPerKm+(r.legs2[i2]/60)*rate.costPerHour:0;
     const cost=cost1+cost2+endShare;
-    return {name:h.name,km:r.legsKm1[i1]+(i2!=null?r.legsKm2[i2]:0),cost,price:cost*HOSPITAL_CHARGE_MARKUP};
+    return {name:h.name,km:r.legsKm1[i1]+(i2!=null?r.legsKm2[i2]:0),cost,price:cost*HOSPITAL_CHARGE_MARKUP_1*HOSPITAL_CHARGE_MARKUP_2};
   }).sort((a,b)=>b.cost-a.cost);
 }
 function toggleCarCostDetail(ci){_ccExpanded[ci]=!_ccExpanded[ci];recalcCostCalc();}
