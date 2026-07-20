@@ -1414,16 +1414,20 @@ let _ccPerCar=[],_ccActiveCar=0,_ccExpanded={};
 /* Per-hospital cost = the driving cost of the leg used to reach that hospital, in both the
    collect (Phase 1) and deliver (Phase 2) legs, under the given rate — far hospitals sit at the
    end of a long leg and cost more, close ones cost less. Matched by hospital id since Phase 2's
-   visiting order can differ from Phase 1's. Doesn't include the final leg back to the refill
-   point / depot, which isn't tied to any single hospital. */
+   visiting order can differ from Phase 1's. The final leg of each phase (last hospital → refill
+   point / last hospital → depot) has no natural owner, so its cost is split evenly across every
+   hospital on this car's route and folded into each one's number below. */
 function perHospitalCosts(r,rate){
   if(!r.useRoad||!r.legsKm1||!r.legsKm2)return [];
   const idx2=new Map(r.hospitals2.map((h,i)=>[h.id,i]));
+  const n=r.hospitals.length;
+  const endCost=(r.endKm1*rate.costPerKm+r.endMin1/60*rate.costPerHour)+(r.endKm2*rate.costPerKm+r.endMin2/60*rate.costPerHour);
+  const endShare=n>0?endCost/n:0;
   return r.hospitals.map((h,i1)=>{
     const i2=idx2.get(h.id);
     const cost1=r.legsKm1[i1]*rate.costPerKm+(r.legs1[i1]/60)*rate.costPerHour;
     const cost2=(i2!=null)?r.legsKm2[i2]*rate.costPerKm+(r.legs2[i2]/60)*rate.costPerHour:0;
-    return {name:h.name,km:r.legsKm1[i1]+(i2!=null?r.legsKm2[i2]:0),cost:cost1+cost2};
+    return {name:h.name,km:r.legsKm1[i1]+(i2!=null?r.legsKm2[i2]:0),cost:cost1+cost2+endShare};
   }).sort((a,b)=>b.cost-a.cost);
 }
 function toggleCarCostDetail(ci){_ccExpanded[ci]=!_ccExpanded[ci];recalcCostCalc();}
@@ -2308,7 +2312,7 @@ function mkPhaseMetrics(depotKm,depotT,refillKm,refillT,kmMat,tMat,costPerKm,cos
 }
 async function routeCar(grp,sp,candidates,shared,rate){
   candidates=candidates||getRefillCandidates();
-  const base={hospitals:grp,hospitals2:grp,totalKm:null,totalKm2:null,totalMin:null,totalMin2:null,cost1:null,cost2:null,legs1:null,legs2:null,legsKm1:null,legsKm2:null,useRoad:false,refill:candidates[0]};
+  const base={hospitals:grp,hospitals2:grp,totalKm:null,totalKm2:null,totalMin:null,totalMin2:null,cost1:null,cost2:null,legs1:null,legs2:null,legsKm1:null,legsKm2:null,endKm1:null,endMin1:null,endKm2:null,endMin2:null,useRoad:false,refill:candidates[0]};
   if(!grp.length)return {...base,hospitals2:[]};
   const costPerKm=rate?rate.costPerKm:getCostPerKm(),costPerHour=rate?rate.costPerHour:getCostPerHour();
   const UNREACHABLE=1e9;
@@ -2336,6 +2340,13 @@ async function routeCar(grp,sp,candidates,shared,rate){
           // the same way cost1/cost2 get re-priced after the fleet assignment step.
           legsKm1:p1.order.map((h,i)=>(i===0?metrics1.dist.s[grp.indexOf(h)]:metrics1.dist.m[grp.indexOf(p1.order[i-1])][grp.indexOf(h)])),
           legsKm2:p2.order.map((h,i)=>(i===0?metrics2.dist.s[grp.indexOf(h)]:metrics2.dist.m[grp.indexOf(p2.order[i-1])][grp.indexOf(h)])),
+          // The final leg of each phase (last hospital → refill point / last hospital → depot)
+          // isn't a detour to any specific hospital, so it has no natural "owner" — kept separate
+          // here and spread evenly across all hospitals in perHospitalCosts() instead.
+          endKm1:metrics1.dist.e[grp.indexOf(p1.order[p1.order.length-1])],
+          endMin1:metrics1.time.e[grp.indexOf(p1.order[p1.order.length-1])]/60,
+          endKm2:metrics2.dist.e[grp.indexOf(p2.order[p2.order.length-1])],
+          endMin2:metrics2.time.e[grp.indexOf(p2.order[p2.order.length-1])]/60,
           useRoad:true};
       }
     }
