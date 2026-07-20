@@ -1400,7 +1400,9 @@ let _ccPerCar=[],_ccActiveCar=0,_ccExpanded={};
    end of a long leg and cost more, close ones cost less. Matched by hospital id since Phase 2's
    visiting order can differ from Phase 1's. The final leg of each phase (last hospital → refill
    point / last hospital → depot) has no natural owner, so its cost is split evenly across every
-   hospital on this car's route and folded into each one's number below. */
+   hospital on this car's route and folded into each one's number below. `price` is what gets
+   billed to that hospital — a flat markup over cost. */
+const HOSPITAL_CHARGE_MARKUP=1.2;
 function perHospitalCosts(r,rate){
   if(!r.useRoad||!r.legsKm1||!r.legsKm2)return [];
   const idx2=new Map(r.hospitals2.map((h,i)=>[h.id,i]));
@@ -1411,7 +1413,8 @@ function perHospitalCosts(r,rate){
     const i2=idx2.get(h.id);
     const cost1=r.legsKm1[i1]*rate.costPerKm+(r.legs1[i1]/60)*rate.costPerHour;
     const cost2=(i2!=null)?r.legsKm2[i2]*rate.costPerKm+(r.legs2[i2]/60)*rate.costPerHour:0;
-    return {name:h.name,km:r.legsKm1[i1]+(i2!=null?r.legsKm2[i2]:0),cost:cost1+cost2+endShare};
+    const cost=cost1+cost2+endShare;
+    return {name:h.name,km:r.legsKm1[i1]+(i2!=null?r.legsKm2[i2]:0),cost,price:cost*HOSPITAL_CHARGE_MARKUP};
   }).sort((a,b)=>b.cost-a.cost);
 }
 function toggleCarCostDetail(ci){_ccExpanded[ci]=!_ccExpanded[ci];recalcCostCalc();}
@@ -1466,7 +1469,7 @@ function recalcCostCalc(){
     if(perHosp.length){
       const toggleLabel=expanded?t('c_perhosp_hide'):t('c_perhosp_show');
       const list=expanded?`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--rule-soft);">
-        ${perHosp.map(h=>`<div class="cc-row" style="padding:3px 0;"><span class="cc-label" style="font-size:11.5px;">${h.name}</span><span class="cc-val" style="font-size:11.5px;">${fmtTHB(h.cost)} <span style="opacity:0.55;">(${h.km.toFixed(1)} km)</span></span></div>`).join('')}
+        ${perHosp.map(h=>`<div class="cc-row" style="padding:3px 0;"><span class="cc-label" style="font-size:11.5px;">${h.name}</span><span class="cc-val" style="font-size:11.5px;">${fmtTHB(h.cost)} <span style="opacity:0.55;">(${h.km.toFixed(1)} km)</span> <span style="color:var(--red);font-weight:600;">→ ${fmtTHB(h.price)}</span></span></div>`).join('')}
       </div>`:'';
       hospBlock=`<div style="font-size:10.5px;color:var(--ink-3);margin-top:6px;">${toggleLabel}</div>${list}`;
     }
