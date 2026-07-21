@@ -764,47 +764,40 @@ button,.btn,.vt-btn,.ps-btn,.map-car-tab,.map-phase-tab,.btn-fix,.btn-danger-sm,
 
       <div class="setup-tab-content step-card" id="stab-start">
         <div class="step-card-head">
-          <h2 data-i18n="start_section_title">Starting point</h2>
-          <p data-i18n="start_section_desc">Where the delivery vehicles begin each day — pick one of your hospitals, or set a custom location below.</p>
+          <h2 data-i18n="start_section_title">Starting points</h2>
+          <p data-i18n="start_section_desc">Where the delivery vehicles begin each day — add one or more; each car will start from whichever is fastest for it.</p>
         </div>
         <div class="step-card-body">
-          <div class="form-group" id="start-hosp-picker">
-            <label for="start-hosp-select" data-i18n="start_pick_hosp">Choose one of your hospitals</label>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <label style="margin-bottom:0;" data-i18n="p_depot">Starting Points</label>
+            <span id="depot-count" style="font-size:12px;color:var(--ink-3);"></span>
+          </div>
+          <div id="depot-list"></div>
+          <div class="form-group" id="start-hosp-picker" style="margin-top:14px;">
+            <label for="start-hosp-select" data-i18n="start_pick_hosp">Add one of your hospitals</label>
             <select id="start-hosp-select" onchange="onStartHospitalSelect()">
               <option value="" data-i18n="start_pick_hosp_ph">— Select a hospital —</option>
             </select>
           </div>
-          <div class="field-help" style="margin:10px 0 6px;" data-i18n="start_or_coords">…or enter a custom location:</div>
-          <div class="form-group" style="margin-bottom:0;position:relative;">
-            <div id="depot-coord-inline" class="coord-inline" style="margin-top:0;">
-              <div class="form-group">
-                <label for="depot-name-inline" data-i18n="l_name_opt">Name (optional)</label>
-                <input type="text" id="depot-name-inline" autocomplete="off" placeholder="e.g. Warehouse, Main depot..." data-i18n-ph="depot_name_ph"/>
+          <div class="field-help" style="margin:10px 0 6px;" data-i18n="start_or_coords">…or add a custom location:</div>
+          <div class="coord-inline" style="margin-top:0;">
+            <div class="form-group">
+              <label for="depot-name-inline" data-i18n="l_name_opt">Name (optional)</label>
+              <input type="text" id="depot-name-inline" autocomplete="off" placeholder="e.g. Warehouse, Main depot..." data-i18n-ph="depot_name_ph"/>
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="depot-lat-inline" data-i18n="coord_lat">Latitude</label>
+                <input type="text" id="depot-lat-inline" inputmode="decimal" placeholder="13.7367" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')addDepotManual()"/>
               </div>
-              <div class="form-row">
-                <div class="form-group" style="margin-bottom:0;">
-                  <label for="depot-lat-inline" data-i18n="coord_lat">Latitude</label>
-                  <input type="text" id="depot-lat-inline" inputmode="decimal" placeholder="13.7367" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
-                </div>
-                <div class="form-group" style="margin-bottom:0;">
-                  <label for="depot-lng-inline" data-i18n="coord_lng">Longitude</label>
-                  <input type="text" id="depot-lng-inline" inputmode="decimal" placeholder="100.5344" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')saveDepotCoordInline()"/>
-                </div>
-              </div>
-              <div class="field-help" data-i18n="depot_hint">Leave all fields blank to use the Thai Red Cross National Blood Centre as your starting point.</div>
-              <div id="depot-coord-error" class="continue-reason" style="display:none;text-align:left;color:var(--red-dark);" role="alert"></div>
-              <div style="margin-top:10px;">
-                <button type="button" class="btn btn-outline btn-sm" onclick="saveDepotCoordInline()" data-i18n="coord_set_location">Set location</button>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="depot-lng-inline" data-i18n="coord_lng">Longitude</label>
+                <input type="text" id="depot-lng-inline" inputmode="decimal" placeholder="100.5344" oninput="onDepotCoordPairInput(this)" onkeydown="if(event.key==='Enter')addDepotManual()"/>
               </div>
             </div>
-            <div id="pinned-depot-chip" class="confirm-card" style="display:none;">
-              <div class="confirm-card-name">📍 <span id="pinned-depot-name">Custom point</span></div>
-              <div class="confirm-card-addr" id="pinned-depot-addr"></div>
-              <div class="confirm-card-coords" id="pinned-depot-coords"></div>
-              <div class="confirm-card-actions">
-                <button type="button" onclick="editPinnedDepot()" data-i18n="edit_location">Edit</button>
-                <button type="button" onclick="clearPinnedDepot()" data-i18n="clear_location">Clear</button>
-              </div>
+            <div id="depot-coord-error" class="continue-reason" style="display:none;text-align:left;color:var(--red-dark);" role="alert"></div>
+            <div style="margin-top:10px;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="addDepotManual()" data-i18n="depot_add_btn">Add starting point</button>
             </div>
           </div>
         </div>
@@ -1019,21 +1012,25 @@ const I18N={
     step1_title:'Starting depot', step1_desc:'Select where the delivery vehicles begin.',
     step2_title:'Refill locations', step2_desc:'Add or remove the blood-refill points used when calculating routes.',
     step3_title:'Hospitals', step3_desc:"Add the hospitals to include in today's route.",
-    start_section_title:'Starting point',
-    start_section_desc:'Where the delivery vehicles begin each day — pick one of your hospitals, or set a custom location below.',
-    start_pick_hosp:'Choose one of your hospitals', start_pick_hosp_ph:'— Select a hospital —',
-    start_or_coords:'…or enter a custom location:',
+    start_section_title:'Starting points',
+    start_section_desc:'Where the delivery vehicles begin each day — add one or more; each car will start from whichever is fastest for it.',
+    start_pick_hosp:'Add one of your hospitals', start_pick_hosp_ph:'— Select a hospital —',
+    start_or_coords:'…or add a custom location:',
+    depot_default_sub:'This location is always included as a starting point.',
+    depot_add_btn:'Add starting point',
+    depot_added:'Starting point added',
+    depot_already_added:'That hospital is already a starting point',
+    depot_need_one:'Keep at least one starting point',
+    depot_points_n:'starting points', depot_point_one:'starting point',
     // trcs bar
     trcs_bar:'Blood refill always at: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย, Henri Dunant Rd',
     // depot panel
-    p_depot:'Starting Depot',
+    p_depot:'Starting Points',
     or_type_loc:'Starting location',
     depot_ph:'Search for an address or place',
     pin_depot:'Use latitude and longitude instead',
-    coord_set_location:'Set location', back_to_search:'Back to search',
-    edit_location:'Edit', clear_location:'Clear',
+    back_to_search:'Back to search',
     coord_invalid:'Enter a valid latitude (-90 to 90) and longitude (-180 to 180).',
-    depot_hint:'Leave all fields blank to use the Thai Red Cross National Blood Centre as your starting point.',
     // add hospital
     p_add:'Add Hospital', clear_all:'Clear all',
     l_name:'Hospital name', l_dist:'District (optional)',
@@ -1148,18 +1145,22 @@ const I18N={
     step2_title:'จุดเติมเลือด', step2_desc:'เพิ่มหรือลบจุดเติมเลือดที่ใช้ในการคำนวณเส้นทาง',
     step3_title:'โรงพยาบาล', step3_desc:'เพิ่มโรงพยาบาลที่จะรวมอยู่ในเส้นทางวันนี้',
     start_section_title:'จุดเริ่มต้น',
-    start_section_desc:'จุดที่รถส่งเลือดจะเริ่มออกเดินทางในแต่ละวัน — เลือกโรงพยาบาลแห่งหนึ่งของคุณ หรือกำหนดตำแหน่งเองด้านล่าง',
-    start_pick_hosp:'เลือกโรงพยาบาลแห่งหนึ่งของคุณ', start_pick_hosp_ph:'— เลือกโรงพยาบาล —',
-    start_or_coords:'...หรือกรอกตำแหน่งกำหนดเอง:',
+    start_section_desc:'จุดที่รถส่งเลือดจะเริ่มออกเดินทางในแต่ละวัน — เพิ่มได้มากกว่าหนึ่งจุด รถแต่ละคันจะเริ่มจากจุดที่เร็วที่สุดสำหรับตัวเอง',
+    start_pick_hosp:'เพิ่มโรงพยาบาลแห่งหนึ่งของคุณ', start_pick_hosp_ph:'— เลือกโรงพยาบาล —',
+    start_or_coords:'...หรือเพิ่มตำแหน่งกำหนดเอง:',
+    depot_default_sub:'จุดนี้จะรวมเป็นจุดเริ่มต้นเสมอ',
+    depot_add_btn:'เพิ่มจุดเริ่มต้น',
+    depot_added:'เพิ่มจุดเริ่มต้นแล้ว',
+    depot_already_added:'โรงพยาบาลนี้เป็นจุดเริ่มต้นอยู่แล้ว',
+    depot_need_one:'ต้องมีจุดเริ่มต้นอย่างน้อยหนึ่งจุด',
+    depot_points_n:'จุดเริ่มต้น', depot_point_one:'จุดเริ่มต้น',
     trcs_bar:'เติมเลือดที่: ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย ถนนอังรีดูนังต์ เสมอ',
     p_depot:'จุดเริ่มต้น',
     or_type_loc:'จุดเริ่มต้น',
     depot_ph:'ค้นหาที่อยู่หรือสถานที่',
     pin_depot:'ใช้ละติจูดและลองจิจูดแทน',
-    coord_set_location:'ตั้งค่าตำแหน่งนี้', back_to_search:'กลับไปค้นหา',
-    edit_location:'แก้ไข', clear_location:'ล้าง',
+    back_to_search:'กลับไปค้นหา',
     coord_invalid:'กรอกละติจูด (-90 ถึง 90) และลองจิจูด (-180 ถึง 180) ให้ถูกต้อง',
-    depot_hint:'เว้นว่างทุกช่องไว้เพื่อใช้ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทยเป็นจุดเริ่มต้น',
     p_add:'เพิ่มโรงพยาบาล', clear_all:'ล้างทั้งหมด',
     l_name:'ชื่อโรงพยาบาล', l_dist:'เขต/อำเภอ (ไม่บังคับ)',
     l_name_opt:'ชื่อ (ไม่บังคับ)', depot_name_ph:'เช่น คลังสินค้า, จุดเริ่มต้นหลัก...',
@@ -1260,7 +1261,7 @@ function applyLang(){
   updateApiIndicator();
   if(typeof showRefillChip==='function')showRefillChip();
   if(typeof renderList==='function')renderList();
-  if(window._lastRouted&&window._lastSp)renderResults(window._lastRouted,window._lastSp);
+  if(window._lastRouted)renderResults(window._lastRouted);
 }
 function setLang(l){localStorage.setItem('lang',l);const b=document.getElementById('lang-btn');if(b)b.innerHTML=(l==='th'?`${ICONS.globe} ไทย`:`${ICONS.globe} EN`);applyLang();}
 function toggleLang(){setLang(getLang()==='en'?'th':'en');}
@@ -1270,6 +1271,92 @@ let useTrcsDefault=true; // whether the TRCS default is included as a candidate
 function getRefillCandidates(){const list=[];if(useTrcsDefault)list.push({...TRCS_REFILL,isDefault:true});customRefills.forEach(r=>list.push({name:r.name,lat:r.lat,lng:r.lng}));return list.length?list:[{...TRCS_REFILL,isDefault:true}];}
 function getRefill(){return getRefillCandidates()[0];} // fallback single (used before optimization)
 function saveRefills(){localStorage.setItem('custom_refills',JSON.stringify(customRefills));localStorage.setItem('use_trcs_default',useTrcsDefault?'1':'0');}
+/* ── Custom starting points (list; each car independently picks whichever is fastest for it) —
+   mirrors the refill-point subsystem above exactly. `id` is set when the point came from
+   picking one of the user's own hospitals, so it can be excluded from the stop list. ── */
+let customDepots=[]; // list of {name,lat,lng,addr,id?}
+let useTrcsDefaultDepot=true;
+function getDepotCandidates(){const list=[];if(useTrcsDefaultDepot)list.push({...TRCS_REFILL,isDefault:true});customDepots.forEach(d=>list.push({name:d.name,lat:d.lat,lng:d.lng,id:d.id}));return list.length?list:[{...TRCS_REFILL,isDefault:true}];}
+function saveDepots(){localStorage.setItem('custom_depots',JSON.stringify(customDepots));localStorage.setItem('use_trcs_default_depot',useTrcsDefaultDepot?'1':'0');}
+/* Migrates a pre-existing single `pinned_depot` (from before multi-depot support) into the new
+   list, once, so upgrading users don't lose their configured starting point. */
+function restoreDepots(){
+  try{
+    const v=JSON.parse(localStorage.getItem('custom_depots')||'null');
+    if(Array.isArray(v)){
+      customDepots=v.filter(d=>d&&typeof d.lat==='number');
+      const u=localStorage.getItem('use_trcs_default_depot');
+      useTrcsDefaultDepot=(u===null)?true:(u==='1');
+    } else {
+      const old=JSON.parse(localStorage.getItem('pinned_depot')||'null');
+      if(old&&typeof old.lat==='number'){
+        customDepots=[{name:old.name,lat:old.lat,lng:old.lng,id:old.id}];
+        useTrcsDefaultDepot=false; // preserve the old single-pin behavior: just that point, not TRCS too
+        saveDepots();
+      }
+      localStorage.removeItem('pinned_depot');
+    }
+    if(!useTrcsDefaultDepot&&!customDepots.length)useTrcsDefaultDepot=true;
+  }catch(e){}
+  renderDepotList();
+}
+/* English distinguishes "1 starting point" / "N starting points"; Thai uses one noun regardless. */
+function depotCountLabel(n){
+  if(getLang()==='th')return n+' '+t('depot_points_n');
+  return n===1?'1 '+t('depot_point_one'):n+' '+t('depot_points_n');
+}
+function depotStatLabel(){const cand=getDepotCandidates();return cand.length>1?depotCountLabel(cand.length):cand[0].name;}
+function renderDepotList(){
+  const wrap=document.getElementById('depot-list');if(!wrap)return;
+  const cand=getDepotCandidates();
+  const cnt=document.getElementById('depot-count');if(cnt)cnt.textContent=depotCountLabel(cand.length);
+  let html='';
+  html+=`<div class="refill-list-row"${useTrcsDefaultDepot?'':' style="opacity:0.55;"'}>
+    <div class="refill-row-icon">🏭</div>
+    <div class="refill-row-main">
+      <div class="refill-row-name">${TRCS_REFILL.name}${useTrcsDefaultDepot?`<span class="refill-badge-default">${t('refill_default_tag')}</span>`:''}</div>
+      <div class="refill-row-addr">${useTrcsDefaultDepot?t('depot_default_sub'):t('refill_disabled_note')}</div>
+    </div>
+    <div class="refill-row-action">
+      <button class="row-icon-btn" onclick="toggleTrcsDefaultDepot()" title="${useTrcsDefaultDepot?t('refill_disable'):t('refill_enable')}" aria-label="${useTrcsDefaultDepot?t('refill_disable'):t('refill_enable')}">${useTrcsDefaultDepot?ICONS.lock:ICONS.unlock}</button>
+    </div>
+  </div>`;
+  customDepots.forEach((d,i)=>{
+    html+=`<div class="refill-list-row">
+      <div class="refill-row-icon">🏭</div>
+      <div class="refill-row-main">
+        <div class="refill-row-name">${d.name}</div>
+        ${d.addr?`<div class="refill-row-addr">${d.addr}</div>`:''}
+      </div>
+      <div class="refill-row-action">
+        <button class="row-icon-btn" onclick="removeDepot(${i})" title="${t('refill_remove')}" aria-label="${t('refill_remove')}: ${d.name}">${ICONS.trash}</button>
+      </div>
+    </div>`;
+  });
+  wrap.innerHTML=html;
+  document.getElementById('s-depot').textContent=depotStatLabel();
+}
+function toggleTrcsDefaultDepot(){
+  if(useTrcsDefaultDepot&&customDepots.length===0){toast(t('depot_need_one'),'warn',3000);return;}
+  useTrcsDefaultDepot=!useTrcsDefaultDepot;saveDepots();renderDepotList();reRenderIfRouted();
+}
+function addDepot(name,lat,lng,addr,id){
+  customDepots.push({name,lat,lng,addr:addr||'',id});
+  saveDepots();renderDepotList();reRenderIfRouted();
+  toast(`${t('depot_added')}: ${name}`,'success',2600);
+}
+function removeDepot(i){customDepots.splice(i,1);if(!useTrcsDefaultDepot&&!customDepots.length)useTrcsDefaultDepot=true;saveDepots();renderDepotList();reRenderIfRouted();}
+function addDepotManual(){
+  const nameEl=document.getElementById('depot-name-inline'),latEl=document.getElementById('depot-lat-inline'),lngEl=document.getElementById('depot-lng-inline');
+  let lat=parseFloat(latEl.value),lng=parseFloat(lngEl.value);
+  if(isNaN(lat)||isNaN(lng)){const co=parseCoords(latEl.value)||parseCoords(lngEl.value);if(co){lat=co.lat;lng=co.lng;}}
+  const errEl=document.getElementById('depot-coord-error');
+  if(isNaN(lat)||isNaN(lng)||Math.abs(lat)>90||Math.abs(lng)>180){errEl.textContent=t('coord_invalid');errEl.style.display='block';return;}
+  errEl.style.display='none';
+  const name=nameEl.value.trim()||t('depot_pin_label');
+  addDepot(name,lat,lng,'');
+  nameEl.value='';latEl.value='';lngEl.value='';
+}
 function restoreRefills(){try{const v=JSON.parse(localStorage.getItem('custom_refills')||'[]');if(Array.isArray(v))customRefills=v.filter(r=>r&&typeof r.lat==='number');const u=localStorage.getItem('use_trcs_default');useTrcsDefault=(u===null)?true:(u==='1');if(!useTrcsDefault&&!customRefills.length)useTrcsDefault=true;renderRefillList();}catch(e){}}
 // Red is reserved for the TRCS/refill marker (see trcsIcon in buildPhaseMap) — kept out of the
 // first slots here so Car 1 never renders in the same color as the refill point on the map.
@@ -1298,8 +1385,8 @@ function savePerCarRate(ci,rate){
   let arr=[];try{arr=JSON.parse(localStorage.getItem('per_car_rates')||'[]');if(!Array.isArray(arr))arr=[];}catch(e){arr=[];}
   arr[ci]=rate;localStorage.setItem('per_car_rates',JSON.stringify(arr));
 }
-/* Manual "pick one of your added hospitals as the starting point" dropdown — reuses the existing
-   pinnedDepot mechanism so resolveDepot() picks it up exactly like a hand-typed coordinate. */
+/* "Add one of your added hospitals as a starting point" dropdown — adds it to the customDepots
+   list (like picking a refill point) rather than replacing a single pinned value. */
 function refreshStartHospitalOptions(){
   const sel=document.getElementById('start-hosp-select');if(!sel)return;
   const cur=sel.value;
@@ -1312,11 +1399,9 @@ function onStartHospitalSelect(){
   if(!id)return;
   const h=hospitals.find(x=>x.id===id);
   if(!h||h.lat==null||h.needsLocation){toast(t('coord_invalid'),'warn',4000);sel.value='';return;}
-  pinnedDepot={name:h.name,lat:h.lat,lng:h.lng,id:h.id};
-  savePinnedDepot();
-  document.getElementById('s-depot').textContent=pinnedDepot.name;
-  showDepotConfirm(pinnedDepot.name,h.lat,h.lng,h.district||'');
-  document.getElementById('depot-coord-inline').style.display='none';
+  if(customDepots.some(d=>d.id===h.id)){toast(t('depot_already_added'),'warn',3000);sel.value='';return;}
+  addDepot(h.name,h.lat,h.lng,h.district||'',h.id);
+  sel.value='';
 }
 /* ── Theme ── */
 function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('theme-btn').innerHTML=t==='dark'?ICONS.sun:ICONS.moon;}
@@ -1347,7 +1432,7 @@ function saveKeys(){
   // silently going stale. Other settings just re-render with the existing route.
   const numCarsChanged=getNumCars()!==oldNc;
   if(numCarsChanged&&window._lastRouted&&window._lastRouted.length) runOptimize();
-  else if(window._lastRouted&&window._lastSp) renderResults(window._lastRouted,window._lastSp);
+  else if(window._lastRouted&&window._lastRouted.length) renderResults(window._lastRouted);
   else renderCostTab(); // no route yet — still keep the Cost tab's car-tab count in sync
 }
 /* ── Vehicle cost calculator: works out true monthly cost of running each car — including
@@ -1588,56 +1673,6 @@ function handleOrsError(status){
 }
 function eDist(a,b){const dx=a.lat-b.lat,dy=a.lng-b.lng;return Math.sqrt(dx*dx+dy*dy);}
 function centroid(pts){return{lat:pts.reduce((s,p)=>s+p.lat,0)/pts.length,lng:pts.reduce((s,p)=>s+p.lng,0)/pts.length};}
-/* ── Selected-depot confirmation card: shown after any way of choosing a depot (search pick,
-   raw coordinates typed, or the inline lat/lng form) — not tied to the pinnedDepot variable
-   itself, which only represents the "manual coordinates" path specifically (see resolveDepot). ── */
-function showDepotConfirm(name,lat,lng,addr){
-  document.getElementById('pinned-depot-name').textContent=name;
-  document.getElementById('pinned-depot-addr').textContent=addr||'';
-  document.getElementById('pinned-depot-coords').textContent=(typeof lat==='number'&&typeof lng==='number')?`${lat.toFixed(5)}, ${lng.toFixed(5)}`:'';
-  document.getElementById('pinned-depot-chip').style.display='block';
-}
-function hideDepotConfirm(){document.getElementById('pinned-depot-chip').style.display='none';}
-function showPinnedDepotChip(){
-  if(!pinnedDepot){hideDepotConfirm();return;}
-  showDepotConfirm(pinnedDepot.name,pinnedDepot.lat,pinnedDepot.lng,pinnedDepot.addr);
-}
-function editPinnedDepot(){
-  if(pinnedDepot){
-    document.getElementById('depot-name-inline').value=(pinnedDepot.name===t('depot_pin_label'))?'':pinnedDepot.name;
-    document.getElementById('depot-lat-inline').value=pinnedDepot.lat;
-    document.getElementById('depot-lng-inline').value=pinnedDepot.lng;
-  }
-  document.getElementById('depot-coord-inline').style.display='block';
-  hideDepotConfirm();
-}
-function clearPinnedDepot(){
-  pinnedDepot=null;localStorage.removeItem('pinned_depot');
-  document.getElementById('depot-name-inline').value='';
-  document.getElementById('depot-lat-inline').value='';
-  document.getElementById('depot-lng-inline').value='';
-  hideDepotConfirm();
-  document.getElementById('depot-coord-inline').style.display='block';
-  document.getElementById('s-depot').textContent=TRCS_REFILL.name;
-}
-function savePinnedDepot(){if(pinnedDepot)localStorage.setItem('pinned_depot',JSON.stringify(pinnedDepot));}
-function restorePinnedDepot(){try{const v=JSON.parse(localStorage.getItem('pinned_depot')||'null');if(v&&typeof v.lat==='number'){pinnedDepot=v;document.getElementById('s-depot').textContent=v.name;showPinnedDepotChip();document.getElementById('depot-coord-inline').style.display='none';}}catch(e){}}
-/* ── Manual lat/lng entry for the depot — the only way to set a custom starting point now that
-   location search has been removed. Leaving both fields blank keeps the TRCS default. ── */
-function saveDepotCoordInline(){
-  const latEl=document.getElementById('depot-lat-inline'),lngEl=document.getElementById('depot-lng-inline');
-  let lat=parseFloat(latEl.value),lng=parseFloat(lngEl.value);
-  if(isNaN(lat)||isNaN(lng)){const co=parseCoords(latEl.value)||parseCoords(lngEl.value);if(co){lat=co.lat;lng=co.lng;}}
-  const errEl=document.getElementById('depot-coord-error');
-  if(isNaN(lat)||isNaN(lng)||Math.abs(lat)>90||Math.abs(lng)>180){errEl.textContent=t('coord_invalid');errEl.style.display='block';return;}
-  errEl.style.display='none';
-  const customName=document.getElementById('depot-name-inline').value.trim();
-  pinnedDepot={name:customName||t('depot_pin_label'),lat,lng};
-  savePinnedDepot();
-  document.getElementById('s-depot').textContent=pinnedDepot.name;
-  showDepotConfirm(pinnedDepot.name,lat,lng,'');
-  document.getElementById('depot-coord-inline').style.display='none';
-}
 /* ── Custom refill locations (list; each car picks its fastest) ── */
 /* English distinguishes "1 refill point" / "N refill points"; Thai uses one noun regardless of
    count, so only English needs the singular/plural branch. */
@@ -1686,7 +1721,7 @@ function addRefill(name,lat,lng,addr){
   toast(`${t('refill_added')}: ${name}`,'success',2600);
 }
 function removeRefill(i){customRefills.splice(i,1);if(!useTrcsDefault&&!customRefills.length)useTrcsDefault=true;saveRefills();renderRefillList();reRenderIfRouted();}
-function reRenderIfRouted(){if(window._lastRouted&&window._lastSp)renderResults(window._lastRouted,window._lastSp);}
+function reRenderIfRouted(){if(window._lastRouted&&window._lastRouted.length)renderResults(window._lastRouted);}
 function showRefillChip(){renderRefillList();}
 /* Paste-a-full-pair auto-split for the refill step's manual lat/lng fields. */
 function onRefillCoordPairInput(el){
@@ -1706,12 +1741,6 @@ function addRefillManual(){
   const name=nameEl.value.trim()||t('refill_pin_label');
   addRefill(name,lat,lng,'');
   nameEl.value='';latEl.value='';lngEl.value='';
-}
-async function resolveDepot(){
-  // A manually pinned starting point takes priority; otherwise fall back to the TRCS default.
-  if(pinnedDepot)return{...pinnedDepot};
-  // No starting point chosen — default to ศูนย์บริการโลหิตแห่งชาติ สภากาชาดไทย (also the default refill point)
-  return{...TRCS_REFILL};
 }
 function removeHospital(id){hospitals=hospitals.filter(h=>h.id!==id);renderList();}
 /* ── Outlier detection ── flag hospitals far from the group cluster (no region lock) ── */
@@ -1734,8 +1763,6 @@ function flagOutliers(){
   });
   if(flagged>0){renderList();toast(t('tn_far',{n:flagged}),'warn',5500);}
 }
-/* ── Manual pin placement ── */
-let pinnedDepot=null;
 /* ── Manual coordinate entry (replaces map pin-picking everywhere: hospitals, new hospital, depot, refill) ── */
 let coordBoxHospId=null, coordMode='hospital';
 function _coordShow(){document.getElementById('coord-modal').style.display='flex';}
@@ -2052,8 +2079,8 @@ function log(msg){const el=document.getElementById('progress-log');if(el){el.inn
    and per-car route ordering, instead of re-querying ORS per car per refill candidate. Returns
    null if there's no key or the request fails (e.g. too many locations for the plan's limit) —
    callers fall back to per-car queries or straight-line as appropriate. */
-async function buildSharedMatrices(sp,candidates,located){
-  const allLocs=[sp,...candidates,...located];
+async function buildSharedMatrices(depots,candidates,located){
+  const allLocs=[...depots,...candidates,...located];
   const mat=await orsMatrix(allLocs);
   if(!(mat&&mat.distances&&mat.durations))return null;
   const D=mat.distances,T=mat.durations;
@@ -2064,8 +2091,8 @@ async function buildSharedMatrices(sp,candidates,located){
   const km=Array.from({length:nLoc},(_,i)=>Array.from({length:nLoc},(_,j)=>i===j?0:safe(D[i][j])));
   const time=Array.from({length:nLoc},(_,i)=>Array.from({length:nLoc},(_,j)=>i===j?0:safe(T[i][j])));
   const cost=Array.from({length:nLoc},(_,i)=>Array.from({length:nLoc},(_,j)=>legCost(km[i][j],time[i][j],costPerKm,costPerHour,UNREACHABLE)));
-  const idOf=new Map();located.forEach((h,i)=>idOf.set(h.id,1+candidates.length+i));
-  return {km,time,cost,idOf,depotIdx:0,refillIdx:ci=>1+ci,UNREACHABLE};
+  const idOf=new Map();located.forEach((h,i)=>idOf.set(h.id,depots.length+candidates.length+i));
+  return {km,time,cost,idOf,depotIdx:di=>di,refillIdx:ci=>depots.length+ci,UNREACHABLE};
 }
 async function runOptimize(){
   if(!hospitals.length)return;
@@ -2084,13 +2111,18 @@ async function runOptimize(){
   if(flagged.length){log(`⚠ ${flagged.length} hospital(s) flagged (far from group / district mismatch) — included but verify with 📍 Fix.`);toast(t('tn_flagged_inc',{n:flagged.length}),'warn',5500);}
   log(`✓ ${located.filter(h=>h.geocoded).length}/${located.length} hospitals have real coordinates`);
   const candidates=getRefillCandidates();
+  const depots=getDepotCandidates();
   let shared=null;
-  log('📍 Resolving starting depot...');const sp=await resolveDepot();document.getElementById('s-depot').textContent=sp.name;log(`✓ Depot: ${sp.name}`);
-  if(sp.id!=null)located=located.filter(h=>h.id!==sp.id); // manually picked one of the hospitals as the start point
+  log(`📍 ${depots.length} starting point(s) available — each car will use its fastest.`);
+  document.getElementById('s-depot').textContent=depotStatLabel();
+  // exclude any hospital that's also one of the starting-point candidates, so it isn't
+  // double-counted as both a depot and a stop
+  const depotIds=new Set(depots.filter(d=>d.id!=null).map(d=>d.id));
+  located=located.filter(h=>!depotIds.has(h.id));
   if(getORS()){
     log('🌐 Fetching road-network matrix for clustering + routing...');
-    shared=await buildSharedMatrices(sp,candidates,located);
-    if(shared)log(`✓ Matrix ready (${located.length} hospitals + depot + ${candidates.length} refill point(s))`);
+    shared=await buildSharedMatrices(depots,candidates,located);
+    if(shared)log(`✓ Matrix ready (${located.length} hospitals + ${depots.length} depot(s) + ${candidates.length} refill point(s))`);
     else log('⚠ Bulk matrix request failed (e.g. too many locations for this plan) — falling back to per-car road queries.');
   }
   setBusy(true,'Clustering & routing…');
@@ -2112,7 +2144,7 @@ async function runOptimize(){
   const refRate={costPerKm:getCostPerKm(),costPerHour:getCostPerHour()};
   log('🚗 Finding each group\'s fastest visit order...');
   const routeResults=[];
-  for(let gi=0;gi<numCars;gi++)routeResults.push(await routeCar(groups[gi],sp,candidates,shared,refRate));
+  for(let gi=0;gi<numCars;gi++)routeResults.push(await routeCar(groups[gi],depots,candidates,shared,refRate));
   // Cost is exactly linear in total distance/time (no cross terms), so re-deriving it from each
   // route's own distance/time under a different rate is exact, not an approximation — as long as
   // the route didn't need the road-network fallback (see routeCar's straight-line branch). Uses
@@ -2150,13 +2182,13 @@ async function runOptimize(){
     }
     else log(`  ℹ Car ${ci+1}: straight-line optimal (no ORS key or missing coords)`);
   });
-  log('✅ Done!');renderResults(routed,sp);document.getElementById('opt-btn').disabled=false;setBusy(false);
+  log('✅ Done!');renderResults(routed);document.getElementById('opt-btn').disabled=false;setBusy(false);
   switchView('results');
   if(getORS())toast(t('tn_routes_done',{n:routed.length}),'success',3000);
   else toast('Optimized with straight-line estimates (no ORS key) — distances are approximate','warn',6000);
 }
-async function renderResults(routed,sp){
-  window._lastRouted=routed;window._lastSp=sp;
+async function renderResults(routed){
+  window._lastRouted=routed;
   document.getElementById('s-cars').textContent=routed.length;
   const fleetCost=routed.reduce((sum,r)=>sum+(r.useRoad?(r.cost1||0)+(r.cost2||0):0),0);
   document.getElementById('s-totalcost').textContent=routed.some(r=>r.useRoad)?fmtTHB(fleetCost):'—';
@@ -2194,7 +2226,8 @@ async function renderResults(routed,sp){
       tripStr=hrs>0?`${hrs}h ${mins}m`:`${mins} min`;
     }
     const carRefill=r.refill||getRefill();
-    const journey=[sp,...r.hospitals,carRefill,...(r.hospitals2||r.hospitals),sp];
+    const carDepot=r.depot||getDepotCandidates()[0];
+    const journey=[carDepot,...r.hospitals,carRefill,...(r.hospitals2||r.hospitals),carDepot];
     // Use the exact name as entered for each stop — Google Maps searches it as-is. Only falls
     // back to raw coordinates when a stop genuinely has no name at all.
     const gStop=p=>{
@@ -2204,7 +2237,7 @@ async function renderResults(routed,sp){
     const gmapsUrl='https://www.google.com/maps/dir/'+journey.map(gStop).join('/');
     const p1metric=r.useRoad&&r.totalMin?`~${r.totalMin} min · ${r.totalKm} km`:t('c_straight');
     const p2metric=r.useRoad&&r.totalMin2?`~${r.totalMin2} min · ${r.totalKm2} km`:t('c_straight');
-    const depotShort=sp.name.length>14?sp.name.slice(0,12)+'…':sp.name;
+    const depotShort=carDepot.name.length>14?carDepot.name.slice(0,12)+'…':carDepot.name;
     const refillName=carRefill.name;const refillShort='🩸 '+(refillName.length>12?refillName.slice(0,11)+'…':refillName);
     window._cardData[ci]={stops1,stops2,p1metric,p2metric,depot:depotShort,refill:refillShort,light:pal.light,dark:pal.dark,bg:pal.bg};
     return `<div class="car-card" data-car="${ci}" ondragover="onCarDragOver(event,${ci})" ondragleave="onCarDragLeave(event,${ci})" ondrop="onCarDrop(event,${ci})">
@@ -2233,8 +2266,9 @@ async function renderResults(routed,sp){
   }).join('');
   const cand=getRefillCandidates();
   const refillTag=cand.length>1?`🩸 ${t('res_refill_lbl')}: ${cand.length} ${t('refill_points_n')}`:`🩸 ${t('res_refill_lbl')}: ${cand[0].name}`;
-  document.getElementById('result-area').innerHTML=`<div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px;"><span class="info-tag" style="background:var(--ink);color:var(--white);border-color:var(--ink);">${t('res_depot')}: ${sp.name}</span><span class="info-tag" style="background:var(--red-light);color:var(--red-dark);border-color:var(--red-mid);">${refillTag}</span></div>${routed.length>1?`<div style="font-size:11.5px;color:var(--ink-4);font-family:var(--mono);margin-bottom:10px;">${t('drag_hint')}</div>`:''}<div class="car-grid">${cards}</div>`;
-  await renderMap(routed,sp);
+  const depotTag=`${t('res_depot')}: ${depotStatLabel()}`;
+  document.getElementById('result-area').innerHTML=`<div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px;"><span class="info-tag" style="background:var(--ink);color:var(--white);border-color:var(--ink);">${depotTag}</span><span class="info-tag" style="background:var(--red-light);color:var(--red-dark);border-color:var(--red-mid);">${refillTag}</span></div>${routed.length>1?`<div style="font-size:11.5px;color:var(--ink-4);font-family:var(--mono);margin-bottom:10px;">${t('drag_hint')}</div>`:''}<div class="car-grid">${cards}</div>`;
+  await renderMap(routed);
   renderCostTab();
 }
 function switchCardPhase(ci,phase){
@@ -2270,7 +2304,7 @@ async function onCarDrop(e,ci){
   e.preventDefault();
   document.querySelectorAll('.car-card.drop-target').forEach(c=>c.classList.remove('drop-target'));
   if(!dragData||dragData.car===ci)return;
-  const routed=window._lastRouted,sp=window._lastSp;if(!routed)return;
+  const routed=window._lastRouted;if(!routed)return;
   const fromCi=dragData.car;
   const from=routed[fromCi],to=routed[ci];if(!from||!to)return;
   const idx=from.hospitals.findIndex(h=>h.id===dragData.hid);if(idx<0){dragData=null;return;}
@@ -2280,14 +2314,17 @@ async function onCarDrop(e,ci){
   dragData=null;
   setBusy(true,t('reassign_reopt'));
   const rates=getPerCarRates(routed.length);
-  await reoptimizeCar(from,sp,rates[fromCi]);
-  await reoptimizeCar(to,sp,rates[ci]);
+  await reoptimizeCar(from,rates[fromCi]);
+  await reoptimizeCar(to,rates[ci]);
   setBusy(false);
-  renderResults(window._lastRouted,sp);
+  renderResults(window._lastRouted);
   toast(t('reassign_done'),'success',2500);
 }
-async function reoptimizeCar(r,sp,rate){
-  const fresh=await routeCar(r.hospitals,sp,undefined,undefined,rate);
+/* Re-routes one car after a drag-and-drop reassignment — re-searches all depot AND refill
+   candidates fresh (routeCar's defaults), since the group's hospital composition just changed
+   and a previously-best starting point/refill might no longer be best. */
+async function reoptimizeCar(r,rate){
+  const fresh=await routeCar(r.hospitals,undefined,undefined,undefined,rate);
   Object.assign(r,fresh);
 }
 /* Route one car's hospital group: tries every refill candidate, keeps the fastest total. */
@@ -2307,44 +2344,51 @@ function mkPhaseMetrics(depotKm,depotT,refillKm,refillT,kmMat,tMat,costPerKm,cos
     metrics2:{cost:{s:refillC,e:depotC,m:cMat},time:{s:refillT,e:depotT,m:tMat},dist:{s:refillKm,e:depotKm,m:kmMat}}
   };
 }
-async function routeCar(grp,sp,candidates,shared,rate){
+async function routeCar(grp,depots,candidates,shared,rate){
   candidates=candidates||getRefillCandidates();
-  const base={hospitals:grp,hospitals2:grp,totalKm:null,totalKm2:null,totalMin:null,totalMin2:null,cost1:null,cost2:null,legs1:null,legs2:null,legsKm1:null,legsKm2:null,endKm1:null,endMin1:null,endKm2:null,endMin2:null,useRoad:false,refill:candidates[0]};
+  depots=depots||getDepotCandidates();
+  const base={hospitals:grp,hospitals2:grp,totalKm:null,totalKm2:null,totalMin:null,totalMin2:null,cost1:null,cost2:null,legs1:null,legs2:null,legsKm1:null,legsKm2:null,endKm1:null,endMin1:null,endKm2:null,endMin2:null,useRoad:false,refill:candidates[0],depot:depots[0]};
   if(!grp.length)return {...base,hospitals2:[]};
   const costPerKm=rate?rate.costPerKm:getCostPerKm(),costPerHour=rate?rate.costPerHour:getCostPerHour();
   const UNREACHABLE=1e9;
 
-  async function evalCandidates(buildForRefill){
+  // Tries every (starting point × refill point) combination, exactly like the refill-only loop
+  // did before — just with a second axis now that starting points can also be a pool. Each car
+  // ends up remembering both winners (best.depot / best.refill) the same way.
+  async function evalCandidates(buildForPair){
     let best=null,bestTriple=null;
-    for(let ci=0;ci<candidates.length;ci++){
-      const refill=candidates[ci];
-      const built=await buildForRefill(refill,ci);
-      if(!built)continue;
-      const {metrics1,metrics2,unreachableCount}=built;
-      const p1=optimalPath(grp,metrics1),p2=optimalPath(grp,metrics2);
-      const totalTriple={cost:p1.cost+p2.cost,time:p1.time+p2.time,dist:p1.distance+p2.distance};
-      if(!best||tripleBetter(totalTriple,bestTriple)){
-        bestTriple=totalTriple;
-        best={refill,unreachableCount,
-          hospitals:p1.order,hospitals2:p2.order,
-          totalMin:(p1.time/60).toFixed(0),totalKm:p1.distance.toFixed(1),
-          totalMin2:(p2.time/60).toFixed(0),totalKm2:p2.distance.toFixed(1),
-          cost1:p1.cost,cost2:p2.cost,
-          legs1:p1.order.map((h,i)=>(i===0?metrics1.time.s[grp.indexOf(h)]:metrics1.time.m[grp.indexOf(p1.order[i-1])][grp.indexOf(h)])/60),
-          legs2:p2.order.map((h,i)=>(i===0?metrics2.time.s[grp.indexOf(h)]:metrics2.time.m[grp.indexOf(p2.order[i-1])][grp.indexOf(h)])/60),
-          // per-leg distance (km) to reach each stop — paired with legs1/legs2 (minutes) so the
-          // Cost tab can re-price "cost of the leg to this hospital" under any car's own rate,
-          // the same way cost1/cost2 get re-priced after the fleet assignment step.
-          legsKm1:p1.order.map((h,i)=>(i===0?metrics1.dist.s[grp.indexOf(h)]:metrics1.dist.m[grp.indexOf(p1.order[i-1])][grp.indexOf(h)])),
-          legsKm2:p2.order.map((h,i)=>(i===0?metrics2.dist.s[grp.indexOf(h)]:metrics2.dist.m[grp.indexOf(p2.order[i-1])][grp.indexOf(h)])),
-          // The final leg of each phase (last hospital → refill point / last hospital → depot)
-          // isn't a detour to any specific hospital, so it has no natural "owner" — kept separate
-          // here and spread evenly across all hospitals in perHospitalCosts() instead.
-          endKm1:metrics1.dist.e[grp.indexOf(p1.order[p1.order.length-1])],
-          endMin1:metrics1.time.e[grp.indexOf(p1.order[p1.order.length-1])]/60,
-          endKm2:metrics2.dist.e[grp.indexOf(p2.order[p2.order.length-1])],
-          endMin2:metrics2.time.e[grp.indexOf(p2.order[p2.order.length-1])]/60,
-          useRoad:true};
+    for(let di=0;di<depots.length;di++){
+      const depot=depots[di];
+      for(let ci=0;ci<candidates.length;ci++){
+        const refill=candidates[ci];
+        const built=await buildForPair(depot,di,refill,ci);
+        if(!built)continue;
+        const {metrics1,metrics2,unreachableCount}=built;
+        const p1=optimalPath(grp,metrics1),p2=optimalPath(grp,metrics2);
+        const totalTriple={cost:p1.cost+p2.cost,time:p1.time+p2.time,dist:p1.distance+p2.distance};
+        if(!best||tripleBetter(totalTriple,bestTriple)){
+          bestTriple=totalTriple;
+          best={depot,refill,unreachableCount,
+            hospitals:p1.order,hospitals2:p2.order,
+            totalMin:(p1.time/60).toFixed(0),totalKm:p1.distance.toFixed(1),
+            totalMin2:(p2.time/60).toFixed(0),totalKm2:p2.distance.toFixed(1),
+            cost1:p1.cost,cost2:p2.cost,
+            legs1:p1.order.map((h,i)=>(i===0?metrics1.time.s[grp.indexOf(h)]:metrics1.time.m[grp.indexOf(p1.order[i-1])][grp.indexOf(h)])/60),
+            legs2:p2.order.map((h,i)=>(i===0?metrics2.time.s[grp.indexOf(h)]:metrics2.time.m[grp.indexOf(p2.order[i-1])][grp.indexOf(h)])/60),
+            // per-leg distance (km) to reach each stop — paired with legs1/legs2 (minutes) so the
+            // Cost tab can re-price "cost of the leg to this hospital" under any car's own rate,
+            // the same way cost1/cost2 get re-priced after the fleet assignment step.
+            legsKm1:p1.order.map((h,i)=>(i===0?metrics1.dist.s[grp.indexOf(h)]:metrics1.dist.m[grp.indexOf(p1.order[i-1])][grp.indexOf(h)])),
+            legsKm2:p2.order.map((h,i)=>(i===0?metrics2.dist.s[grp.indexOf(h)]:metrics2.dist.m[grp.indexOf(p2.order[i-1])][grp.indexOf(h)])),
+            // The final leg of each phase (last hospital → refill point / last hospital → depot)
+            // isn't a detour to any specific hospital, so it has no natural "owner" — kept separate
+            // here and spread evenly across all hospitals in perHospitalCosts() instead.
+            endKm1:metrics1.dist.e[grp.indexOf(p1.order[p1.order.length-1])],
+            endMin1:metrics1.time.e[grp.indexOf(p1.order[p1.order.length-1])]/60,
+            endKm2:metrics2.dist.e[grp.indexOf(p2.order[p2.order.length-1])],
+            endMin2:metrics2.time.e[grp.indexOf(p2.order[p2.order.length-1])]/60,
+            useRoad:true};
+        }
       }
     }
     return best;
@@ -2353,10 +2397,10 @@ async function routeCar(grp,sp,candidates,shared,rate){
   let best=null;
   if(shared){
     // reuse the bulk road-network matrix fetched once up front — no network calls here
-    best=await evalCandidates(async(refill,ci)=>{
-      const di=shared.depotIdx, ri=shared.refillIdx(ci);
+    best=await evalCandidates(async(depot,di,refill,ci)=>{
+      const de=shared.depotIdx(di), ri=shared.refillIdx(ci);
       const idx=grp.map(h=>shared.idOf.get(h.id));
-      const depotKm=idx.map(gi=>shared.km[di][gi]), depotT=idx.map(gi=>shared.time[di][gi]);
+      const depotKm=idx.map(gi=>shared.km[de][gi]), depotT=idx.map(gi=>shared.time[de][gi]);
       const refillKm=idx.map(gi=>shared.km[ri][gi]), refillT=idx.map(gi=>shared.time[ri][gi]);
       const kmMat=idx.map(gi=>idx.map(gj=>shared.km[gi][gj]));
       const tMat=idx.map(gi=>idx.map(gj=>shared.time[gi][gj]));
@@ -2364,9 +2408,9 @@ async function routeCar(grp,sp,candidates,shared,rate){
       return {...mkPhaseMetrics(depotKm,depotT,refillKm,refillT,kmMat,tMat,costPerKm,costPerHour,shared.UNREACHABLE),unreachableCount};
     });
   } else if(getORS()&&grp.every(h=>h.lat!=null)){
-    // no bulk matrix available (e.g. it failed) — fall back to querying ORS per car, per refill
-    best=await evalCandidates(async(refill)=>{
-      const locs=[sp,refill,...grp];
+    // no bulk matrix available (e.g. it failed) — fall back to querying ORS per car, per (depot,refill) pair
+    best=await evalCandidates(async(depot,di,refill,ci)=>{
+      const locs=[depot,refill,...grp];
       const mat=await orsMatrix(locs);
       if(!(mat&&mat.distances&&mat.durations))return null;
       const D=mat.distances,T=mat.durations;
@@ -2384,18 +2428,20 @@ async function routeCar(grp,sp,candidates,shared,rate){
   }
   if(best)return best;
 
-  // straight-line fallback: pick nearest refill by euclidean centroid distance
+  // straight-line fallback: pick nearest depot and nearest refill by euclidean centroid distance
   const c=centroid(grp);
   let refill=candidates[0],bd=Infinity;
   candidates.forEach(cand=>{const d=eDist(cand,c);if(d<bd){bd=d;refill=cand;}});
-  return {...base,refill,hospitals:optimalPathEuclid(grp,sp,refill),hospitals2:optimalPathEuclid(grp,refill,sp)};
+  let depot=depots[0],dd=Infinity;
+  depots.forEach(dep=>{const d=eDist(dep,c);if(d<dd){dd=d;depot=dep;}});
+  return {...base,refill,depot,hospitals:optimalPathEuclid(grp,depot,refill),hospitals2:optimalPathEuclid(grp,refill,depot)};
 }
 {const initTheme=localStorage.getItem('theme')==='light'?'light':'dark';localStorage.setItem('theme',initTheme);applyTheme(initTheme);}
 setLang(getLang());
 updateApiIndicator();
 renderList();
 refreshListDropdown();
-restorePinnedDepot();
+restoreDepots();
 restoreRefills();
 renderCostTab();
 
@@ -2501,7 +2547,6 @@ const phaseMaps={
   1:{map:null,domId:'route-map-1',tabsId:'map-car-tabs-1',legendId:'map-legend-1',shared:[],groups:[],filter:'all'},
   2:{map:null,domId:'route-map-2',tabsId:'map-car-tabs-2',legendId:'map-legend-2',shared:[],groups:[],filter:'all'}
 };
-let mapSpRef=null;
 
 function applyPhaseVisibility(phase){
   const pm=phaseMaps[phase];
@@ -2518,7 +2563,6 @@ function fitPhaseBounds(phase){
   const pm=phaseMaps[phase];
   const pts=[];
   pm.groups.forEach((g,i)=>{ if(pm.filter==='all'||pm.filter===i) g.bounds.forEach(b=>pts.push(b)); });
-  if(mapSpRef) pts.push([mapSpRef.lat,mapSpRef.lng]);
   pts.push([getRefill().lat,getRefill().lng]);
   if(pts.length) pm.map.fitBounds(pts,{padding:[28,28]});
 }
@@ -2536,7 +2580,7 @@ function setCarFilter(phase,ci){
 }
 
 // Build one phase map. phase=1 collect, phase=2 deliver
-async function buildPhaseMap(phase, routed, sp){
+async function buildPhaseMap(phase, routed){
   const pm=phaseMaps[phase];
   const k=getORS();
 
@@ -2562,7 +2606,8 @@ async function buildPhaseMap(phase, routed, sp){
       // Phase-specific waypoints and hospital order
       const order = phase===1 ? r.hospitals : (r.hospitals2||r.hospitals);
       const carRefill=r.refill||getRefill();
-      const pts = phase===1 ? [sp,...order,carRefill] : [carRefill,...order,sp];
+      const carDepot=r.depot||getDepotCandidates()[0];
+      const pts = phase===1 ? [carDepot,...order,carRefill] : [carRefill,...order,carDepot];
 
       let coords=null;
       if(k){ try{ coords=await orsRoadGeometry(pts); }catch(e){ console.error('road geometry',phase,ci,e); } }
@@ -2572,7 +2617,7 @@ async function buildPhaseMap(phase, routed, sp){
 
       order.forEach((h,si)=>{
         // Offset markers that overlap the depot, refill, or another hospital so none get hidden underneath
-        const anchors=[sp,carRefill,...order];
+        const anchors=[carDepot,carRefill,...order];
         const near=anchors.filter(o=>Math.abs(o.lat-h.lat)<0.0012&&Math.abs(o.lng-h.lng)<0.0012);
         let mlat=h.lat, mlng=h.lng;
         if(near.length>1){
@@ -2593,11 +2638,13 @@ async function buildPhaseMap(phase, routed, sp){
     }
   }
 
-  // Depot marker
+  // Depot markers (one per starting-point candidate)
   const depotIcon=L.divIcon({className:'',html:`<div style="width:34px;height:34px;border-radius:10px;background:#18181B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🏭</div>`,iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-18]});
-  const dm=L.marker([sp.lat,sp.lng],{icon:depotIcon,zIndexOffset:1000}).addTo(pm.map);
-  dm.bindPopup(`<div class="popup-name">${sp.name}</div><div class="popup-sub">Starting Depot</div>`);
-  pm.shared.push(dm); allBounds.push([sp.lat,sp.lng]);
+  getDepotCandidates().forEach(dp=>{
+    const dm=L.marker([dp.lat,dp.lng],{icon:depotIcon,zIndexOffset:1000}).addTo(pm.map);
+    dm.bindPopup(`<div class="popup-name">${dp.name}</div><div class="popup-sub">Starting Depot</div>`);
+    pm.shared.push(dm); allBounds.push([dp.lat,dp.lng]);
+  });
 
   // Refill markers (one per candidate)
   const trcsIcon=L.divIcon({className:'',html:`<div style="width:34px;height:34px;border-radius:10px;background:#D4163C;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(212,22,60,0.4);">🩸</div>`,iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-18]});
@@ -2623,13 +2670,12 @@ async function buildPhaseMap(phase, routed, sp){
   `;
 }
 
-async function renderMap(routed, sp){
-  mapSpRef=sp;
+async function renderMap(routed){
   const section=document.getElementById('map-section');
   section.style.display='block';
   // Each phase map is independent — a failure building one must not stop the other from rendering.
-  try{ await buildPhaseMap(1,routed,sp); }catch(e){ console.error('renderMap: phase 1 failed',e); }
-  try{ await buildPhaseMap(2,routed,sp); }catch(e){ console.error('renderMap: phase 2 failed',e); }
+  try{ await buildPhaseMap(1,routed); }catch(e){ console.error('renderMap: phase 1 failed',e); }
+  try{ await buildPhaseMap(2,routed); }catch(e){ console.error('renderMap: phase 2 failed',e); }
   setTimeout(()=>section.scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
 </script>
